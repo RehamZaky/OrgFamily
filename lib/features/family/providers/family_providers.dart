@@ -1,0 +1,93 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/utils/enum_display.dart';
+import '../../../data/local/database.dart';
+import '../../../data/local/tables/family_members_table.dart';
+import '../../../data/providers.dart';
+import '../../tasks/providers/task_providers.dart';
+
+final familyMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
+  return ref.watch(familyRepositoryProvider).watchMembers();
+});
+
+/// The family group photo shown in the home screen header — distinct from
+/// any individual member's own photo.
+final familyPhotoPathProvider = StreamProvider<String?>((ref) {
+  return ref.watch(familyProfileRepositoryProvider).watchPhotoPath();
+});
+
+/// Midnight on the Monday of the current week — the cutoff used for all
+/// "this week" family stats, so they reset together.
+DateTime _startOfThisWeek() {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return today.subtract(Duration(days: today.weekday - DateTime.monday));
+}
+
+/// Tasks each member completed this week, keyed by `assigneeId`. Tasks with
+/// no assignee don't count toward anyone's points.
+final familyPointsThisWeekProvider = Provider<Map<String, int>>((ref) {
+  final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
+  final weekStart = _startOfThisWeek();
+  final points = <String, int>{};
+  for (final t in tasks) {
+    final assigneeId = t.assigneeId;
+    final completedAt = t.completedAt;
+    if (!t.isCompleted || assigneeId == null || completedAt == null) continue;
+    if (completedAt.isBefore(weekStart)) continue;
+    points[assigneeId] = (points[assigneeId] ?? 0) + t.priority.points;
+  }
+  return points;
+});
+
+/// Total tasks (any assignee) completed since the start of this week.
+final tasksDoneThisWeekProvider = Provider<int>((ref) {
+  final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
+  final weekStart = _startOfThisWeek();
+  return tasks
+      .where((t) =>
+          t.isCompleted &&
+          t.completedAt != null &&
+          !t.completedAt!.isBefore(weekStart))
+      .length;
+});
+
+final familyPointsTotalThisWeekProvider = Provider<int>((ref) {
+  return ref
+      .watch(familyPointsThisWeekProvider)
+      .values
+      .fold(0, (sum, p) => sum + p);
+});
+
+/// Tasks a specific member completed since the start of this week.
+final tasksDoneThisWeekForMemberProvider =
+    Provider.family<int, String>((ref, memberId) {
+  final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
+  final weekStart = _startOfThisWeek();
+  return tasks
+      .where((t) =>
+          t.assigneeId == memberId &&
+          t.isCompleted &&
+          t.completedAt != null &&
+          !t.completedAt!.isBefore(weekStart))
+      .length;
+});
+
+/// A member's currently-incomplete assigned tasks (not week-scoped — pending
+/// work doesn't have a completion date to filter by).
+final tasksPendingForMemberProvider =
+    Provider.family<int, String>((ref, memberId) {
+  final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
+  return tasks.where((t) => t.assigneeId == memberId && !t.isCompleted).length;
+});
+
+/// The member treated as "you" for greetings and defaults — the family
+/// owner, or the first member added if no owner is set yet.
+final currentMemberProvider = Provider<FamilyMember?>((ref) {
+  final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
+  if (members.isEmpty) return null;
+  return members.firstWhere(
+    (m) => m.role == FamilyRole.owner,
+    orElse: () => members.first,
+  );
+});

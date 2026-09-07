@@ -1,0 +1,296 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "OrgFamily",
+  "navHome": "Home",
+  "navTasks": "Tasks",
+  "navCalendar": "Calendar",
+  "navLists": "Lists",
+  "navFamily": "Family",
+
+  "drawerProfile": "Profile",
+  "drawerSettings": "Settings",
+  "drawerAbout": "About",
+
+  "greetingMorning": "Good morning",
+  "greetingAfternoon": "Good afternoon",
+  "greetingEvening": "Good evening",
+  "greetingWithName": "{greeting}, {name} 👋",
+  "@greetingWithName": {
+    "placeholders": {
+      "greeting": {},
+      "name": {}
+    }
+  },
+  "greetingFallbackName": "there",
+
+  "statTasksToday": "Tasks today",
+  "statEvent": "Event",
+  "statEvents": "Events",
+  "statList": "List",
+  "statLists": "Lists",
+
+  "sectionTodaysPriorities": "Today",
+  "sectionUpcomingEvents": "Upcoming",
+  "sectionFamilyActivity": "Family activity",
+  "sectionShopping": "Shopping",
+  "viewAll": "View all",
+
+  "emptyNothingDueToday": "Nothing due today 🎉",
+  "emptyNoTasksYet": "No tasks yet",
+  "emptyNoTasksHint": "Try: Buy groceries, Pay electricity bill, Clean the kitchen",
+  "emptyNoUpcomingEvents": "No upcoming events",
+  "emptyNoEventsYet": "No events yet",
+  "emptyNoEventsHint": "Try: Family dinner, School meeting",
+  "emptyNoListsYet": "No lists yet",
+  "emptyNoListsHint": "Try: Groceries list, Packing list",
+  "emptyNoItemsYet": "No items yet",
+  "emptyNoItemsHint": "Try: Milk, Eggs, Bread",
+  "emptyAllDone": "All done ✓",
+  "emptyNoActivityYet": "No activity yet",
+  "actionAddEvent": "Add event",
+  "actionAddItem": "Add",
+  "taskStatusDone": "Done",
+  "itemsCount": "{count} {count, plural, one{item} other{items}}",
+  "@itemsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+
+  "activityCompleted": "completed \"{title}\"",
+  "@activityCompleted": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityAdded": "added \"{item}\" to {list}",
+  "@activityAdded": {
+    "placeholders": {
+      "item": {},
+      "list": {}
+    }
+  },
+  "activitySomeone": "Someone",
+
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "later": "Later",
+  "tasksTabAll": "All",
+  "justNow": "Just now",
+  "minutesAgo": "{count} minutes ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "hoursAgo": "{count} hours ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingAddYourself": "Add yourself",
+  "onboardingComingSoon": "Coming soon",
+  "onboardingPage1Title": "Keep your family organized",
+  "onboardingPage1Body": "Manage tasks, events, lists and more — all in one place.",
+  "onboardingFeatureTasks": "Tasks",
+  "onboardingFeatureEvents": "Events",
+  "onboardingFeatureLists": "Lists",
+  "onboardingFeatureProgress": "Progress",
+  "onboardingPage2Title": "Share and stay connected",
+  "onboardingPage2Body": "Assign tasks, plan together and keep everyone in sync.",
+  "onboardingFeedTaskAdded": "Added a new task",
+  "onboardingFeedListUpdated": "Updated the groceries list",
+  "onboardingFeedTaskCompleted": "Completed her task!",
+  "onboardingFeedEventAdded": "Added an event",
+  "onboardingPage3Title": "Manage money together",
+  "onboardingPage3Body": "Track expenses, plan budgets and reach your family goals.",
+  "onboardingBudgetGroceries": "Groceries",
+  "onboardingBudgetHousehold": "Household",
+  "onboardingBudgetDining": "Dining",
+  "onboardingBudgetTransport": "Transport",
+  "onboardingPage4Title": "Build a happier tomorrow",
+  "onboardingPage4Body": "Small steps today make a big difference.",
+  "onboardingChecklistQualityTime": "More quality time",
+  "onboardingChecklistLessStress": "Less stress",
+  "onboardingChecklistGetThingsDone": "Get things done",
+  "onboardingChecklistHappierFamily": "A happier family",
+  "onboardingPage5Title": "Let's set up your family",
+  "onboardingPage5Body": "Add yourself first — you can bring in the rest of the family right after.",
+
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsThemeSystemHint": "System follows your device's appearance setting.",
+  "settingsLanguage": "Language",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageArabic": "العربية",
+  "settingsLanguageSystem": "System",
+
+  "aboutTitle": "About",
+  "aboutAppName": "OrgFamily",
+  "aboutVersion": "Version 1.0.0 · V1 MVP",
+  "aboutDescription": "A shared family organizer: tasks, calendar, and shopping lists that every family member sees and updates together.",
+  "aboutBuiltWith": "Built with",
+  "aboutTechStack": "Flutter, Riverpod, and Drift (local SQLite).",
+  "aboutLocalNote": "This is a local-only V1 — your family's data stays on this device. Cloud sync across devices is planned for a later version.",
+
+  "taskPriorityLow": "Low",
+  "taskPriorityNormal": "Normal",
+  "taskPriorityHigh": "High",
+  "taskPriorityUrgent": "Urgent",
+
+  "taskCategoryHome": "Home",
+  "taskCategoryShopping": "Shopping",
+  "taskCategoryFinance": "Finance",
+  "taskCategorySchool": "School",
+  "taskCategoryCar": "Car",
+  "taskCategoryChores": "Chores",
+  "taskCategoryFamily": "Family",
+  "taskCategoryEvents": "Events",
+  "taskCategoryAppointments": "Appointments",
+  "taskCategoryErrands": "Errands",
+  "taskCategoryWork": "Work",
+  "taskCategoryOther": "Other",
+
+  "taskRecurrenceNone": "Does not repeat",
+  "taskRecurrenceDaily": "Daily",
+  "taskRecurrenceWeekly": "Weekly",
+  "taskRecurrenceMonthly": "Monthly",
+
+  "eventCategoryBirthday": "Birthday",
+  "eventCategorySchool": "School",
+  "eventCategoryAppointment": "Appointment",
+  "eventCategoryWork": "Work",
+  "eventCategoryTravel": "Travel",
+  "eventCategoryHome": "Home",
+  "eventCategoryFamily": "Family",
+  "eventCategoryOther": "Other",
+
+  "labelTitle": "Title",
+  "labelCategory": "Category",
+  "labelPriority": "Priority",
+  "labelDueDate": "Due date",
+  "labelRepeat": "Repeat",
+  "labelAssignedTo": "Assigned to",
+  "labelWho": "Who",
+  "labelDateTime": "Date & Time",
+  "labelNotes": "Notes",
+  "unassigned": "Unassigned",
+  "everyone": "Everyone",
+  "allCategories": "All categories",
+  "clearFilters": "Clear filters",
+  "notSet": "Not set",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "filter": "Filter",
+  "search": "Search",
+  "closeSearch": "Close search",
+
+  "addItemScreenTitle": "Add Item",
+  "addItemNameLabel": "Item name",
+  "addItemNameHint": "Enter item name",
+  "addItemAddToListLabel": "Add to list",
+  "addItemNewListValue": "New \"Shopping\" list",
+  "addItemButtonLabel": "Add Item",
+
+  "taskDetailsScreenTitle": "Task Details",
+  "taskDetailsNotesHint": "Write a notes or task description…",
+  "taskDetailsNotesSaved": "Notes saved",
+
+  "eventFormNewTitle": "New Event",
+  "eventFormEditTitle": "Edit Event",
+  "eventFormSubtitleNew": "Add the details of your event",
+  "eventFormSubtitleEdit": "Update the details of your event",
+  "eventFormTitleHint": "Event title",
+  "eventFormLocationLabel": "Location (optional)",
+  "eventFormLocationHint": "Add location",
+  "eventFormWhoHint": "Add people who are part of this event.",
+  "eventFormSaveButton": "Save Event",
+  "eventFormSaveChangesButton": "Save changes",
+  "eventFormDeleteTitle": "Delete event?",
+  "eventFormDeleteBody": "\"{title}\" will be removed.",
+  "@eventFormDeleteBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+
+  "listsSearchHint": "Search lists…",
+  "newList": "New list",
+  "noListsMatch": "No lists match your search",
+  "itemsLeft": "{count} {count, plural, one{item} other{items}} left",
+  "@itemsLeft": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "itemsCompleted": "{done} of {total} completed",
+  "@itemsCompleted": {
+    "placeholders": {
+      "done": {},
+      "total": {}
+    }
+  },
+  "tasksSearchHint": "Search tasks…",
+  "noTasksMatch": "No tasks match",
+
+  "calendarSearchHint": "Search events…",
+  "noEventsMatch": "No events match",
+  "noEventsThisDay": "No events this day",
+
+  "taskFormNewTitle": "New task",
+  "taskFormEditTitle": "Edit task",
+  "taskFormQuestion": "What needs to be done?",
+  "taskFormTitleHint": "e.g. Buy groceries",
+  "taskFormAssignTo": "Assign to",
+  "taskFormTimeLabel": "Time",
+  "taskFormNotesLabel": "Notes (optional)",
+  "taskFormNoteHint": "Add a note…",
+  "taskFormReminder": "Reminder",
+  "taskFormChecklist": "Checklist",
+  "taskFormAttachment": "Attachment",
+  "taskFormSubtask": "Subtask",
+  "taskFormComingSoon": "{feature} is coming soon",
+  "@taskFormComingSoon": {
+    "placeholders": {
+      "feature": {}
+    }
+  },
+  "taskFormCreateButton": "Create Task",
+  "saveChanges": "Save changes",
+
+  "completed": "Completed",
+  "tasksEmptyHint": "Tap + to add something the family needs to do.",
+
+  "sectionNotes": "Notes",
+  "notesSortByDate": "Sort by date",
+  "notesSortByColor": "Sort by color",
+  "notesEmptyHint": "No notes yet — tap + and choose Note to add one.",
+  "noteHint": "Write a note…",
+  "quickAddTitle": "What do you want to add?",
+  "quickAddTask": "Task",
+  "quickAddEvent": "Event",
+  "quickAddShopping": "Shopping",
+  "quickAddNote": "Note",
+
+  "quickAddTaskMoreOptions": "More options",
+  "quickAddTaskAdd": "Add Task",
+  "quickAddTaskVoiceUnavailable": "Voice input isn't available on this device",
+  "quickAddTaskDateShort": "Date",
+  "quickAddTaskAssignShort": "Assign"
+}

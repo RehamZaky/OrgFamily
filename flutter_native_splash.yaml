@@ -1,0 +1,14 @@
+flutter_native_splash:
+  # Full-bleed splash artwork (Android <12, iOS, Web). Mutually exclusive
+  # with `color` — a fullscreen image doesn't need a background color.
+  background_image: "assets/splash/splash.png"
+
+  fullscreen: true
+
+  # Android 12+ uses a different splash API: only a small centered icon on
+  # a solid color is supported, not an arbitrary full-bleed image. Cropped
+  # from the same source artwork (just the heart/family mark, no wordmark).
+  android_12:
+    image: "assets/splash/android12_icon.png"
+    icon_background_color: "#E5D8FA"
+    color: "#E5D8FA"
