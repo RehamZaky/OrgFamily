@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
@@ -72,6 +73,7 @@ class _AddShoppingItemScreenState extends ConsumerState<AddShoppingItemScreen> {
       listId: listId,
       name: name,
       addedById: me?.id,
+      actingRole: ref.read(activeRoleProvider),
     );
     if (mounted) Navigator.of(context).pop();
   }

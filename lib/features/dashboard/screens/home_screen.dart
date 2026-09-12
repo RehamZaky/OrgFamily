@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/avatar_photo_store.dart';
@@ -26,8 +29,16 @@ import '../../notes/providers/note_providers.dart';
 import '../../notes/screens/note_form_screen.dart';
 import '../../shopping/providers/shopping_providers.dart';
 import '../../shopping/screens/list_detail_screen.dart';
+import '../../tasks/domain/task_status_calculator.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../../tasks/screens/task_form_screen.dart';
+
+String _overdueLabel(AppLocalizations l10n, Task task) {
+  final days = daysOverdue(TaskDeadlineInput.fromTask(task), DateTime.now());
+  if (days == 0) return l10n.overdueToday;
+  if (days == 1) return l10n.overdueYesterday;
+  return l10n.overdueByDays(days);
+}
 
 bool _isToday(DateTime dt) {
   final now = DateTime.now();
@@ -79,10 +90,25 @@ class HomeScreen extends ConsumerWidget {
         if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
         return a.priority.index.compareTo(b.priority.index);
       });
+    // Overdue tasks surface here regardless of their original due date, so
+    // "needs attention" is never buried behind whatever else is due today —
+    // and never shown twice, since a task due today that's now overdue (a
+    // timed task whose time already passed) only appears in this list.
+    final overdueTasks = allTasks.where((t) =>
+        !t.isCompleted && isTaskOverdue(TaskDeadlineInput.fromTask(t), DateTime.now()))
+        .toList()
+      ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+    final todayNotOverdue = todayTasks.where((t) => !overdueTasks.contains(t)).toList();
+    // At most 4 rows total in the "Today's priorities" card — overdue
+    // first (it needs attention most), today's remaining tasks filling
+    // whatever's left. "View all" is right there for the rest.
+    final visibleOverdue = overdueTasks.take(4).toList();
+    final visibleToday = todayNotOverdue.take(4 - visibleOverdue.length).toList();
 
     final events = ref.watch(allEventsProvider).valueOrNull ?? [];
     final upcomingEvents = ref.watch(upcomingEventsProvider).valueOrNull ?? [];
     final eventsToday = events.where((e) => e.startAt.isToday).length;
+    final eventMembers = ref.watch(allEventMembersProvider).valueOrNull ?? {};
 
     final lists = ref.watch(shoppingListsProvider).valueOrNull ?? [];
     // Prefer whichever list actually has items over a blank "first" list —
@@ -133,7 +159,7 @@ class HomeScreen extends ConsumerWidget {
                               hint: l10n.emptyNoTasksHint,
                             ),
                           )
-                        : todayTasks.isEmpty
+                        : (todayNotOverdue.isEmpty && overdueTasks.isEmpty)
                             ? Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 8),
@@ -141,12 +167,24 @@ class HomeScreen extends ConsumerWidget {
                               )
                             : Column(
                                 children: [
-                                  for (var i = 0; i < todayTasks.take(4).length; i++) ...[
+                                  if (visibleOverdue.isNotEmpty)
+                                    _NeedsAttentionHeader(count: overdueTasks.length),
+                                  for (var i = 0; i < visibleOverdue.length; i++) ...[
                                     _PriorityRow(
-                                      task: todayTasks[i],
-                                      member: memberById[todayTasks[i].assigneeId],
+                                      task: visibleOverdue[i],
+                                      member: memberById[visibleOverdue[i].assigneeId],
+                                      overdue: true,
                                     ),
-                                    if (i != todayTasks.take(4).length - 1)
+                                    if (i != visibleOverdue.length - 1 ||
+                                        visibleToday.isNotEmpty)
+                                      const Divider(height: 1, indent: 56),
+                                  ],
+                                  for (var i = 0; i < visibleToday.length; i++) ...[
+                                    _PriorityRow(
+                                      task: visibleToday[i],
+                                      member: memberById[visibleToday[i].assigneeId],
+                                    ),
+                                    if (i != visibleToday.length - 1)
                                       const Divider(height: 1, indent: 56),
                                   ],
                                 ],
@@ -186,7 +224,12 @@ class HomeScreen extends ConsumerWidget {
                                           for (final e in upcomingEvents.take(3))
                                             _EventRow(
                                               event: e,
-                                              member: memberById[e.memberId],
+                                              members: [
+                                                for (final id
+                                                    in eventMembers[e.id] ?? const [])
+                                                  if (memberById[id] != null)
+                                                    memberById[id]!,
+                                              ],
                                             ),
                                         ],
                                       ),
@@ -397,10 +440,14 @@ class _Header extends ConsumerWidget {
   final int listCount;
 
   Future<void> _pickFamilyPhoto(BuildContext context, WidgetRef ref) async {
+    if (!checkPermission(context, ref, FamilyAction.manageFamilySettings)) return;
     final path =
         await pickAndSaveAvatarPhoto(context: context, memberId: 'family');
     if (path != null) {
-      await ref.read(familyProfileRepositoryProvider).setPhotoPath(path);
+      await ref.read(familyProfileRepositoryProvider).setPhotoPath(
+            path,
+            actingRole: ref.read(activeRoleProvider),
+          );
     }
   }
 
@@ -498,12 +545,8 @@ class _Header extends ConsumerWidget {
                               radius: 28,
                               backgroundColor: Colors.white24,
                               backgroundImage: familyPhotoPath == null
-                                  ? null
-                                  : FileImage(File(familyPhotoPath)),
-                              child: familyPhotoPath == null
-                                  ? const Icon(Icons.family_restroom_rounded,
-                                      color: Colors.white, size: 26)
-                                  : null,
+                                  ? const AssetImage('assets/onboarding/family.png')
+                                  : FileImage(File(familyPhotoPath)) as ImageProvider,
                             ),
                           ),
                           Positioned(
@@ -620,11 +663,45 @@ class _StatChip extends StatelessWidget {
   }
 }
 
+class _NeedsAttentionHeader extends StatelessWidget {
+  const _NeedsAttentionHeader({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, size: 14, color: AppColors.priorityHigh),
+          const SizedBox(width: 6),
+          Text(
+            '${l10n.needsAttention.toUpperCase()} ($count)',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: AppColors.priorityHigh,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PriorityRow extends StatelessWidget {
-  const _PriorityRow({required this.task, required this.member});
+  const _PriorityRow({required this.task, required this.member, this.overdue = false});
 
   final Task task;
   final FamilyMember? member;
+
+  /// Restricts red to the category/date line and the trailing badge — per
+  /// the rest of the app's overdue treatment, the row itself never turns
+  /// red.
+  final bool overdue;
 
   @override
   Widget build(BuildContext context) {
@@ -679,9 +756,21 @@ class _PriorityRow extends StatelessWidget {
                       Icon(task.category.icon,
                           size: 12, color: task.category.color),
                       const SizedBox(width: 4),
-                      Text(task.category.label(l10n),
+                      Flexible(
+                        child: Text(
+                          overdue
+                              ? '${task.category.label(l10n)} • ${_overdueLabel(l10n, task)}'
+                              : task.category.label(l10n),
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 12, color: context.colors.textSecondary)),
+                            fontSize: 12,
+                            fontWeight: overdue ? FontWeight.w700 : null,
+                            color: overdue
+                                ? AppColors.priorityHigh
+                                : context.colors.textSecondary,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -699,6 +788,8 @@ class _PriorityRow extends StatelessWidget {
                   color: statusColor,
                 ),
               )
+            else if (overdue)
+              const Icon(Icons.error_outline, size: 18, color: AppColors.priorityHigh)
             else if (isHighPriority)
               Icon(Icons.flag_rounded, size: 18, color: statusColor)
             else
@@ -718,14 +809,19 @@ class _PriorityRow extends StatelessWidget {
 }
 
 class _EventRow extends StatelessWidget {
-  const _EventRow({required this.event, required this.member});
+  const _EventRow({required this.event, required this.members});
 
   final Event event;
-  final FamilyMember? member;
+  final List<FamilyMember> members;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final peopleLine = members.isEmpty
+        ? null
+        : members.length <= 2
+            ? members.map((m) => m.name).join(', ')
+            : l10n.peopleCount(members.length);
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => EventFormScreen(existing: event)),
@@ -737,8 +833,8 @@ class _EventRow extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 14,
-              backgroundColor: event.category.color.withValues(alpha: 0.15),
-              child: Icon(event.category.icon, size: 14, color: event.category.color),
+              backgroundColor: event.displayColor.withValues(alpha: 0.15),
+              child: Icon(event.category.icon, size: 14, color: event.displayColor),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -750,7 +846,7 @@ class _EventRow extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: event.category.color,
+                      color: event.displayColor,
                     ),
                   ),
                   Text(
@@ -758,8 +854,9 @@ class _EventRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  if (member != null)
-                    Text(member!.name,
+                  if (peopleLine != null)
+                    Text(peopleLine,
+                        overflow: TextOverflow.ellipsis,
                         style:
                             TextStyle(fontSize: 11, color: context.colors.textSecondary)),
                 ],

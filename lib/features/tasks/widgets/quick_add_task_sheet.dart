@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
@@ -139,11 +142,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
     _unfocus();
     if (date == null) return;
-    final base = _dueDate;
-    setState(() {
-      _dueDate = DateTime(
-          date.year, date.month, date.day, base?.hour ?? 9, base?.minute ?? 0);
-    });
+    setState(() => _dueDate = DateTime(date.year, date.month, date.day));
   }
 
   Future<void> _pickPriority() async {
@@ -214,12 +213,15 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
+    if (!checkPermission(context, ref, FamilyAction.createTask)) return;
     await ref.read(taskRepositoryProvider).addTask(
           id: const Uuid().v4(),
           title: title,
           dueDate: _dueDate,
           priority: _priority ?? TaskPriority.normal,
           assigneeId: _assigneeId,
+          actingRole: ref.read(activeRoleProvider),
+          actingMemberId: ref.read(activeMemberIdProvider),
         );
     if (mounted) Navigator.of(context).pop();
   }

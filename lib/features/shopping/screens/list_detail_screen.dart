@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/local/database.dart';
@@ -36,6 +37,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
           listId: widget.list.id,
           name: name,
           addedById: me?.id,
+          actingRole: ref.read(activeRoleProvider),
         );
     _itemController.clear();
   }

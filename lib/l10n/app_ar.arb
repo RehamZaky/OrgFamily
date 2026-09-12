@@ -9,11 +9,28 @@
   "navFamily": "العائلة",
 
   "drawerProfile": "الملف الشخصي",
+  "drawerSwitchProfile": "تبديل الملف الشخصي",
   "drawerSettings": "الإعدادات",
   "drawerAbout": "حول التطبيق",
 
+  "ourFamily": "عائلتنا",
+  "ourFamilyTagline": "معًا ننظم، نخطط، وننمو 💜",
+  "familySummaryMembers": "الأفراد",
+  "familySummaryDoneThisWeek": "أُنجز هذا الأسبوع",
+  "familySummaryPointsThisWeek": "نقاط هذا الأسبوع",
+  "familyMembersHeading": "أفراد العائلة",
+  "addMember": "إضافة فرد",
+  "noFamilyMembersYet": "لا يوجد أفراد عائلة بعد",
+  "tasksTodayCount": "{count, plural, one{مهمة واحدة اليوم} two{مهمتان اليوم} few{{count} مهام اليوم} many{{count} مهمة اليوم} other{{count} مهمة اليوم}}",
+  "tasksTodayAllDone": "{count, plural, one{تم إنجاز مهمة واحدة اليوم} two{تم إنجاز مهمتين اليوم} few{تم إنجاز {count} مهام اليوم} many{تم إنجاز {count} مهمة اليوم} other{تم إنجاز {count} مهمة اليوم}}",
+  "pointsShort": "{count} نقطة",
+  "removeMemberTitle": "إزالة فرد من العائلة؟",
+  "removeMemberBody": "سيتم إزالة {name} من عائلتك.",
+  "remove": "إزالة",
+  "you": "أنت",
+
   "greetingMorning": "صباح الخير",
-  "greetingAfternoon": "طاب نهارك",
+  "greetingAfternoon": " نهارك جميل",
   "greetingEvening": "مساء الخير",
   "greetingWithName": "{greeting}، {name} 👋",
   "greetingFallbackName": "صديقي",
@@ -45,6 +62,16 @@
   "actionAddEvent": "إضافة حدث",
   "actionAddItem": "إضافة عنصر",
   "taskStatusDone": "تم",
+  "overdue": "متأخرة",
+  "overdueToday": "متأخرة منذ اليوم",
+  "overdueYesterday": "متأخرة منذ أمس",
+  "yesterday": "أمس",
+  "overdueByDays": "{count, plural, one{متأخرة منذ يوم} two{متأخرة منذ يومين} few{متأخرة منذ {count} أيام} many{متأخرة منذ {count} يومًا} other{متأخرة منذ {count} يوم}}",
+  "needsAttention": "يحتاج انتباهك",
+  "actionTomorrow": "غدًا",
+  "taskTimeOptional": "الوقت (اختياري)",
+  "notificationOverdueFollowupTitle": "لا يزال يحتاج انتباهك",
+  "notificationOverdueFollowupBody": "{title} متأخرة عن موعدها",
   "itemsCount": "{count, plural, zero{لا عناصر} one{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
 
   "activityCompleted": "أكمل \"{title}\"",
@@ -102,6 +129,21 @@
   "settingsLanguageArabic": "العربية",
   "settingsLanguageSystem": "النظام",
 
+  "settingsMoneyGuide": "دليل الدخل والحسابات",
+  "settingsMoneyGuideHint": "ماذا تعني مصدر الدخل، الحساب، والتحويل",
+  "moneyGuideTitle": "دليل الدخل والحسابات",
+  "moneyGuideIntro": "كل معاملة مالية تتتبع أمرين منفصلين: لماذا تحركت الأموال، وأين توجد فعليًا.",
+  "moneyGuideIncomeSourceHeading": "مصدر الدخل — لماذا جاء المال",
+  "moneyGuideIncomeSourceBody": "عند تسجيل دخل، اختر مصدره: راتب، عمل حر، عمل تجاري، مكافأة، هدية، استرداد، أو أخرى.",
+  "moneyGuideAccountHeading": "الحساب — أين يوجد المال",
+  "moneyGuideAccountBody": "كل معاملة لها أيضًا حساب: نقدًا، البنك، محفظة، أو أخرى. بالنسبة للمصروفات، هو المكان الذي دفعت منه. بالنسبة للدخل، هو المكان الذي استلمت فيه المال.",
+  "moneyGuideTransferHeading": "التحويل — نقل المال بين حساباتك الخاصة",
+  "moneyGuideTransferBody": "استخدم التحويل عندما ينتقل المال بين حساباتك الخاصة دون أن يكون دخلاً جديدًا أو مصروفًا حقيقيًا — مثل إيداع نقود في البنك. اختر حساب المصدر وحساب الوجهة؛ رصيدك الإجمالي لا يتغير.",
+  "moneyGuideExamplesHeading": "أمثلة",
+  "moneyGuideExample1": "٢٥٬٠٠٠ ج.م راتب ← استلم في البنك",
+  "moneyGuideExample2": "٢٬٠٠٠ ج.م عمل حر ← استلم نقدًا",
+  "moneyGuideExample3": "نقدًا ← البنك (تحويل): الرصيد الإجمالي لا يتغير",
+
   "aboutTitle": "حول التطبيق",
   "aboutAppName": "OrgFamily",
   "aboutVersion": "الإصدار 1.0.0 · النسخة التجريبية الأولى",
@@ -152,10 +194,13 @@
   "labelDateTime": "التاريخ والوقت",
   "labelNotes": "ملاحظات",
   "unassigned": "غير مسندة",
+  "calendarSharedSection": "مشترك",
+  "peopleCount": "{count} أشخاص",
   "everyone": "الجميع",
   "allCategories": "كل الفئات",
   "clearFilters": "مسح عوامل التصفية",
   "notSet": "غير محدد",
+  "permissionDenied": "ليس لديك صلاحية القيام بذلك كـ {role}.",
   "save": "حفظ",
   "cancel": "إلغاء",
   "delete": "حذف",
@@ -183,6 +228,11 @@
   "eventFormLocationLabel": "الموقع (اختياري)",
   "eventFormLocationHint": "أضف الموقع",
   "eventFormWhoHint": "أضف الأشخاص المشاركين في هذا الحدث.",
+  "eventFormDescriptionHint": "أضف وصفًا",
+  "labelColor": "اللون",
+  "eventFormColorDefaultHint": "افتراضي (حسب الفئة)",
+  "eventFormAttachmentLabel": "مرفق",
+  "eventFormAddAttachment": "إضافة مرفق",
   "eventFormSaveButton": "حفظ الحدث",
   "eventFormSaveChangesButton": "حفظ التغييرات",
   "eventFormDeleteTitle": "حذف الحدث؟",
@@ -234,5 +284,185 @@
   "quickAddTaskAdd": "إضافة مهمة",
   "quickAddTaskVoiceUnavailable": "الإدخال الصوتي غير متاح على هذا الجهاز",
   "quickAddTaskDateShort": "التاريخ",
-  "quickAddTaskAssignShort": "إسناد"
+  "quickAddTaskAssignShort": "إسناد",
+
+  "navBudget": "الأموال",
+  "quickAddTransaction": "معاملة",
+
+  "moneyOverviewTitle": "مالية العائلة",
+  "moneyOverviewTagline": "معًا نحو غد أفضل",
+  "totalBalance": "الرصيد الإجمالي",
+  "income": "الدخل",
+  "expenses": "المصروفات",
+  "savings": "المدخرات",
+  "netThisMonth": "الصافي: {amount}",
+  "@netThisMonth": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "moneyTileBudget": "الميزانية",
+  "moneyTileGoals": "الأهداف",
+  "noBudgetSetForMonth": "لم يتم تحديد ميزانية لشهر {month}",
+  "@noBudgetSetForMonth": {
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "budgetRemainingAmount": "متبقي {amount}",
+  "@budgetRemainingAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalsSavedSummary": "تم ادخار {amount} عبر {count} أهداف",
+  "@goalsSavedSummary": {
+    "placeholders": {
+      "amount": {},
+      "count": {}
+    }
+  },
+  "spendingByCategory": "الإنفاق حسب الفئة",
+  "thisMonth": "هذا الشهر",
+  "recentTransactions": "أحدث المعاملات",
+
+  "transactionsTitle": "المعاملات",
+  "transactionsSearchHint": "ابحث عن معاملة...",
+  "transactionFilterAll": "الكل",
+  "noTransactionsYet": "لا توجد معاملات بعد",
+  "transactionsEmptyHint": "اضغط + واختر \"معاملة\" لإضافة واحدة.",
+
+  "budgetTitle": "الميزانية الشهرية",
+  "budgetUsedPercent": "{percent}%",
+  "@budgetUsedPercent": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "budgetUsedLabel": "المستخدم",
+  "budgetRemaining": "المتبقي",
+  "categoryBudgets": "ميزانيات الفئات",
+  "budgetLimitPlaceholder": "الحد",
+  "setBudget": "تحديد الميزانية",
+  "setTotalBudget": "الميزانية الشهرية الإجمالية",
+  "setCategoryBudget": "حد الفئة",
+  "noBudgetSet": "لم يتم تحديد ميزانية",
+  "currency": "العملة",
+  "budgetUnallocatedLabel": "مرن / غير مخصص: {amount}",
+  "@budgetUnallocatedLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "budgetOverTotalWarning": "{amount} أكثر من ميزانيتك الشهرية",
+  "@budgetOverTotalWarning": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+
+  "addTransaction": "إضافة معاملة",
+  "editTransaction": "تعديل المعاملة",
+  "transactionAmount": "المبلغ",
+  "transactionTitleHint": "مثال: بقالة",
+  "transactionTypeLabel": "النوع",
+  "transactionCategoryLabel": "الفئة",
+  "transactionIncomeSourceLabel": "مصدر الدخل",
+  "transactionPaidFromLabel": "دفع من",
+  "transactionReceivedIntoLabel": "استلام في",
+  "transactionFromAccountLabel": "من",
+  "transactionToAccountLabel": "إلى",
+  "transactionDateLabel": "التاريخ",
+  "transactionNoteLabel": "ملاحظة (اختياري)",
+
+  "warningApproachingLimit": "اقتراب من الحد",
+  "warningOverBudget": "تجاوز الميزانية",
+
+  "transactionTypeExpense": "مصروف",
+  "transactionTypeIncome": "دخل",
+  "transactionTypeTransfer": "تحويل",
+
+  "transactionCategoryGroceries": "بقالة",
+  "transactionCategoryTransport": "مواصلات",
+  "transactionCategoryBills": "فواتير",
+  "transactionCategoryShopping": "تسوق",
+  "transactionCategoryHealth": "صحة",
+  "transactionCategoryEducation": "تعليم",
+  "transactionCategoryFoodDrinks": "طعام ومشروبات",
+  "transactionCategoryOther": "أخرى",
+
+  "incomeSourceSalary": "راتب",
+  "incomeSourceFreelance": "عمل حر",
+  "incomeSourceBusiness": "عمل تجاري",
+  "incomeSourceBonus": "مكافأة",
+  "incomeSourceGift": "هدية",
+  "incomeSourceRefund": "استرداد",
+  "incomeSourceOther": "أخرى",
+
+  "accountCash": "نقدًا",
+  "accountBank": "البنك",
+  "accountWallet": "محفظة",
+  "accountOther": "أخرى",
+
+  "goalsTitle": "أهداف الادخار",
+  "goalsBanner": "الأحلام الكبيرة تبدأ بخطوات صغيرة",
+  "goalsBannerSubtitle": "ادخر اليوم من أجل غدٍ أفضل 💜",
+  "goalCompleted": "مكتمل",
+  "goalCelebrationMessage": "تم ادخار {amount}!",
+  "@goalCelebrationMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalOfTarget": "من {amount}",
+  "@goalOfTarget": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalTargetDateLabel": "الهدف: {date}",
+  "@goalTargetDateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "addGoal": "إضافة هدف",
+  "editGoal": "تعديل الهدف",
+  "goalNameHint": "مثال: إجازة العائلة",
+  "goalTargetAmount": "المبلغ المستهدف",
+  "goalTargetDateOptional": "تاريخ الهدف (اختياري)",
+  "contribute": "إضافة مبلغ",
+  "contributeAmount": "المبلغ المراد إضافته",
+  "noGoalsYet": "لا توجد أهداف ادخار بعد",
+  "goalsEmptyHint": "اضغط + لبدء هدف جديد.",
+
+  "savingsGoalIconVacation": "إجازة",
+  "savingsGoalIconGadget": "جهاز إلكتروني",
+  "savingsGoalIconEmergency": "صندوق الطوارئ",
+  "savingsGoalIconEducation": "تعليم",
+  "savingsGoalIconHome": "منزل",
+  "savingsGoalIconCar": "سيارة",
+  "savingsGoalIconGift": "هدية",
+  "savingsGoalIconOther": "أخرى",
+
+  "reportsTitle": "التقارير",
+  "reportsSpendingTab": "الإنفاق",
+  "reportsIncomeTab": "الدخل",
+  "reportsSavingsTab": "المدخرات",
+  "monthlySpending": "الإنفاق الشهري",
+  "monthlyIncome": "الدخل الشهري",
+  "topCategories": "أكثر الفئات إنفاقًا",
+  "insightLessSpending": "أنفقت أقل بنسبة {percent}% هذا الشهر. عمل رائع!",
+  "@insightLessSpending": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "insightMoreSpending": "أنفقت أكثر بنسبة {percent}% هذا الشهر مقارنة بالشهر الماضي.",
+  "@insightMoreSpending": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "insightNoChange": "تقريبًا نفس الشهر الماضي."
 }

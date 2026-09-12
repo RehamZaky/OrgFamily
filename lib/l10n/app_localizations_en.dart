@@ -30,10 +30,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerProfile => 'Profile';
 
   @override
+  String get drawerSwitchProfile => 'Switch profile';
+
+  @override
   String get drawerSettings => 'Settings';
 
   @override
   String get drawerAbout => 'About';
+
+  @override
+  String get ourFamily => 'Our Family';
+
+  @override
+  String get ourFamilyTagline => 'Together we organize, plan and grow 💜';
+
+  @override
+  String get familySummaryMembers => 'Members';
+
+  @override
+  String get familySummaryDoneThisWeek => 'Done this week';
+
+  @override
+  String get familySummaryPointsThisWeek => 'Points this week';
+
+  @override
+  String get familyMembersHeading => 'Family Members';
+
+  @override
+  String get addMember => 'Add member';
+
+  @override
+  String get noFamilyMembersYet => 'No family members yet';
+
+  @override
+  String tasksTodayCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tasks',
+      one: 'task',
+    );
+    return '$count $_temp0 today';
+  }
+
+  @override
+  String tasksTodayAllDone(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tasks',
+      one: 'task',
+    );
+    return '$count $_temp0 done today';
+  }
+
+  @override
+  String pointsShort(Object count) {
+    return '$count pts';
+  }
+
+  @override
+  String get removeMemberTitle => 'Remove family member?';
+
+  @override
+  String removeMemberBody(Object name) {
+    return '$name will be removed from your family.';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get you => 'You';
 
   @override
   String get greetingMorning => 'Good morning';
@@ -127,6 +195,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get taskStatusDone => 'Done';
+
+  @override
+  String get overdue => 'Overdue';
+
+  @override
+  String get overdueToday => 'Overdue today';
+
+  @override
+  String get overdueYesterday => 'Overdue since yesterday';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String overdueByDays(num count) {
+    return 'Overdue by $count days';
+  }
+
+  @override
+  String get needsAttention => 'Needs attention';
+
+  @override
+  String get actionTomorrow => 'Tomorrow';
+
+  @override
+  String get taskTimeOptional => 'Time (optional)';
+
+  @override
+  String get notificationOverdueFollowupTitle => 'Still needs attention';
+
+  @override
+  String notificationOverdueFollowupBody(Object title) {
+    return '$title is overdue';
+  }
 
   @override
   String itemsCount(num count) {
@@ -308,6 +410,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSystem => 'System';
 
   @override
+  String get settingsMoneyGuide => 'Income & Accounts Guide';
+
+  @override
+  String get settingsMoneyGuideHint =>
+      'What Income Source, Account, and Transfer mean';
+
+  @override
+  String get moneyGuideTitle => 'Income & Accounts Guide';
+
+  @override
+  String get moneyGuideIntro =>
+      'Every Money transaction tracks two separate things: why the money moved, and where it physically is.';
+
+  @override
+  String get moneyGuideIncomeSourceHeading =>
+      'Income Source — why money came in';
+
+  @override
+  String get moneyGuideIncomeSourceBody =>
+      'When you log income, pick what it\'s for: Salary, Freelance, Business, Bonus, Gift, Refund, or Other.';
+
+  @override
+  String get moneyGuideAccountHeading => 'Account — where the money is';
+
+  @override
+  String get moneyGuideAccountBody =>
+      'Every transaction also has an Account: Cash, Bank, Wallet, or Other. For an expense, it\'s what you paid from. For income, it\'s what you received into.';
+
+  @override
+  String get moneyGuideTransferHeading =>
+      'Transfer — moving money between your own accounts';
+
+  @override
+  String get moneyGuideTransferBody =>
+      'Use Transfer when money moves between your own accounts without being new income or a real expense — like depositing cash into the bank. Pick a From account and a To account; your total balance doesn\'t change.';
+
+  @override
+  String get moneyGuideExamplesHeading => 'Examples';
+
+  @override
+  String get moneyGuideExample1 => 'E£25,000 Salary → received into Bank';
+
+  @override
+  String get moneyGuideExample2 => 'E£2,000 Freelance → received as Cash';
+
+  @override
+  String get moneyGuideExample3 =>
+      'Cash → Bank (Transfer): total balance unchanged';
+
+  @override
   String get aboutTitle => 'About';
 
   @override
@@ -448,6 +600,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get everyone => 'Everyone';
 
   @override
+  String get calendarSharedSection => 'Shared';
+
+  @override
+  String peopleCount(Object count) {
+    return '$count people';
+  }
+
+  @override
   String get allCategories => 'All categories';
 
   @override
@@ -455,6 +615,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notSet => 'Not set';
+
+  @override
+  String permissionDenied(String role) {
+    return 'You don\'t have permission to do that as $role.';
+  }
 
   @override
   String get save => 'Save';
@@ -527,6 +692,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventFormWhoHint => 'Add people who are part of this event.';
+
+  @override
+  String get eventFormDescriptionHint => 'Add a description';
+
+  @override
+  String get labelColor => 'Color';
+
+  @override
+  String get eventFormColorDefaultHint => 'Default (matches category)';
+
+  @override
+  String get eventFormAttachmentLabel => 'Attachment';
+
+  @override
+  String get eventFormAddAttachment => 'Add attachment';
 
   @override
   String get eventFormSaveButton => 'Save Event';
@@ -681,4 +861,347 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickAddTaskAssignShort => 'Assign';
+
+  @override
+  String get navBudget => 'Money';
+
+  @override
+  String get quickAddTransaction => 'Transaction';
+
+  @override
+  String get moneyOverviewTitle => 'Family Finances';
+
+  @override
+  String get moneyOverviewTagline => 'Together for a brighter tomorrow';
+
+  @override
+  String get totalBalance => 'Total Balance';
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get expenses => 'Expenses';
+
+  @override
+  String get savings => 'Savings';
+
+  @override
+  String netThisMonth(Object amount) {
+    return 'Net: $amount';
+  }
+
+  @override
+  String get moneyTileBudget => 'Budget';
+
+  @override
+  String get moneyTileGoals => 'Goals';
+
+  @override
+  String noBudgetSetForMonth(Object month) {
+    return 'No budget set for $month';
+  }
+
+  @override
+  String budgetRemainingAmount(Object amount) {
+    return '$amount remaining';
+  }
+
+  @override
+  String goalsSavedSummary(Object amount, Object count) {
+    return '$amount saved across $count goals';
+  }
+
+  @override
+  String get spendingByCategory => 'Spending by Category';
+
+  @override
+  String get thisMonth => 'This month';
+
+  @override
+  String get recentTransactions => 'Recent Transactions';
+
+  @override
+  String get transactionsTitle => 'Transactions';
+
+  @override
+  String get transactionsSearchHint => 'Search transactions...';
+
+  @override
+  String get transactionFilterAll => 'All';
+
+  @override
+  String get noTransactionsYet => 'No transactions yet';
+
+  @override
+  String get transactionsEmptyHint =>
+      'Tap + and choose Transaction to add one.';
+
+  @override
+  String get budgetTitle => 'Monthly Budget';
+
+  @override
+  String budgetUsedPercent(Object percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get budgetUsedLabel => 'Used';
+
+  @override
+  String get budgetRemaining => 'Remaining';
+
+  @override
+  String get categoryBudgets => 'Category Budgets';
+
+  @override
+  String get budgetLimitPlaceholder => 'Limit';
+
+  @override
+  String get setBudget => 'Set Budget';
+
+  @override
+  String get setTotalBudget => 'Total monthly budget';
+
+  @override
+  String get setCategoryBudget => 'Category limit';
+
+  @override
+  String get noBudgetSet => 'No budget set';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String budgetUnallocatedLabel(Object amount) {
+    return 'Flexible / unallocated: $amount';
+  }
+
+  @override
+  String budgetOverTotalWarning(Object amount) {
+    return '$amount over your monthly budget';
+  }
+
+  @override
+  String get addTransaction => 'Add Transaction';
+
+  @override
+  String get editTransaction => 'Edit Transaction';
+
+  @override
+  String get transactionAmount => 'Amount';
+
+  @override
+  String get transactionTitleHint => 'e.g. Groceries';
+
+  @override
+  String get transactionTypeLabel => 'Type';
+
+  @override
+  String get transactionCategoryLabel => 'Category';
+
+  @override
+  String get transactionIncomeSourceLabel => 'Income Source';
+
+  @override
+  String get transactionPaidFromLabel => 'Paid From';
+
+  @override
+  String get transactionReceivedIntoLabel => 'Received Into';
+
+  @override
+  String get transactionFromAccountLabel => 'From';
+
+  @override
+  String get transactionToAccountLabel => 'To';
+
+  @override
+  String get transactionDateLabel => 'Date';
+
+  @override
+  String get transactionNoteLabel => 'Note (optional)';
+
+  @override
+  String get warningApproachingLimit => 'Approaching limit';
+
+  @override
+  String get warningOverBudget => 'Over budget';
+
+  @override
+  String get transactionTypeExpense => 'Expense';
+
+  @override
+  String get transactionTypeIncome => 'Income';
+
+  @override
+  String get transactionTypeTransfer => 'Transfer';
+
+  @override
+  String get transactionCategoryGroceries => 'Groceries';
+
+  @override
+  String get transactionCategoryTransport => 'Transport';
+
+  @override
+  String get transactionCategoryBills => 'Bills';
+
+  @override
+  String get transactionCategoryShopping => 'Shopping';
+
+  @override
+  String get transactionCategoryHealth => 'Health';
+
+  @override
+  String get transactionCategoryEducation => 'Education';
+
+  @override
+  String get transactionCategoryFoodDrinks => 'Food & Drinks';
+
+  @override
+  String get transactionCategoryOther => 'Other';
+
+  @override
+  String get incomeSourceSalary => 'Salary';
+
+  @override
+  String get incomeSourceFreelance => 'Freelance';
+
+  @override
+  String get incomeSourceBusiness => 'Business';
+
+  @override
+  String get incomeSourceBonus => 'Bonus';
+
+  @override
+  String get incomeSourceGift => 'Gift';
+
+  @override
+  String get incomeSourceRefund => 'Refund';
+
+  @override
+  String get incomeSourceOther => 'Other';
+
+  @override
+  String get accountCash => 'Cash';
+
+  @override
+  String get accountBank => 'Bank';
+
+  @override
+  String get accountWallet => 'Wallet';
+
+  @override
+  String get accountOther => 'Other';
+
+  @override
+  String get goalsTitle => 'Savings Goals';
+
+  @override
+  String get goalsBanner => 'Big dreams start with small steps';
+
+  @override
+  String get goalsBannerSubtitle => 'Save today for a brighter tomorrow 💜';
+
+  @override
+  String get goalCompleted => 'Completed';
+
+  @override
+  String goalCelebrationMessage(Object amount) {
+    return '$amount saved!';
+  }
+
+  @override
+  String goalOfTarget(Object amount) {
+    return 'of $amount';
+  }
+
+  @override
+  String goalTargetDateLabel(Object date) {
+    return 'Target: $date';
+  }
+
+  @override
+  String get addGoal => 'Add Goal';
+
+  @override
+  String get editGoal => 'Edit Goal';
+
+  @override
+  String get goalNameHint => 'e.g. Family Vacation';
+
+  @override
+  String get goalTargetAmount => 'Target amount';
+
+  @override
+  String get goalTargetDateOptional => 'Target date (optional)';
+
+  @override
+  String get contribute => 'Contribute';
+
+  @override
+  String get contributeAmount => 'Amount to add';
+
+  @override
+  String get noGoalsYet => 'No savings goals yet';
+
+  @override
+  String get goalsEmptyHint => 'Tap + to start a new goal.';
+
+  @override
+  String get savingsGoalIconVacation => 'Vacation';
+
+  @override
+  String get savingsGoalIconGadget => 'Gadget';
+
+  @override
+  String get savingsGoalIconEmergency => 'Emergency Fund';
+
+  @override
+  String get savingsGoalIconEducation => 'Education';
+
+  @override
+  String get savingsGoalIconHome => 'Home';
+
+  @override
+  String get savingsGoalIconCar => 'Car';
+
+  @override
+  String get savingsGoalIconGift => 'Gift';
+
+  @override
+  String get savingsGoalIconOther => 'Other';
+
+  @override
+  String get reportsTitle => 'Reports';
+
+  @override
+  String get reportsSpendingTab => 'Spending';
+
+  @override
+  String get reportsIncomeTab => 'Income';
+
+  @override
+  String get reportsSavingsTab => 'Savings';
+
+  @override
+  String get monthlySpending => 'Monthly Spending';
+
+  @override
+  String get monthlyIncome => 'Monthly Income';
+
+  @override
+  String get topCategories => 'Top Categories';
+
+  @override
+  String insightLessSpending(Object percent) {
+    return 'You spent $percent% less this month. Great job!';
+  }
+
+  @override
+  String insightMoreSpending(Object percent) {
+    return 'You spent $percent% more this month than last.';
+  }
+
+  @override
+  String get insightNoChange => 'About the same as last month.';
 }

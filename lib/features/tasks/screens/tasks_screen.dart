@@ -2,6 +2,9 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
@@ -14,6 +17,7 @@ import '../../../data/local/tables/tasks_table.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
+import '../domain/task_status_calculator.dart';
 import '../providers/task_providers.dart';
 import 'task_form_screen.dart';
 
@@ -24,6 +28,47 @@ bool _isFutureDay(DateTime d) {
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(d.year, d.month, d.day);
   return day.isAfter(today);
+}
+
+bool _isOverdue(Task t) => isTaskOverdue(TaskDeadlineInput.fromTask(t), DateTime.now());
+
+/// Which permission covers toggling [task]'s completion for whoever the app
+/// is currently "acting as" — their own task vs someone else's.
+FamilyAction _completeAction(Task task, WidgetRef ref) {
+  final activeId = ref.read(activeMemberIdProvider);
+  final isOwnTask = activeId != null && task.assigneeId == activeId;
+  return isOwnTask ? FamilyAction.completeOwnTask : FamilyAction.completeAnyTask;
+}
+
+/// Which permission covers moving [task]'s due date via the "Tomorrow"
+/// quick action — a lighter bar than general editing when it's your own
+/// task, matching [taskUpdateAction] (used by the full editor for the same
+/// distinction).
+FamilyAction _rescheduleAction(Task task, WidgetRef ref) {
+  final activeId = ref.read(activeMemberIdProvider);
+  final isOwnTask = activeId != null && task.assigneeId == activeId;
+  return isOwnTask ? FamilyAction.rescheduleOwnTask : FamilyAction.editAnyTask;
+}
+
+/// Deleting a task isn't resolved through the flat role matrix (see
+/// [canDeleteTask]) — only the creator or Owner can, regardless of
+/// Adult/Child. Pre-checks here so a denied swipe never even animates.
+bool _checkDeletePermission(BuildContext context, WidgetRef ref, Task task) {
+  final role = ref.read(activeRoleProvider);
+  final memberId = ref.read(activeMemberIdProvider);
+  if (canDeleteTask(task, role, memberId)) return true;
+  final l10n = AppLocalizations.of(context)!;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(l10n.permissionDenied(role.label))),
+  );
+  return false;
+}
+
+String _overdueLabel(AppLocalizations l10n, Task t) {
+  final days = daysOverdue(TaskDeadlineInput.fromTask(t), DateTime.now());
+  if (days == 0) return l10n.overdueToday;
+  if (days == 1) return l10n.overdueYesterday;
+  return l10n.overdueByDays(days);
 }
 
 class TasksScreen extends ConsumerStatefulWidget {
@@ -170,7 +215,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         // Undated tasks (the common case from Quick Add, which doesn't ask
         // for a date) have no better default home than "what needs doing
         // now" — hiding them here would make them effectively invisible.
-        return !t.isCompleted && (t.dueDate == null || t.dueDate!.isToday);
+        // Overdue tasks belong here too, however old their due date is —
+        // "needs attention" doesn't stop being true just because it's been
+        // a few days.
+        if (t.isCompleted) return false;
+        return t.dueDate == null || t.dueDate!.isToday || _isOverdue(t);
       case _TaskTab.upcoming:
         return !t.isCompleted && t.dueDate != null && _isFutureDay(t.dueDate!);
       case _TaskTab.all:
@@ -341,22 +390,38 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   );
                 }
 
+                // Overdue tasks always get their own leading section,
+                // oldest-first (already true of `tasks`, sorted ascending
+                // by due date) — regardless of tab, so "needs attention"
+                // never blends into whatever bucket the due date would
+                // otherwise land in.
+                final overdueTasks = tasks.where(_isOverdue).toList();
+                final restTasks = tasks.where((t) => !_isOverdue(t)).toList();
+
                 // Today/Upcoming/Completed are already a single focused
                 // bucket — only "All" benefits from being broken back down
                 // by day, since it spans everything at once.
                 if (_tab != _TaskTab.all) {
-                  return ListView.builder(
+                  return ListView(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 100),
-                    itemCount: tasks.length,
-                    itemBuilder: (context, i) =>
-                        _TaskCard(task: tasks[i], member: members[tasks[i].assigneeId]),
+                    children: [
+                      if (overdueTasks.isNotEmpty) ...[
+                        _GroupHeader(
+                            label: l10n.overdue, count: overdueTasks.length, accent: true),
+                        for (final t in overdueTasks)
+                          _TaskCard(task: t, member: members[t.assigneeId]),
+                        const SizedBox(height: 12),
+                      ],
+                      for (final t in restTasks)
+                        _TaskCard(task: t, member: members[t.assigneeId]),
+                    ],
                   );
                 }
 
                 final today = <Task>[];
                 final tomorrow = <Task>[];
                 final later = <Task>[];
-                for (final t in tasks) {
+                for (final t in restTasks) {
                   final d = t.dueDate;
                   if (d != null && d.isToday) {
                     today.add(t);
@@ -370,6 +435,13 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 100),
                   children: [
+                    if (overdueTasks.isNotEmpty) ...[
+                      _GroupHeader(
+                          label: l10n.overdue, count: overdueTasks.length, accent: true),
+                      for (final t in overdueTasks)
+                        _TaskCard(task: t, member: members[t.assigneeId]),
+                      const SizedBox(height: 12),
+                    ],
                     if (today.isNotEmpty) ...[
                       _GroupHeader(label: l10n.today, count: today.length),
                       for (final t in today)
@@ -435,13 +507,19 @@ class _TabChip extends StatelessWidget {
 }
 
 class _GroupHeader extends StatelessWidget {
-  const _GroupHeader({required this.label, required this.count});
+  const _GroupHeader({required this.label, required this.count, this.accent = false});
 
   final String label;
   final int count;
 
+  /// Used only for the OVERDUE section header — red text, same weight and
+  /// layout as every other group header otherwise, so it reads as "needs
+  /// attention" rather than an alarm.
+  final bool accent;
+
   @override
   Widget build(BuildContext context) {
+    final color = accent ? AppColors.priorityHigh : context.colors.textSecondary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
       child: Row(
@@ -453,14 +531,11 @@ class _GroupHeader extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: context.colors.textSecondary,
+              color: color,
             ),
           ),
           Text('$count',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: context.colors.textSecondary)),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
         ],
       ),
     );
@@ -542,6 +617,7 @@ class _TaskCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final overdue = !task.isCompleted && _isOverdue(task);
     return Dismissible(
       key: ValueKey(task.id),
       background: Container(
@@ -566,12 +642,23 @@ class _TaskCard extends ConsumerWidget {
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
-          ref.read(taskRepositoryProvider).setCompleted(task.id, !task.isCompleted);
+          if (checkPermission(context, ref, _completeAction(task, ref))) {
+            ref.read(taskRepositoryProvider).setCompleted(
+                  task.id,
+                  !task.isCompleted,
+                  actingRole: ref.read(activeRoleProvider),
+                  actingMemberId: ref.read(activeMemberIdProvider),
+                );
+          }
           return false;
         }
-        return true;
+        return _checkDeletePermission(context, ref, task);
       },
-      onDismissed: (_) => ref.read(taskRepositoryProvider).deleteTask(task.id),
+      onDismissed: (_) => ref.read(taskRepositoryProvider).deleteTask(
+            task.id,
+            actingRole: ref.read(activeRoleProvider),
+            actingMemberId: ref.read(activeMemberIdProvider),
+          ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         clipBehavior: Clip.antiAlias,
@@ -604,9 +691,17 @@ class _TaskCard extends ConsumerWidget {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => ref
-                              .read(taskRepositoryProvider)
-                              .setCompleted(task.id, !task.isCompleted),
+                          onTap: () {
+                            if (!checkPermission(context, ref, _completeAction(task, ref))) {
+                              return;
+                            }
+                            ref.read(taskRepositoryProvider).setCompleted(
+                                  task.id,
+                                  !task.isCompleted,
+                                  actingRole: ref.read(activeRoleProvider),
+                                  actingMemberId: ref.read(activeMemberIdProvider),
+                                );
+                          },
                           child: Icon(
                             task.isCompleted
                                 ? Icons.check_circle
@@ -647,16 +742,54 @@ class _TaskCard extends ConsumerWidget {
                                     child: Text(
                                       task.dueDate == null
                                           ? task.category.label(l10n)
-                                          : '${task.category.label(l10n)} • ${task.dueDate!.relativeDayAndTime}',
+                                          : overdue
+                                              ? '${task.category.label(l10n)} • ${_overdueLabel(l10n, task)}'
+                                              : '${task.category.label(l10n)} • ${task.dueDate!.relativeDayAndTime}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           fontSize: 11.5,
-                                          color: context.colors.textSecondary),
+                                          fontWeight: overdue ? FontWeight.w700 : null,
+                                          color: overdue
+                                              ? AppColors.priorityHigh
+                                              : context.colors.textSecondary),
                                     ),
                                   ),
                                 ],
                               ),
+                              if (overdue) ...[
+                                const SizedBox(height: 4),
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(6),
+                                  onTap: () {
+                                    if (!checkPermission(
+                                        context, ref, _rescheduleAction(task, ref))) {
+                                      return;
+                                    }
+                                    ref.read(taskRepositoryProvider).rescheduleToTomorrow(
+                                          task.id,
+                                          actingRole: ref.read(activeRoleProvider),
+                                          actingMemberId: ref.read(activeMemberIdProvider),
+                                        );
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.arrow_forward_rounded,
+                                          size: 12, color: AppColors.primary),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        l10n.actionTomorrow,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

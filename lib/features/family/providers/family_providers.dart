@@ -1,10 +1,40 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/enum_display.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
 import '../../tasks/providers/task_providers.dart';
+
+const _activeMemberIdPrefsKey = 'active_member_id';
+
+/// Which family member the app is currently "acting as" — a soft, local
+/// profile switcher (see the drawer), not authentication: nothing stops
+/// anyone from switching back. Restored on launch by
+/// [loadPersistedActiveMemberId] (called from main.dart before the widget
+/// tree is built) and updated by [setActiveMember] whenever someone picks a
+/// different profile. Null means "no explicit pick" — [currentMemberProvider]
+/// then falls back to the Owner, same as if this provider didn't exist.
+final activeMemberIdProvider = StateProvider<String?>((ref) => null);
+
+Future<String?> loadPersistedActiveMemberId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_activeMemberIdPrefsKey);
+}
+
+/// Switches the active profile and persists the choice — call this rather
+/// than writing [activeMemberIdProvider] directly, so the pick survives an
+/// app restart. Pass null to clear back to "no explicit pick" (Owner).
+Future<void> setActiveMember(WidgetRef ref, String? memberId) async {
+  ref.read(activeMemberIdProvider.notifier).state = memberId;
+  final prefs = await SharedPreferences.getInstance();
+  if (memberId == null) {
+    await prefs.remove(_activeMemberIdPrefsKey);
+  } else {
+    await prefs.setString(_activeMemberIdPrefsKey, memberId);
+  }
+}
 
 final familyMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
   return ref.watch(familyRepositoryProvider).watchMembers();
@@ -81,11 +111,21 @@ final tasksPendingForMemberProvider =
   return tasks.where((t) => t.assigneeId == memberId && !t.isCompleted).length;
 });
 
-/// The member treated as "you" for greetings and defaults — the family
-/// owner, or the first member added if no owner is set yet.
+/// The member treated as "you" — for greetings, defaults, AND permission
+/// checks (see activeRoleProvider in core/permissions), so switching
+/// profiles in the drawer changes both at once rather than leaving them
+/// out of sync. Prefers whoever [activeMemberIdProvider] points at; falls
+/// back to the family owner (or the first member, if no owner is set yet)
+/// when nothing's been explicitly picked, or the pick refers to a member
+/// that's since been deleted.
 final currentMemberProvider = Provider<FamilyMember?>((ref) {
   final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
   if (members.isEmpty) return null;
+  final activeId = ref.watch(activeMemberIdProvider);
+  if (activeId != null) {
+    final active = members.where((m) => m.id == activeId).firstOrNull;
+    if (active != null) return active;
+  }
   return members.firstWhere(
     (m) => m.role == FamilyRole.owner,
     orElse: () => members.first,

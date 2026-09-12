@@ -30,16 +30,90 @@ class AppLocalizationsAr extends AppLocalizations {
   String get drawerProfile => 'الملف الشخصي';
 
   @override
+  String get drawerSwitchProfile => 'تبديل الملف الشخصي';
+
+  @override
   String get drawerSettings => 'الإعدادات';
 
   @override
   String get drawerAbout => 'حول التطبيق';
 
   @override
+  String get ourFamily => 'عائلتنا';
+
+  @override
+  String get ourFamilyTagline => 'معًا ننظم، نخطط، وننمو 💜';
+
+  @override
+  String get familySummaryMembers => 'الأفراد';
+
+  @override
+  String get familySummaryDoneThisWeek => 'أُنجز هذا الأسبوع';
+
+  @override
+  String get familySummaryPointsThisWeek => 'نقاط هذا الأسبوع';
+
+  @override
+  String get familyMembersHeading => 'أفراد العائلة';
+
+  @override
+  String get addMember => 'إضافة فرد';
+
+  @override
+  String get noFamilyMembersYet => 'لا يوجد أفراد عائلة بعد';
+
+  @override
+  String tasksTodayCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهمة اليوم',
+      many: '$count مهمة اليوم',
+      few: '$count مهام اليوم',
+      two: 'مهمتان اليوم',
+      one: 'مهمة واحدة اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tasksTodayAllDone(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم إنجاز $count مهمة اليوم',
+      many: 'تم إنجاز $count مهمة اليوم',
+      few: 'تم إنجاز $count مهام اليوم',
+      two: 'تم إنجاز مهمتين اليوم',
+      one: 'تم إنجاز مهمة واحدة اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pointsShort(Object count) {
+    return '$count نقطة';
+  }
+
+  @override
+  String get removeMemberTitle => 'إزالة فرد من العائلة؟';
+
+  @override
+  String removeMemberBody(Object name) {
+    return 'سيتم إزالة $name من عائلتك.';
+  }
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get you => 'أنت';
+
+  @override
   String get greetingMorning => 'صباح الخير';
 
   @override
-  String get greetingAfternoon => 'طاب نهارك';
+  String get greetingAfternoon => ' نهارك جميل';
 
   @override
   String get greetingEvening => 'مساء الخير';
@@ -127,6 +201,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get taskStatusDone => 'تم';
+
+  @override
+  String get overdue => 'متأخرة';
+
+  @override
+  String get overdueToday => 'متأخرة منذ اليوم';
+
+  @override
+  String get overdueYesterday => 'متأخرة منذ أمس';
+
+  @override
+  String get yesterday => 'أمس';
+
+  @override
+  String overdueByDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'متأخرة منذ $count يوم',
+      many: 'متأخرة منذ $count يومًا',
+      few: 'متأخرة منذ $count أيام',
+      two: 'متأخرة منذ يومين',
+      one: 'متأخرة منذ يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get needsAttention => 'يحتاج انتباهك';
+
+  @override
+  String get actionTomorrow => 'غدًا';
+
+  @override
+  String get taskTimeOptional => 'الوقت (اختياري)';
+
+  @override
+  String get notificationOverdueFollowupTitle => 'لا يزال يحتاج انتباهك';
+
+  @override
+  String notificationOverdueFollowupBody(Object title) {
+    return '$title متأخرة عن موعدها';
+  }
 
   @override
   String itemsCount(num count) {
@@ -339,6 +456,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguageSystem => 'النظام';
 
   @override
+  String get settingsMoneyGuide => 'دليل الدخل والحسابات';
+
+  @override
+  String get settingsMoneyGuideHint => 'ماذا تعني مصدر الدخل، الحساب، والتحويل';
+
+  @override
+  String get moneyGuideTitle => 'دليل الدخل والحسابات';
+
+  @override
+  String get moneyGuideIntro =>
+      'كل معاملة مالية تتتبع أمرين منفصلين: لماذا تحركت الأموال، وأين توجد فعليًا.';
+
+  @override
+  String get moneyGuideIncomeSourceHeading => 'مصدر الدخل — لماذا جاء المال';
+
+  @override
+  String get moneyGuideIncomeSourceBody =>
+      'عند تسجيل دخل، اختر مصدره: راتب، عمل حر، عمل تجاري، مكافأة، هدية، استرداد، أو أخرى.';
+
+  @override
+  String get moneyGuideAccountHeading => 'الحساب — أين يوجد المال';
+
+  @override
+  String get moneyGuideAccountBody =>
+      'كل معاملة لها أيضًا حساب: نقدًا، البنك، محفظة، أو أخرى. بالنسبة للمصروفات، هو المكان الذي دفعت منه. بالنسبة للدخل، هو المكان الذي استلمت فيه المال.';
+
+  @override
+  String get moneyGuideTransferHeading =>
+      'التحويل — نقل المال بين حساباتك الخاصة';
+
+  @override
+  String get moneyGuideTransferBody =>
+      'استخدم التحويل عندما ينتقل المال بين حساباتك الخاصة دون أن يكون دخلاً جديدًا أو مصروفًا حقيقيًا — مثل إيداع نقود في البنك. اختر حساب المصدر وحساب الوجهة؛ رصيدك الإجمالي لا يتغير.';
+
+  @override
+  String get moneyGuideExamplesHeading => 'أمثلة';
+
+  @override
+  String get moneyGuideExample1 => '٢٥٬٠٠٠ ج.م راتب ← استلم في البنك';
+
+  @override
+  String get moneyGuideExample2 => '٢٬٠٠٠ ج.م عمل حر ← استلم نقدًا';
+
+  @override
+  String get moneyGuideExample3 =>
+      'نقدًا ← البنك (تحويل): الرصيد الإجمالي لا يتغير';
+
+  @override
   String get aboutTitle => 'حول التطبيق';
 
   @override
@@ -480,6 +645,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get everyone => 'الجميع';
 
   @override
+  String get calendarSharedSection => 'مشترك';
+
+  @override
+  String peopleCount(Object count) {
+    return '$count أشخاص';
+  }
+
+  @override
   String get allCategories => 'كل الفئات';
 
   @override
@@ -487,6 +660,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notSet => 'غير محدد';
+
+  @override
+  String permissionDenied(String role) {
+    return 'ليس لديك صلاحية القيام بذلك كـ $role.';
+  }
 
   @override
   String get save => 'حفظ';
@@ -559,6 +737,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get eventFormWhoHint => 'أضف الأشخاص المشاركين في هذا الحدث.';
+
+  @override
+  String get eventFormDescriptionHint => 'أضف وصفًا';
+
+  @override
+  String get labelColor => 'اللون';
+
+  @override
+  String get eventFormColorDefaultHint => 'افتراضي (حسب الفئة)';
+
+  @override
+  String get eventFormAttachmentLabel => 'مرفق';
+
+  @override
+  String get eventFormAddAttachment => 'إضافة مرفق';
 
   @override
   String get eventFormSaveButton => 'حفظ الحدث';
@@ -716,4 +909,346 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get quickAddTaskAssignShort => 'إسناد';
+
+  @override
+  String get navBudget => 'الأموال';
+
+  @override
+  String get quickAddTransaction => 'معاملة';
+
+  @override
+  String get moneyOverviewTitle => 'مالية العائلة';
+
+  @override
+  String get moneyOverviewTagline => 'معًا نحو غد أفضل';
+
+  @override
+  String get totalBalance => 'الرصيد الإجمالي';
+
+  @override
+  String get income => 'الدخل';
+
+  @override
+  String get expenses => 'المصروفات';
+
+  @override
+  String get savings => 'المدخرات';
+
+  @override
+  String netThisMonth(Object amount) {
+    return 'الصافي: $amount';
+  }
+
+  @override
+  String get moneyTileBudget => 'الميزانية';
+
+  @override
+  String get moneyTileGoals => 'الأهداف';
+
+  @override
+  String noBudgetSetForMonth(Object month) {
+    return 'لم يتم تحديد ميزانية لشهر $month';
+  }
+
+  @override
+  String budgetRemainingAmount(Object amount) {
+    return 'متبقي $amount';
+  }
+
+  @override
+  String goalsSavedSummary(Object amount, Object count) {
+    return 'تم ادخار $amount عبر $count أهداف';
+  }
+
+  @override
+  String get spendingByCategory => 'الإنفاق حسب الفئة';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get recentTransactions => 'أحدث المعاملات';
+
+  @override
+  String get transactionsTitle => 'المعاملات';
+
+  @override
+  String get transactionsSearchHint => 'ابحث عن معاملة...';
+
+  @override
+  String get transactionFilterAll => 'الكل';
+
+  @override
+  String get noTransactionsYet => 'لا توجد معاملات بعد';
+
+  @override
+  String get transactionsEmptyHint => 'اضغط + واختر \"معاملة\" لإضافة واحدة.';
+
+  @override
+  String get budgetTitle => 'الميزانية الشهرية';
+
+  @override
+  String budgetUsedPercent(Object percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get budgetUsedLabel => 'المستخدم';
+
+  @override
+  String get budgetRemaining => 'المتبقي';
+
+  @override
+  String get categoryBudgets => 'ميزانيات الفئات';
+
+  @override
+  String get budgetLimitPlaceholder => 'الحد';
+
+  @override
+  String get setBudget => 'تحديد الميزانية';
+
+  @override
+  String get setTotalBudget => 'الميزانية الشهرية الإجمالية';
+
+  @override
+  String get setCategoryBudget => 'حد الفئة';
+
+  @override
+  String get noBudgetSet => 'لم يتم تحديد ميزانية';
+
+  @override
+  String get currency => 'العملة';
+
+  @override
+  String budgetUnallocatedLabel(Object amount) {
+    return 'مرن / غير مخصص: $amount';
+  }
+
+  @override
+  String budgetOverTotalWarning(Object amount) {
+    return '$amount أكثر من ميزانيتك الشهرية';
+  }
+
+  @override
+  String get addTransaction => 'إضافة معاملة';
+
+  @override
+  String get editTransaction => 'تعديل المعاملة';
+
+  @override
+  String get transactionAmount => 'المبلغ';
+
+  @override
+  String get transactionTitleHint => 'مثال: بقالة';
+
+  @override
+  String get transactionTypeLabel => 'النوع';
+
+  @override
+  String get transactionCategoryLabel => 'الفئة';
+
+  @override
+  String get transactionIncomeSourceLabel => 'مصدر الدخل';
+
+  @override
+  String get transactionPaidFromLabel => 'دفع من';
+
+  @override
+  String get transactionReceivedIntoLabel => 'استلام في';
+
+  @override
+  String get transactionFromAccountLabel => 'من';
+
+  @override
+  String get transactionToAccountLabel => 'إلى';
+
+  @override
+  String get transactionDateLabel => 'التاريخ';
+
+  @override
+  String get transactionNoteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get warningApproachingLimit => 'اقتراب من الحد';
+
+  @override
+  String get warningOverBudget => 'تجاوز الميزانية';
+
+  @override
+  String get transactionTypeExpense => 'مصروف';
+
+  @override
+  String get transactionTypeIncome => 'دخل';
+
+  @override
+  String get transactionTypeTransfer => 'تحويل';
+
+  @override
+  String get transactionCategoryGroceries => 'بقالة';
+
+  @override
+  String get transactionCategoryTransport => 'مواصلات';
+
+  @override
+  String get transactionCategoryBills => 'فواتير';
+
+  @override
+  String get transactionCategoryShopping => 'تسوق';
+
+  @override
+  String get transactionCategoryHealth => 'صحة';
+
+  @override
+  String get transactionCategoryEducation => 'تعليم';
+
+  @override
+  String get transactionCategoryFoodDrinks => 'طعام ومشروبات';
+
+  @override
+  String get transactionCategoryOther => 'أخرى';
+
+  @override
+  String get incomeSourceSalary => 'راتب';
+
+  @override
+  String get incomeSourceFreelance => 'عمل حر';
+
+  @override
+  String get incomeSourceBusiness => 'عمل تجاري';
+
+  @override
+  String get incomeSourceBonus => 'مكافأة';
+
+  @override
+  String get incomeSourceGift => 'هدية';
+
+  @override
+  String get incomeSourceRefund => 'استرداد';
+
+  @override
+  String get incomeSourceOther => 'أخرى';
+
+  @override
+  String get accountCash => 'نقدًا';
+
+  @override
+  String get accountBank => 'البنك';
+
+  @override
+  String get accountWallet => 'محفظة';
+
+  @override
+  String get accountOther => 'أخرى';
+
+  @override
+  String get goalsTitle => 'أهداف الادخار';
+
+  @override
+  String get goalsBanner => 'الأحلام الكبيرة تبدأ بخطوات صغيرة';
+
+  @override
+  String get goalsBannerSubtitle => 'ادخر اليوم من أجل غدٍ أفضل 💜';
+
+  @override
+  String get goalCompleted => 'مكتمل';
+
+  @override
+  String goalCelebrationMessage(Object amount) {
+    return 'تم ادخار $amount!';
+  }
+
+  @override
+  String goalOfTarget(Object amount) {
+    return 'من $amount';
+  }
+
+  @override
+  String goalTargetDateLabel(Object date) {
+    return 'الهدف: $date';
+  }
+
+  @override
+  String get addGoal => 'إضافة هدف';
+
+  @override
+  String get editGoal => 'تعديل الهدف';
+
+  @override
+  String get goalNameHint => 'مثال: إجازة العائلة';
+
+  @override
+  String get goalTargetAmount => 'المبلغ المستهدف';
+
+  @override
+  String get goalTargetDateOptional => 'تاريخ الهدف (اختياري)';
+
+  @override
+  String get contribute => 'إضافة مبلغ';
+
+  @override
+  String get contributeAmount => 'المبلغ المراد إضافته';
+
+  @override
+  String get noGoalsYet => 'لا توجد أهداف ادخار بعد';
+
+  @override
+  String get goalsEmptyHint => 'اضغط + لبدء هدف جديد.';
+
+  @override
+  String get savingsGoalIconVacation => 'إجازة';
+
+  @override
+  String get savingsGoalIconGadget => 'جهاز إلكتروني';
+
+  @override
+  String get savingsGoalIconEmergency => 'صندوق الطوارئ';
+
+  @override
+  String get savingsGoalIconEducation => 'تعليم';
+
+  @override
+  String get savingsGoalIconHome => 'منزل';
+
+  @override
+  String get savingsGoalIconCar => 'سيارة';
+
+  @override
+  String get savingsGoalIconGift => 'هدية';
+
+  @override
+  String get savingsGoalIconOther => 'أخرى';
+
+  @override
+  String get reportsTitle => 'التقارير';
+
+  @override
+  String get reportsSpendingTab => 'الإنفاق';
+
+  @override
+  String get reportsIncomeTab => 'الدخل';
+
+  @override
+  String get reportsSavingsTab => 'المدخرات';
+
+  @override
+  String get monthlySpending => 'الإنفاق الشهري';
+
+  @override
+  String get monthlyIncome => 'الدخل الشهري';
+
+  @override
+  String get topCategories => 'أكثر الفئات إنفاقًا';
+
+  @override
+  String insightLessSpending(Object percent) {
+    return 'أنفقت أقل بنسبة $percent% هذا الشهر. عمل رائع!';
+  }
+
+  @override
+  String insightMoreSpending(Object percent) {
+    return 'أنفقت أكثر بنسبة $percent% هذا الشهر مقارنة بالشهر الماضي.';
+  }
+
+  @override
+  String get insightNoChange => 'تقريبًا نفس الشهر الماضي.';
 }

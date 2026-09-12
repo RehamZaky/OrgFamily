@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/list_icon.dart';
@@ -32,6 +35,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
   }
 
   Future<void> _createList(BuildContext context, WidgetRef ref) async {
+    if (!checkPermission(context, ref, FamilyAction.manageLists)) return;
     final controller = TextEditingController();
     String emoji = _listEmojis.first;
     final result = await showDialog<String>(
@@ -86,6 +90,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
           id: const Uuid().v4(),
           name: name,
           emoji: result,
+          actingRole: ref.read(activeRoleProvider),
         );
   }
 
@@ -190,8 +195,13 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                               padding: const EdgeInsetsDirectional.only(start: 20),
                               child: const Icon(Icons.delete_outline, color: Colors.white),
                             ),
+                            confirmDismiss: (_) async =>
+                                checkPermission(context, ref, FamilyAction.manageLists),
                             onDismissed: (_) =>
-                                ref.read(shoppingRepositoryProvider).deleteList(list.id),
+                                ref.read(shoppingRepositoryProvider).deleteList(
+                                      list.id,
+                                      actingRole: ref.read(activeRoleProvider),
+                                    ),
                             child: Card(
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),

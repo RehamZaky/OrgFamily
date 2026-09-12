@@ -9,8 +9,45 @@
   "navFamily": "Family",
 
   "drawerProfile": "Profile",
+  "drawerSwitchProfile": "Switch profile",
   "drawerSettings": "Settings",
   "drawerAbout": "About",
+
+  "ourFamily": "Our Family",
+  "ourFamilyTagline": "Together we organize, plan and grow 💜",
+  "familySummaryMembers": "Members",
+  "familySummaryDoneThisWeek": "Done this week",
+  "familySummaryPointsThisWeek": "Points this week",
+  "familyMembersHeading": "Family Members",
+  "addMember": "Add member",
+  "noFamilyMembersYet": "No family members yet",
+  "tasksTodayCount": "{count} {count, plural, one{task} other{tasks}} today",
+  "@tasksTodayCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "tasksTodayAllDone": "{count} {count, plural, one{task} other{tasks}} done today",
+  "@tasksTodayAllDone": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "pointsShort": "{count} pts",
+  "@pointsShort": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "removeMemberTitle": "Remove family member?",
+  "removeMemberBody": "{name} will be removed from your family.",
+  "@removeMemberBody": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "remove": "Remove",
+  "you": "You",
 
   "greetingMorning": "Good morning",
   "greetingAfternoon": "Good afternoon",
@@ -51,6 +88,26 @@
   "actionAddEvent": "Add event",
   "actionAddItem": "Add",
   "taskStatusDone": "Done",
+  "overdue": "Overdue",
+  "overdueToday": "Overdue today",
+  "overdueYesterday": "Overdue since yesterday",
+  "yesterday": "Yesterday",
+  "overdueByDays": "Overdue by {count} days",
+  "@overdueByDays": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "needsAttention": "Needs attention",
+  "actionTomorrow": "Tomorrow",
+  "taskTimeOptional": "Time (optional)",
+  "notificationOverdueFollowupTitle": "Still needs attention",
+  "notificationOverdueFollowupBody": "{title} is overdue",
+  "@notificationOverdueFollowupBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
   "itemsCount": "{count} {count, plural, one{item} other{items}}",
   "@itemsCount": {
     "placeholders": {
@@ -139,6 +196,21 @@
   "settingsLanguageArabic": "العربية",
   "settingsLanguageSystem": "System",
 
+  "settingsMoneyGuide": "Income & Accounts Guide",
+  "settingsMoneyGuideHint": "What Income Source, Account, and Transfer mean",
+  "moneyGuideTitle": "Income & Accounts Guide",
+  "moneyGuideIntro": "Every Money transaction tracks two separate things: why the money moved, and where it physically is.",
+  "moneyGuideIncomeSourceHeading": "Income Source — why money came in",
+  "moneyGuideIncomeSourceBody": "When you log income, pick what it's for: Salary, Freelance, Business, Bonus, Gift, Refund, or Other.",
+  "moneyGuideAccountHeading": "Account — where the money is",
+  "moneyGuideAccountBody": "Every transaction also has an Account: Cash, Bank, Wallet, or Other. For an expense, it's what you paid from. For income, it's what you received into.",
+  "moneyGuideTransferHeading": "Transfer — moving money between your own accounts",
+  "moneyGuideTransferBody": "Use Transfer when money moves between your own accounts without being new income or a real expense — like depositing cash into the bank. Pick a From account and a To account; your total balance doesn't change.",
+  "moneyGuideExamplesHeading": "Examples",
+  "moneyGuideExample1": "E£25,000 Salary → received into Bank",
+  "moneyGuideExample2": "E£2,000 Freelance → received as Cash",
+  "moneyGuideExample3": "Cash → Bank (Transfer): total balance unchanged",
+
   "aboutTitle": "About",
   "aboutAppName": "OrgFamily",
   "aboutVersion": "Version 1.0.0 · V1 MVP",
@@ -190,9 +262,22 @@
   "labelNotes": "Notes",
   "unassigned": "Unassigned",
   "everyone": "Everyone",
+  "calendarSharedSection": "Shared",
+  "peopleCount": "{count} people",
+  "@peopleCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "allCategories": "All categories",
   "clearFilters": "Clear filters",
   "notSet": "Not set",
+  "permissionDenied": "You don't have permission to do that as {role}.",
+  "@permissionDenied": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
   "save": "Save",
   "cancel": "Cancel",
   "delete": "Delete",
@@ -220,6 +305,11 @@
   "eventFormLocationLabel": "Location (optional)",
   "eventFormLocationHint": "Add location",
   "eventFormWhoHint": "Add people who are part of this event.",
+  "eventFormDescriptionHint": "Add a description",
+  "labelColor": "Color",
+  "eventFormColorDefaultHint": "Default (matches category)",
+  "eventFormAttachmentLabel": "Attachment",
+  "eventFormAddAttachment": "Add attachment",
   "eventFormSaveButton": "Save Event",
   "eventFormSaveChangesButton": "Save changes",
   "eventFormDeleteTitle": "Delete event?",
@@ -292,5 +382,185 @@
   "quickAddTaskAdd": "Add Task",
   "quickAddTaskVoiceUnavailable": "Voice input isn't available on this device",
   "quickAddTaskDateShort": "Date",
-  "quickAddTaskAssignShort": "Assign"
+  "quickAddTaskAssignShort": "Assign",
+
+  "navBudget": "Money",
+  "quickAddTransaction": "Transaction",
+
+  "moneyOverviewTitle": "Family Finances",
+  "moneyOverviewTagline": "Together for a brighter tomorrow",
+  "totalBalance": "Total Balance",
+  "income": "Income",
+  "expenses": "Expenses",
+  "savings": "Savings",
+  "netThisMonth": "Net: {amount}",
+  "@netThisMonth": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "moneyTileBudget": "Budget",
+  "moneyTileGoals": "Goals",
+  "noBudgetSetForMonth": "No budget set for {month}",
+  "@noBudgetSetForMonth": {
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "budgetRemainingAmount": "{amount} remaining",
+  "@budgetRemainingAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalsSavedSummary": "{amount} saved across {count} goals",
+  "@goalsSavedSummary": {
+    "placeholders": {
+      "amount": {},
+      "count": {}
+    }
+  },
+  "spendingByCategory": "Spending by Category",
+  "thisMonth": "This month",
+  "recentTransactions": "Recent Transactions",
+
+  "transactionsTitle": "Transactions",
+  "transactionsSearchHint": "Search transactions...",
+  "transactionFilterAll": "All",
+  "noTransactionsYet": "No transactions yet",
+  "transactionsEmptyHint": "Tap + and choose Transaction to add one.",
+
+  "budgetTitle": "Monthly Budget",
+  "budgetUsedPercent": "{percent}%",
+  "@budgetUsedPercent": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "budgetUsedLabel": "Used",
+  "budgetRemaining": "Remaining",
+  "categoryBudgets": "Category Budgets",
+  "budgetLimitPlaceholder": "Limit",
+  "setBudget": "Set Budget",
+  "setTotalBudget": "Total monthly budget",
+  "setCategoryBudget": "Category limit",
+  "noBudgetSet": "No budget set",
+  "currency": "Currency",
+  "budgetUnallocatedLabel": "Flexible / unallocated: {amount}",
+  "@budgetUnallocatedLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "budgetOverTotalWarning": "{amount} over your monthly budget",
+  "@budgetOverTotalWarning": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+
+  "addTransaction": "Add Transaction",
+  "editTransaction": "Edit Transaction",
+  "transactionAmount": "Amount",
+  "transactionTitleHint": "e.g. Groceries",
+  "transactionTypeLabel": "Type",
+  "transactionCategoryLabel": "Category",
+  "transactionIncomeSourceLabel": "Income Source",
+  "transactionPaidFromLabel": "Paid From",
+  "transactionReceivedIntoLabel": "Received Into",
+  "transactionFromAccountLabel": "From",
+  "transactionToAccountLabel": "To",
+  "transactionDateLabel": "Date",
+  "transactionNoteLabel": "Note (optional)",
+
+  "warningApproachingLimit": "Approaching limit",
+  "warningOverBudget": "Over budget",
+
+  "transactionTypeExpense": "Expense",
+  "transactionTypeIncome": "Income",
+  "transactionTypeTransfer": "Transfer",
+
+  "transactionCategoryGroceries": "Groceries",
+  "transactionCategoryTransport": "Transport",
+  "transactionCategoryBills": "Bills",
+  "transactionCategoryShopping": "Shopping",
+  "transactionCategoryHealth": "Health",
+  "transactionCategoryEducation": "Education",
+  "transactionCategoryFoodDrinks": "Food & Drinks",
+  "transactionCategoryOther": "Other",
+
+  "incomeSourceSalary": "Salary",
+  "incomeSourceFreelance": "Freelance",
+  "incomeSourceBusiness": "Business",
+  "incomeSourceBonus": "Bonus",
+  "incomeSourceGift": "Gift",
+  "incomeSourceRefund": "Refund",
+  "incomeSourceOther": "Other",
+
+  "accountCash": "Cash",
+  "accountBank": "Bank",
+  "accountWallet": "Wallet",
+  "accountOther": "Other",
+
+  "goalsTitle": "Savings Goals",
+  "goalsBanner": "Big dreams start with small steps",
+  "goalsBannerSubtitle": "Save today for a brighter tomorrow 💜",
+  "goalCompleted": "Completed",
+  "goalCelebrationMessage": "{amount} saved!",
+  "@goalCelebrationMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalOfTarget": "of {amount}",
+  "@goalOfTarget": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "goalTargetDateLabel": "Target: {date}",
+  "@goalTargetDateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "addGoal": "Add Goal",
+  "editGoal": "Edit Goal",
+  "goalNameHint": "e.g. Family Vacation",
+  "goalTargetAmount": "Target amount",
+  "goalTargetDateOptional": "Target date (optional)",
+  "contribute": "Contribute",
+  "contributeAmount": "Amount to add",
+  "noGoalsYet": "No savings goals yet",
+  "goalsEmptyHint": "Tap + to start a new goal.",
+
+  "savingsGoalIconVacation": "Vacation",
+  "savingsGoalIconGadget": "Gadget",
+  "savingsGoalIconEmergency": "Emergency Fund",
+  "savingsGoalIconEducation": "Education",
+  "savingsGoalIconHome": "Home",
+  "savingsGoalIconCar": "Car",
+  "savingsGoalIconGift": "Gift",
+  "savingsGoalIconOther": "Other",
+
+  "reportsTitle": "Reports",
+  "reportsSpendingTab": "Spending",
+  "reportsIncomeTab": "Income",
+  "reportsSavingsTab": "Savings",
+  "monthlySpending": "Monthly Spending",
+  "monthlyIncome": "Monthly Income",
+  "topCategories": "Top Categories",
+  "insightLessSpending": "You spent {percent}% less this month. Great job!",
+  "@insightLessSpending": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "insightMoreSpending": "You spent {percent}% more this month than last.",
+  "@insightMoreSpending": {
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "insightNoChange": "About the same as last month."
 }

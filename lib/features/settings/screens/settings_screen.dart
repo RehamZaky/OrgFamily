@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/locale_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_mode_provider.dart';
 import '../../../l10n/app_localizations.dart';
+import 'money_guide_screen.dart';
 
 /// A sentinel distinct from any real [Locale] to represent "follow system"
 /// in the segmented button, since its value type can't be nullable.
@@ -77,6 +79,21 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(localeProvider.notifier).state =
                   selected == _systemLocale ? null : selected;
             },
+          ),
+          const SizedBox(height: 28),
+          Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined, color: AppColors.primary),
+              title: Text(l10n.settingsMoneyGuide),
+              subtitle: Text(l10n.settingsMoneyGuideHint),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MoneyGuideScreen()),
+              ),
+            ),
           ),
         ],
       ),

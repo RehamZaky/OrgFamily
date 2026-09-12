@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
+import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
+import '../local/tables/family_members_table.dart';
 
 class ShoppingRepository {
   ShoppingRepository(this._db);
@@ -41,7 +43,11 @@ class ShoppingRepository {
     required String id,
     required String name,
     String emoji = '🛒',
+    FamilyRole actingRole = FamilyRole.owner,
   }) {
+    if (!canPerform(actingRole, FamilyAction.manageLists)) {
+      throw FamilyPermissionException(FamilyAction.manageLists, actingRole);
+    }
     return _db.into(_db.shoppingLists).insert(
           ShoppingListsCompanion.insert(
             id: id,
@@ -51,7 +57,10 @@ class ShoppingRepository {
         );
   }
 
-  Future<void> deleteList(String id) {
+  Future<void> deleteList(String id, {FamilyRole actingRole = FamilyRole.owner}) {
+    if (!canPerform(actingRole, FamilyAction.manageLists)) {
+      throw FamilyPermissionException(FamilyAction.manageLists, actingRole);
+    }
     return (_db.delete(_db.shoppingLists)..where((l) => l.id.equals(id))).go();
   }
 
@@ -61,7 +70,11 @@ class ShoppingRepository {
     required String name,
     String? quantity,
     String? addedById,
+    FamilyRole actingRole = FamilyRole.owner,
   }) {
+    if (!canPerform(actingRole, FamilyAction.addListItem)) {
+      throw FamilyPermissionException(FamilyAction.addListItem, actingRole);
+    }
     return _db.into(_db.shoppingItems).insert(
           ShoppingItemsCompanion.insert(
             id: id,

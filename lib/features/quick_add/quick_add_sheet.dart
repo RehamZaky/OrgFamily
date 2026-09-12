@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/permissions/active_profile_provider.dart';
+import '../../core/permissions/family_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
+import '../budget/widgets/add_transaction_sheet.dart';
 import '../calendar/screens/event_form_screen.dart';
 import '../notes/screens/note_form_screen.dart';
 import '../shopping/screens/add_shopping_item_screen.dart';
@@ -22,6 +25,8 @@ class _QuickAddSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final canManageTransactions =
+        canPerform(ref.watch(activeRoleProvider), FamilyAction.manageTransactions);
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.all(12),
@@ -81,6 +86,16 @@ class _QuickAddSheet extends ConsumerWidget {
                     );
                   },
                 ),
+                if (canManageTransactions)
+                  _QuickAddOption(
+                    icon: Icons.attach_money,
+                    label: l10n.quickAddTransaction,
+                    color: AppColors.primary,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      showAddTransactionSheet(context);
+                    },
+                  ),
               ],
             ),
           ],

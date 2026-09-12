@@ -39,6 +39,7 @@ dependencies:
   drift_flutter: ^0.3.1
   uuid: ^4.6.0
   intl: 0.20.2
+  shared_preferences: ^2.3.3
   table_calendar: ^3.2.1
   flutter_localizations:
     sdk: flutter
@@ -49,6 +50,7 @@ dependencies:
   flutter_timezone: ^5.1.0
   speech_to_text: ^7.4.0
   lottie: ^3.3.3
+  fl_chart: ^0.69.2
 
 # drift_flutter 0.3.1 requires sqlite3_flutter_libs ^0.6.0+eol, which is an
 # empty stub — that package's own changelog says to migrate to
@@ -96,6 +98,7 @@ flutter:
     - assets/onboarding/en/
     - assets/onboarding/ar/
     - assets/lottie/
+    - assets/illustrations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

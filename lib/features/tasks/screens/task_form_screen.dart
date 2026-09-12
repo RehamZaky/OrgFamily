@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
@@ -15,6 +18,7 @@ import '../../../data/local/tables/tasks_table.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
+import '../domain/task_status_calculator.dart';
 
 class TaskFormScreen extends ConsumerStatefulWidget {
   const TaskFormScreen({
@@ -46,6 +50,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   late final _descController =
       TextEditingController(text: widget.existing?.description);
   DateTime? _dueDate;
+  int? _dueTimeMinutes;
   late TaskPriority _priority;
   late TaskCategory _category;
   late TaskRecurrence _recurrence;
@@ -55,7 +60,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   void initState() {
     super.initState();
     final e = widget.existing;
-    _dueDate = e?.dueDate ?? widget.initialDueDate;
+    final initialDue = e?.dueDate ?? widget.initialDueDate;
+    _dueDate = initialDue == null
+        ? null
+        : DateTime(initialDue.year, initialDue.month, initialDue.day);
+    _dueTimeMinutes = e?.dueTimeMinutes;
     _priority = e?.priority ?? widget.initialPriority ?? TaskPriority.normal;
     _category = e?.category ?? TaskCategory.other;
     _recurrence = e?.recurrence ?? TaskRecurrence.none;
@@ -88,28 +97,23 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     );
     _unfocus();
     if (date == null) return;
-    final time = _dueDate != null
-        ? TimeOfDay.fromDateTime(_dueDate!)
-        : const TimeOfDay(hour: 9, minute: 0);
     setState(() {
-      _dueDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _dueDate = DateTime(date.year, date.month, date.day);
     });
   }
 
   Future<void> _pickTime() async {
+    if (_dueDate == null) return;
     _unfocus();
     final time = await showTimePicker(
       context: context,
-      initialTime: _dueDate != null
-          ? TimeOfDay.fromDateTime(_dueDate!)
+      initialTime: _dueTimeMinutes != null
+          ? TimeOfDay(hour: _dueTimeMinutes! ~/ 60, minute: _dueTimeMinutes! % 60)
           : const TimeOfDay(hour: 9, minute: 0),
     );
     _unfocus();
     if (time == null) return;
-    final base = _dueDate ?? DateTime.now();
-    setState(() {
-      _dueDate = DateTime(base.year, base.month, base.day, time.hour, time.minute);
-    });
+    setState(() => _dueTimeMinutes = time.hour * 60 + time.minute);
   }
 
   Future<void> _pickCategory() async {
@@ -208,30 +212,45 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
+    final actingRole = ref.read(activeRoleProvider);
+    final actingMemberId = ref.read(activeMemberIdProvider);
     final repo = ref.read(taskRepositoryProvider);
     if (widget.existing == null) {
+      if (!checkPermission(context, ref, FamilyAction.createTask)) return;
       await repo.addTask(
         id: const Uuid().v4(),
         title: title,
         description:
             _descController.text.trim().isEmpty ? null : _descController.text.trim(),
         dueDate: _dueDate,
+        dueTimeMinutes: _dueTimeMinutes,
         priority: _priority,
         category: _category,
         assigneeId: _assigneeId,
         recurrence: _recurrence,
+        actingRole: actingRole,
+        actingMemberId: actingMemberId,
       );
     } else {
-      await repo.updateTask(widget.existing!.copyWith(
+      final updated = widget.existing!.copyWith(
         title: title,
         description: Value(
             _descController.text.trim().isEmpty ? null : _descController.text.trim()),
         dueDate: Value(_dueDate),
+        dueTimeMinutes: Value(_dueTimeMinutes),
         priority: _priority,
         category: _category,
         assigneeId: Value(_assigneeId),
         recurrence: _recurrence,
-      ));
+      );
+      final requiredAction =
+          taskUpdateAction(widget.existing!, updated, actingMemberId);
+      if (!checkPermission(context, ref, requiredAction)) return;
+      await repo.updateTask(
+        updated,
+        actingRole: actingRole,
+        actingMemberId: actingMemberId,
+      );
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -319,7 +338,10 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                     if (_dueDate != null)
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
-                        onPressed: () => setState(() => _dueDate = null),
+                        onPressed: () => setState(() {
+                          _dueDate = null;
+                          _dueTimeMinutes = null;
+                        }),
                       ),
                   ],
                 ),
@@ -329,8 +351,23 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                 icon: Icons.access_time_rounded,
                 iconColor: AppColors.priorityNormal,
                 label: l10n.taskFormTimeLabel,
-                valueText: _dueDate == null ? '—' : _dueDate!.timeLabel,
-                onTap: _pickTime,
+                onTap: _dueDate == null ? null : _pickTime,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _dueTimeMinutes == null
+                          ? l10n.taskTimeOptional
+                          : _dueTimeMinutes!.timeOfDayLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    if (_dueTimeMinutes != null)
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () => setState(() => _dueTimeMinutes = null),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),

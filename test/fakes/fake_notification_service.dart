@@ -4,7 +4,13 @@ import 'package:org_family/core/notifications/notification_service.dart';
 /// channels, which aren't available under `flutter_test`.
 class FakeNotificationService implements NotificationService {
   @override
+  void Function(String type, String id)? onNotificationTapped;
+
+  @override
   Future<void> init() async {}
+
+  @override
+  Future<void> handlePendingLaunch() async {}
 
   @override
   Future<void> scheduleTaskReminder({
@@ -16,6 +22,17 @@ class FakeNotificationService implements NotificationService {
 
   @override
   Future<void> cancelTaskReminder(String taskId) async {}
+
+  @override
+  Future<void> scheduleTaskOverdueFollowup({
+    required String taskId,
+    required String title,
+    required String body,
+    required DateTime at,
+  }) async {}
+
+  @override
+  Future<void> cancelTaskOverdueFollowup(String taskId) async {}
 
   @override
   Future<void> scheduleEventReminder({

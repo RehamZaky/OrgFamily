@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get drawerProfile;
 
+  /// No description provided for @drawerSwitchProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch profile'**
+  String get drawerSwitchProfile;
+
   /// No description provided for @drawerSettings.
   ///
   /// In en, this message translates to:
@@ -151,6 +157,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About'**
   String get drawerAbout;
+
+  /// No description provided for @ourFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Family'**
+  String get ourFamily;
+
+  /// No description provided for @ourFamilyTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Together we organize, plan and grow 💜'**
+  String get ourFamilyTagline;
+
+  /// No description provided for @familySummaryMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get familySummaryMembers;
+
+  /// No description provided for @familySummaryDoneThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Done this week'**
+  String get familySummaryDoneThisWeek;
+
+  /// No description provided for @familySummaryPointsThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Points this week'**
+  String get familySummaryPointsThisWeek;
+
+  /// No description provided for @familyMembersHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Members'**
+  String get familyMembersHeading;
+
+  /// No description provided for @addMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add member'**
+  String get addMember;
+
+  /// No description provided for @noFamilyMembersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No family members yet'**
+  String get noFamilyMembersYet;
+
+  /// No description provided for @tasksTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{task} other{tasks}} today'**
+  String tasksTodayCount(num count);
+
+  /// No description provided for @tasksTodayAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{task} other{tasks}} done today'**
+  String tasksTodayAllDone(num count);
+
+  /// No description provided for @pointsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pts'**
+  String pointsShort(Object count);
+
+  /// No description provided for @removeMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove family member?'**
+  String get removeMemberTitle;
+
+  /// No description provided for @removeMemberBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be removed from your family.'**
+  String removeMemberBody(Object name);
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @you.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get you;
 
   /// No description provided for @greetingMorning.
   ///
@@ -331,6 +427,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get taskStatusDone;
+
+  /// No description provided for @overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdue;
+
+  /// No description provided for @overdueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue today'**
+  String get overdueToday;
+
+  /// No description provided for @overdueYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue since yesterday'**
+  String get overdueYesterday;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @overdueByDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue by {count} days'**
+  String overdueByDays(num count);
+
+  /// No description provided for @needsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get needsAttention;
+
+  /// No description provided for @actionTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get actionTomorrow;
+
+  /// No description provided for @taskTimeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Time (optional)'**
+  String get taskTimeOptional;
+
+  /// No description provided for @notificationOverdueFollowupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still needs attention'**
+  String get notificationOverdueFollowupTitle;
+
+  /// No description provided for @notificationOverdueFollowupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is overdue'**
+  String notificationOverdueFollowupBody(Object title);
 
   /// No description provided for @itemsCount.
   ///
@@ -644,6 +800,90 @@ abstract class AppLocalizations {
   /// **'System'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @settingsMoneyGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Income & Accounts Guide'**
+  String get settingsMoneyGuide;
+
+  /// No description provided for @settingsMoneyGuideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What Income Source, Account, and Transfer mean'**
+  String get settingsMoneyGuideHint;
+
+  /// No description provided for @moneyGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income & Accounts Guide'**
+  String get moneyGuideTitle;
+
+  /// No description provided for @moneyGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Every Money transaction tracks two separate things: why the money moved, and where it physically is.'**
+  String get moneyGuideIntro;
+
+  /// No description provided for @moneyGuideIncomeSourceHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Income Source — why money came in'**
+  String get moneyGuideIncomeSourceHeading;
+
+  /// No description provided for @moneyGuideIncomeSourceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you log income, pick what it\'s for: Salary, Freelance, Business, Bonus, Gift, Refund, or Other.'**
+  String get moneyGuideIncomeSourceBody;
+
+  /// No description provided for @moneyGuideAccountHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Account — where the money is'**
+  String get moneyGuideAccountHeading;
+
+  /// No description provided for @moneyGuideAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every transaction also has an Account: Cash, Bank, Wallet, or Other. For an expense, it\'s what you paid from. For income, it\'s what you received into.'**
+  String get moneyGuideAccountBody;
+
+  /// No description provided for @moneyGuideTransferHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer — moving money between your own accounts'**
+  String get moneyGuideTransferHeading;
+
+  /// No description provided for @moneyGuideTransferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Transfer when money moves between your own accounts without being new income or a real expense — like depositing cash into the bank. Pick a From account and a To account; your total balance doesn\'t change.'**
+  String get moneyGuideTransferBody;
+
+  /// No description provided for @moneyGuideExamplesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Examples'**
+  String get moneyGuideExamplesHeading;
+
+  /// No description provided for @moneyGuideExample1.
+  ///
+  /// In en, this message translates to:
+  /// **'E£25,000 Salary → received into Bank'**
+  String get moneyGuideExample1;
+
+  /// No description provided for @moneyGuideExample2.
+  ///
+  /// In en, this message translates to:
+  /// **'E£2,000 Freelance → received as Cash'**
+  String get moneyGuideExample2;
+
+  /// No description provided for @moneyGuideExample3.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash → Bank (Transfer): total balance unchanged'**
+  String get moneyGuideExample3;
+
   /// No description provided for @aboutTitle.
   ///
   /// In en, this message translates to:
@@ -920,6 +1160,18 @@ abstract class AppLocalizations {
   /// **'Everyone'**
   String get everyone;
 
+  /// No description provided for @calendarSharedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get calendarSharedSection;
+
+  /// No description provided for @peopleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people'**
+  String peopleCount(Object count);
+
   /// No description provided for @allCategories.
   ///
   /// In en, this message translates to:
@@ -937,6 +1189,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not set'**
   String get notSet;
+
+  /// No description provided for @permissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to do that as {role}.'**
+  String permissionDenied(String role);
 
   /// No description provided for @save.
   ///
@@ -1081,6 +1339,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add people who are part of this event.'**
   String get eventFormWhoHint;
+
+  /// No description provided for @eventFormDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a description'**
+  String get eventFormDescriptionHint;
+
+  /// No description provided for @labelColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get labelColor;
+
+  /// No description provided for @eventFormColorDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (matches category)'**
+  String get eventFormColorDefaultHint;
+
+  /// No description provided for @eventFormAttachmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment'**
+  String get eventFormAttachmentLabel;
+
+  /// No description provided for @eventFormAddAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add attachment'**
+  String get eventFormAddAttachment;
 
   /// No description provided for @eventFormSaveButton.
   ///
@@ -1357,6 +1645,642 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign'**
   String get quickAddTaskAssignShort;
+
+  /// No description provided for @navBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get navBudget;
+
+  /// No description provided for @quickAddTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction'**
+  String get quickAddTransaction;
+
+  /// No description provided for @moneyOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Finances'**
+  String get moneyOverviewTitle;
+
+  /// No description provided for @moneyOverviewTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Together for a brighter tomorrow'**
+  String get moneyOverviewTagline;
+
+  /// No description provided for @totalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Balance'**
+  String get totalBalance;
+
+  /// No description provided for @income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get income;
+
+  /// No description provided for @expenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get expenses;
+
+  /// No description provided for @savings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get savings;
+
+  /// No description provided for @netThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Net: {amount}'**
+  String netThisMonth(Object amount);
+
+  /// No description provided for @moneyTileBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get moneyTileBudget;
+
+  /// No description provided for @moneyTileGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get moneyTileGoals;
+
+  /// No description provided for @noBudgetSetForMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget set for {month}'**
+  String noBudgetSetForMonth(Object month);
+
+  /// No description provided for @budgetRemainingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} remaining'**
+  String budgetRemainingAmount(Object amount);
+
+  /// No description provided for @goalsSavedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} saved across {count} goals'**
+  String goalsSavedSummary(Object amount, Object count);
+
+  /// No description provided for @spendingByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by Category'**
+  String get spendingByCategory;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonth;
+
+  /// No description provided for @recentTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Transactions'**
+  String get recentTransactions;
+
+  /// No description provided for @transactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transactionsTitle;
+
+  /// No description provided for @transactionsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search transactions...'**
+  String get transactionsSearchHint;
+
+  /// No description provided for @transactionFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get transactionFilterAll;
+
+  /// No description provided for @noTransactionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get noTransactionsYet;
+
+  /// No description provided for @transactionsEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + and choose Transaction to add one.'**
+  String get transactionsEmptyHint;
+
+  /// No description provided for @budgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Budget'**
+  String get budgetTitle;
+
+  /// No description provided for @budgetUsedPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String budgetUsedPercent(Object percent);
+
+  /// No description provided for @budgetUsedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get budgetUsedLabel;
+
+  /// No description provided for @budgetRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get budgetRemaining;
+
+  /// No description provided for @categoryBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Budgets'**
+  String get categoryBudgets;
+
+  /// No description provided for @budgetLimitPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get budgetLimitPlaceholder;
+
+  /// No description provided for @setBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Budget'**
+  String get setBudget;
+
+  /// No description provided for @setTotalBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total monthly budget'**
+  String get setTotalBudget;
+
+  /// No description provided for @setCategoryBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Category limit'**
+  String get setCategoryBudget;
+
+  /// No description provided for @noBudgetSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget set'**
+  String get noBudgetSet;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @budgetUnallocatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible / unallocated: {amount}'**
+  String budgetUnallocatedLabel(Object amount);
+
+  /// No description provided for @budgetOverTotalWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over your monthly budget'**
+  String budgetOverTotalWarning(Object amount);
+
+  /// No description provided for @addTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Transaction'**
+  String get addTransaction;
+
+  /// No description provided for @editTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Transaction'**
+  String get editTransaction;
+
+  /// No description provided for @transactionAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get transactionAmount;
+
+  /// No description provided for @transactionTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Groceries'**
+  String get transactionTitleHint;
+
+  /// No description provided for @transactionTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get transactionTypeLabel;
+
+  /// No description provided for @transactionCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get transactionCategoryLabel;
+
+  /// No description provided for @transactionIncomeSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Income Source'**
+  String get transactionIncomeSourceLabel;
+
+  /// No description provided for @transactionPaidFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid From'**
+  String get transactionPaidFromLabel;
+
+  /// No description provided for @transactionReceivedIntoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received Into'**
+  String get transactionReceivedIntoLabel;
+
+  /// No description provided for @transactionFromAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get transactionFromAccountLabel;
+
+  /// No description provided for @transactionToAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get transactionToAccountLabel;
+
+  /// No description provided for @transactionDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get transactionDateLabel;
+
+  /// No description provided for @transactionNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get transactionNoteLabel;
+
+  /// No description provided for @warningApproachingLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Approaching limit'**
+  String get warningApproachingLimit;
+
+  /// No description provided for @warningOverBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Over budget'**
+  String get warningOverBudget;
+
+  /// No description provided for @transactionTypeExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get transactionTypeExpense;
+
+  /// No description provided for @transactionTypeIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get transactionTypeIncome;
+
+  /// No description provided for @transactionTypeTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transactionTypeTransfer;
+
+  /// No description provided for @transactionCategoryGroceries.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get transactionCategoryGroceries;
+
+  /// No description provided for @transactionCategoryTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get transactionCategoryTransport;
+
+  /// No description provided for @transactionCategoryBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get transactionCategoryBills;
+
+  /// No description provided for @transactionCategoryShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get transactionCategoryShopping;
+
+  /// No description provided for @transactionCategoryHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get transactionCategoryHealth;
+
+  /// No description provided for @transactionCategoryEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get transactionCategoryEducation;
+
+  /// No description provided for @transactionCategoryFoodDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & Drinks'**
+  String get transactionCategoryFoodDrinks;
+
+  /// No description provided for @transactionCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get transactionCategoryOther;
+
+  /// No description provided for @incomeSourceSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get incomeSourceSalary;
+
+  /// No description provided for @incomeSourceFreelance.
+  ///
+  /// In en, this message translates to:
+  /// **'Freelance'**
+  String get incomeSourceFreelance;
+
+  /// No description provided for @incomeSourceBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get incomeSourceBusiness;
+
+  /// No description provided for @incomeSourceBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get incomeSourceBonus;
+
+  /// No description provided for @incomeSourceGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift'**
+  String get incomeSourceGift;
+
+  /// No description provided for @incomeSourceRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get incomeSourceRefund;
+
+  /// No description provided for @incomeSourceOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get incomeSourceOther;
+
+  /// No description provided for @accountCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accountCash;
+
+  /// No description provided for @accountBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get accountBank;
+
+  /// No description provided for @accountWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get accountWallet;
+
+  /// No description provided for @accountOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get accountOther;
+
+  /// No description provided for @goalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings Goals'**
+  String get goalsTitle;
+
+  /// No description provided for @goalsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Big dreams start with small steps'**
+  String get goalsBanner;
+
+  /// No description provided for @goalsBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save today for a brighter tomorrow 💜'**
+  String get goalsBannerSubtitle;
+
+  /// No description provided for @goalCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get goalCompleted;
+
+  /// No description provided for @goalCelebrationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} saved!'**
+  String goalCelebrationMessage(Object amount);
+
+  /// No description provided for @goalOfTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'of {amount}'**
+  String goalOfTarget(Object amount);
+
+  /// No description provided for @goalTargetDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: {date}'**
+  String goalTargetDateLabel(Object date);
+
+  /// No description provided for @addGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Goal'**
+  String get addGoal;
+
+  /// No description provided for @editGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Goal'**
+  String get editGoal;
+
+  /// No description provided for @goalNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Family Vacation'**
+  String get goalNameHint;
+
+  /// No description provided for @goalTargetAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Target amount'**
+  String get goalTargetAmount;
+
+  /// No description provided for @goalTargetDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date (optional)'**
+  String get goalTargetDateOptional;
+
+  /// No description provided for @contribute.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute'**
+  String get contribute;
+
+  /// No description provided for @contributeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to add'**
+  String get contributeAmount;
+
+  /// No description provided for @noGoalsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No savings goals yet'**
+  String get noGoalsYet;
+
+  /// No description provided for @goalsEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to start a new goal.'**
+  String get goalsEmptyHint;
+
+  /// No description provided for @savingsGoalIconVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get savingsGoalIconVacation;
+
+  /// No description provided for @savingsGoalIconGadget.
+  ///
+  /// In en, this message translates to:
+  /// **'Gadget'**
+  String get savingsGoalIconGadget;
+
+  /// No description provided for @savingsGoalIconEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Fund'**
+  String get savingsGoalIconEmergency;
+
+  /// No description provided for @savingsGoalIconEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get savingsGoalIconEducation;
+
+  /// No description provided for @savingsGoalIconHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get savingsGoalIconHome;
+
+  /// No description provided for @savingsGoalIconCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get savingsGoalIconCar;
+
+  /// No description provided for @savingsGoalIconGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift'**
+  String get savingsGoalIconGift;
+
+  /// No description provided for @savingsGoalIconOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get savingsGoalIconOther;
+
+  /// No description provided for @reportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reportsTitle;
+
+  /// No description provided for @reportsSpendingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending'**
+  String get reportsSpendingTab;
+
+  /// No description provided for @reportsIncomeTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get reportsIncomeTab;
+
+  /// No description provided for @reportsSavingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get reportsSavingsTab;
+
+  /// No description provided for @monthlySpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Spending'**
+  String get monthlySpending;
+
+  /// No description provided for @monthlyIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Income'**
+  String get monthlyIncome;
+
+  /// No description provided for @topCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Categories'**
+  String get topCategories;
+
+  /// No description provided for @insightLessSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'You spent {percent}% less this month. Great job!'**
+  String insightLessSpending(Object percent);
+
+  /// No description provided for @insightMoreSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'You spent {percent}% more this month than last.'**
+  String insightMoreSpending(Object percent);
+
+  /// No description provided for @insightNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'About the same as last month.'**
+  String get insightNoChange;
 }
 
 class _AppLocalizationsDelegate

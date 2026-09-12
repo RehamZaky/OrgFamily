@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fakes/fake_notification_service.dart';
+
 void main() {
   testWidgets('shows the onboarding carousel when no family members exist yet',
       (tester) async {
@@ -13,7 +15,10 @@ void main() {
     addTearDown(db.close);
 
     final container = ProviderContainer(
-      overrides: [databaseProvider.overrideWithValue(db)],
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        notificationServiceProvider.overrideWithValue(FakeNotificationService()),
+      ],
     );
 
     await tester.pumpWidget(

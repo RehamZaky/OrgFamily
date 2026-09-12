@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
@@ -40,12 +43,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  bool _matchesFilters(Event e) {
+  bool _matchesFilters(Event e, Map<String, List<String>> eventMembers) {
     if (_categoryFilter != null && e.category != _categoryFilter) return false;
-    if (_memberFilter == _unassignedSentinel && e.memberId != null) return false;
+    final ids = eventMembers[e.id] ?? const [];
+    if (_memberFilter == _unassignedSentinel && ids.isNotEmpty) return false;
     if (_memberFilter != null &&
         _memberFilter != _unassignedSentinel &&
-        e.memberId != _memberFilter) {
+        !ids.contains(_memberFilter)) {
       return false;
     }
     return true;
@@ -171,6 +175,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       for (final m in ref.watch(familyMembersProvider).valueOrNull ?? [])
         m.id: m
     };
+    final eventMembers = ref.watch(allEventMembersProvider).valueOrNull ?? {};
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -263,7 +268,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (allEvents) {
-          final events = allEvents.where(_matchesFilters).toList();
+          final events =
+              allEvents.where((e) => _matchesFilters(e, eventMembers)).toList();
 
           final query = _query.trim().toLowerCase();
           if (_searching && query.isNotEmpty) {
@@ -292,7 +298,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) => _EventTile(
                 event: matches[i],
-                member: members[matches[i].memberId],
+                members: [
+                  for (final id in eventMembers[matches[i].id] ?? const [])
+                    if (members[id] != null) members[id]!,
+                ],
                 showDate: true,
               ),
             );
@@ -355,6 +364,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   memberFilter: _memberFilter,
                   unassignedSentinel: _unassignedSentinel,
                   currentMember: currentMember,
+                  eventMembers: eventMembers,
                 ),
               ),
             ],
@@ -366,10 +376,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 }
 
 class _EventTile extends ConsumerWidget {
-  const _EventTile({required this.event, required this.member, this.showDate = false});
+  const _EventTile({required this.event, required this.members, this.showDate = false});
 
   final Event event;
-  final FamilyMember? member;
+  final List<FamilyMember> members;
   final bool showDate;
 
   @override
@@ -386,21 +396,75 @@ class _EventTile extends ConsumerWidget {
         ),
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      onDismissed: (_) => ref.read(eventRepositoryProvider).deleteEvent(event.id),
+      confirmDismiss: (_) async => checkPermission(context, ref, FamilyAction.manageCalendar),
+      onDismissed: (_) => ref.read(eventRepositoryProvider).deleteEvent(
+            event.id,
+            actingRole: ref.read(activeRoleProvider),
+          ),
       child: Card(
         child: ListTile(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => EventFormScreen(existing: event)),
           ),
           leading: CircleAvatar(
-            backgroundColor: event.category.color.withValues(alpha: 0.15),
-            child: Icon(event.category.icon, color: event.category.color, size: 20),
+            backgroundColor: event.displayColor.withValues(alpha: 0.15),
+            child: Icon(event.category.icon, color: event.displayColor, size: 20),
           ),
           title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(
               '${showDate ? '${event.startAt.shortDate} · ' : ''}${event.startAt.timeLabel}${event.location != null ? ' · ${event.location}' : ''}'),
-          trailing: MemberAvatar(member: member, radius: 16),
+          trailing: _MemberAvatarsStack(members: members),
         ),
+      ),
+    );
+  }
+}
+
+/// A single avatar for a one-person event, an overlapping stack (+ a "+N"
+/// badge past 2) for a shared one, or a plain unassigned glyph for none —
+/// the compact trailing indicator used everywhere an event row shows who's
+/// attached to it.
+class _MemberAvatarsStack extends StatelessWidget {
+  const _MemberAvatarsStack({required this.members, this.radius = 16});
+
+  final List<FamilyMember> members;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    if (members.isEmpty) return MemberAvatar(radius: radius);
+    if (members.length == 1) return MemberAvatar(member: members.first, radius: radius);
+    const shown = 2;
+    final overlap = radius * 1.1;
+    return SizedBox(
+      width: overlap * (shown - 1) + radius * 2 + (members.length > shown ? overlap : 0),
+      height: radius * 2,
+      child: Stack(
+        children: [
+          for (var i = 0; i < members.length.clamp(0, shown); i++)
+            Positioned(
+              left: overlap * i,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: MemberAvatar(member: members[i], radius: radius),
+              ),
+            ),
+          if (members.length > shown)
+            Positioned(
+              left: overlap * shown,
+              child: CircleAvatar(
+                radius: radius,
+                backgroundColor: Colors.grey.shade300,
+                child: Text(
+                  '+${members.length - shown}',
+                  style: TextStyle(fontSize: radius * 0.65, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -420,6 +484,7 @@ class _DayMemberSections extends StatelessWidget {
     required this.memberFilter,
     required this.unassignedSentinel,
     required this.currentMember,
+    required this.eventMembers,
   });
 
   final List<Event> selectedEvents;
@@ -427,6 +492,12 @@ class _DayMemberSections extends StatelessWidget {
   final String? memberFilter;
   final String unassignedSentinel;
   final FamilyMember? currentMember;
+
+  /// Every event's member ids, keyed by event id — see
+  /// EventRepository.watchAllEventMembers.
+  final Map<String, List<String>> eventMembers;
+
+  List<String> _idsFor(Event e) => eventMembers[e.id] ?? const [];
 
   @override
   Widget build(BuildContext context) {
@@ -446,7 +517,7 @@ class _DayMemberSections extends StatelessWidget {
     if (selectedEvents.isEmpty) return emptyState();
 
     if (memberFilter == unassignedSentinel) {
-      final events = selectedEvents.where((e) => e.memberId == null).toList()
+      final events = selectedEvents.where((e) => _idsFor(e).isEmpty).toList()
         ..sort((a, b) => a.startAt.compareTo(b.startAt));
       if (events.isEmpty) return emptyState();
       return ListView(
@@ -461,13 +532,33 @@ class _DayMemberSections extends StatelessWidget {
 
     if (sections.isEmpty) return emptyState();
 
-    String ownerIdFor(Event e) => e.memberId ?? currentMember?.id ?? '';
+    // A shared (2+ people) event always lives in its own section — never
+    // folded into an individual's, even when that individual is one of
+    // the people it's shared with. An unassigned (0 people) event folds
+    // into the active/current member's section instead of getting its own
+    // "Unassigned" row, unless the filter above already isolated those.
+    String? ownerIdFor(Event e) {
+      final ids = _idsFor(e);
+      if (ids.length == 1) return ids.first;
+      if (ids.isEmpty) return currentMember?.id;
+      return null;
+    }
+
+    final sharedEvents = selectedEvents.where((e) => _idsFor(e).length > 1).toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      itemCount: sections.length,
+      itemCount: sections.length + (sharedEvents.isNotEmpty ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
+        if (i == sections.length) {
+          return _MemberSection(
+            member: null,
+            events: sharedEvents,
+            sharedLabel: l10n.calendarSharedSection,
+          );
+        }
         final member = sections[i];
         final events = selectedEvents.where((e) => ownerIdFor(e) == member.id).toList()
           ..sort((a, b) => a.startAt.compareTo(b.startAt));
@@ -478,10 +569,15 @@ class _DayMemberSections extends StatelessWidget {
 }
 
 class _MemberSection extends StatelessWidget {
-  const _MemberSection({required this.member, required this.events});
+  const _MemberSection({required this.member, required this.events, this.sharedLabel});
 
   final FamilyMember? member;
   final List<Event> events;
+
+  /// Overrides the title/icon for the shared/family bucket — a null
+  /// [member] otherwise reads as "Unassigned", which would be misleading
+  /// for a section that's actually "everyone this event is shared with."
+  final String? sharedLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -503,8 +599,14 @@ class _MemberSection extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           initiallyExpanded: events.isNotEmpty,
-          leading: MemberAvatar(member: member, radius: 18),
-          title: Text(member?.name ?? l10n.unassigned,
+          leading: sharedLabel != null
+              ? const CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppColors.primary,
+                  child: Icon(Icons.groups_rounded, size: 18, color: Colors.white),
+                )
+              : MemberAvatar(member: member, radius: 18),
+          title: Text(sharedLabel ?? member?.name ?? l10n.unassigned,
               style: const TextStyle(fontWeight: FontWeight.w700)),
           subtitle: Text(
             events.isEmpty
@@ -544,7 +646,11 @@ class _DayEventRow extends ConsumerWidget {
         ),
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      onDismissed: (_) => ref.read(eventRepositoryProvider).deleteEvent(event.id),
+      confirmDismiss: (_) async => checkPermission(context, ref, FamilyAction.manageCalendar),
+      onDismissed: (_) => ref.read(eventRepositoryProvider).deleteEvent(
+            event.id,
+            actingRole: ref.read(activeRoleProvider),
+          ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () => Navigator.of(context).push(
@@ -554,7 +660,7 @@ class _DayEventRow extends ConsumerWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: event.category.color,
+            color: event.displayColor,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(

@@ -12,17 +12,35 @@ import 'package:timezone/timezone.dart' as tz;
 /// re-scheduling (on edit) and cancelling (on delete/complete) can address
 /// the same notification without needing to store a separate int id.
 /// Tasks and events are kept in disjoint id ranges to avoid collisions.
+///
+/// Rescheduling after a reboot or app update is handled by the plugin's own
+/// native receivers (registered in AndroidManifest.xml for
+/// `BOOT_COMPLETED`/`MY_PACKAGE_REPLACED`/`QUICKBOOT_POWERON`), which replay
+/// whatever was last scheduled. Since that replay is a snapshot rather than
+/// a live read of the database, `main()` additionally calls
+/// `TaskRepository.resyncReminders()` / `EventRepository.resyncReminders()`
+/// on every app start, so a task/event edited while the app was closed
+/// still gets the up-to-date reminder rather than a stale one.
 class NotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
-  bool _initialized = false;
+  bool _pluginInitialized = false;
 
   static const _androidChannelId = 'org_family_reminders';
   static const _androidChannelName = 'Reminders';
   static const _windowsAppUserModelId = 'OrgFamily.FamilyOrganizer';
   static const _windowsGuid = 'a3f1d9e2-6b7c-4e4a-9c3e-2f6b1d8a7c50';
 
+  /// Set by the app shell once the navigator is mounted. Called with
+  /// (`'task'` or `'event'`, entity id) whenever a reminder notification is
+  /// tapped — including the cold-start case, via [handlePendingLaunch].
+  void Function(String type, String id)? onNotificationTapped;
+
   Future<void> init() async {
-    if (_initialized) return;
+    // Local timezone is re-resolved on every init() call (not just the
+    // first), so a device timezone change mid-session — travel, or the OS
+    // switching for DST — is picked up by the next reminder that gets
+    // scheduled, rather than staying pinned to whatever was true at app
+    // start. The plugin registration itself only needs to happen once.
     tz_data.initializeTimeZones();
     try {
       final localTimezone = await FlutterTimezone.getLocalTimezone();
@@ -32,6 +50,7 @@ class NotificationService {
       // reminders still fire, just anchored to UTC instead of local time.
     }
 
+    if (_pluginInitialized) return;
     await _plugin.initialize(
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -52,8 +71,27 @@ class NotificationService {
           guid: _windowsGuid,
         ),
       ),
+      onDidReceiveNotificationResponse: (response) => _dispatch(response.payload),
     );
-    _initialized = true;
+    _pluginInitialized = true;
+  }
+
+  /// Handles the case where the app was launched *by* tapping a
+  /// notification (it wasn't already running to receive the tap via
+  /// [onDidReceiveNotificationResponse]). Call once, after the first frame
+  /// so [onNotificationTapped] has somewhere to navigate to.
+  Future<void> handlePendingLaunch() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp == true) {
+      _dispatch(details?.notificationResponse?.payload);
+    }
+  }
+
+  void _dispatch(String? payload) {
+    if (payload == null) return;
+    final i = payload.indexOf(':');
+    if (i < 0) return;
+    onNotificationTapped?.call(payload.substring(0, i), payload.substring(i + 1));
   }
 
   /// Checks (and if needed, requests) notification permission every time a
@@ -80,14 +118,18 @@ class NotificationService {
     }
   }
 
-  int _taskNotificationId(String id) => (id.hashCode & 0x3fffffff) * 2;
-  int _eventNotificationId(String id) => (id.hashCode & 0x3fffffff) * 2 + 1;
+  // Four disjoint ids per entity (task due, event start, task overdue
+  // follow-up, +1 spare) so none of these can ever collide with another.
+  int _taskNotificationId(String id) => (id.hashCode & 0x3fffffff) * 4;
+  int _eventNotificationId(String id) => (id.hashCode & 0x3fffffff) * 4 + 1;
+  int _taskOverdueFollowupId(String id) => (id.hashCode & 0x3fffffff) * 4 + 2;
 
   Future<void> _schedule({
     required int id,
     required String title,
     required String body,
     required DateTime at,
+    required String payload,
   }) async {
     if (!at.isAfter(DateTime.now())) return;
     await init();
@@ -98,6 +140,7 @@ class NotificationService {
       body: body,
       scheduledDate: tz.TZDateTime.from(at, tz.local),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: payload,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannelId,
@@ -130,11 +173,33 @@ class NotificationService {
       title: title,
       body: body,
       at: dueDate,
+      payload: 'task:$taskId',
     );
   }
 
   Future<void> cancelTaskReminder(String taskId) =>
       _cancel(_taskNotificationId(taskId));
+
+  /// The single, non-repeating nudge sent if a task is still incomplete
+  /// some time after it went overdue — see [taskOverdueFollowupAt] in
+  /// task_status_calculator.dart for exactly when.
+  Future<void> scheduleTaskOverdueFollowup({
+    required String taskId,
+    required String title,
+    required String body,
+    required DateTime at,
+  }) {
+    return _schedule(
+      id: _taskOverdueFollowupId(taskId),
+      title: title,
+      body: body,
+      at: at,
+      payload: 'task:$taskId',
+    );
+  }
+
+  Future<void> cancelTaskOverdueFollowup(String taskId) =>
+      _cancel(_taskOverdueFollowupId(taskId));
 
   Future<void> scheduleEventReminder({
     required String eventId,
@@ -146,6 +211,7 @@ class NotificationService {
       title: title,
       body: 'Starting in 15 minutes',
       at: startAt.subtract(const Duration(minutes: 15)),
+      payload: 'event:$eventId',
     );
   }
 

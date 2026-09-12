@@ -7,12 +7,66 @@ import '../../features/settings/screens/about_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
+import '../utils/enum_display.dart';
+import 'member_avatar.dart';
 
 /// The app-wide navigation drawer — same content on every tab (Home, Tasks,
 /// Calendar, Lists, Family), reached via the menu icon each Scaffold's
 /// AppBar shows automatically once `drawer` is set.
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
+
+  /// The drawer's "Switch profile" sheet — a soft, unprotected picker (see
+  /// activeMemberIdProvider's doc comment): anyone can tap back to Owner,
+  /// this just changes who the app treats as "you" for greetings and
+  /// permission checks while it's set.
+  Future<void> _pickProfile(BuildContext context, WidgetRef ref) async {
+    final members = ref.read(familyMembersProvider).valueOrNull ?? [];
+    if (members.isEmpty) return;
+    final currentId = ref.read(currentMemberProvider)?.id;
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(l10n.drawerSwitchProfile,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ),
+            ...members.map((m) => ListTile(
+                  leading: MemberAvatar(member: m),
+                  title: Text(m.name),
+                  subtitle: Text(m.role.label),
+                  trailing: m.id == currentId
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () => Navigator.of(sheetContext).pop(m.id),
+                )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (result != null) await setActiveMember(ref, result);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,10 +122,28 @@ class AppDrawer extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    l10n.appTitle,
-                    style: const TextStyle(fontSize: 13, color: Colors.white70),
-                  ),
+                  if (me == null)
+                    Text(
+                      l10n.appTitle,
+                      style: const TextStyle(fontSize: 13, color: Colors.white70),
+                    )
+                  else
+                    InkWell(
+                      onTap: () => _pickProfile(context, ref),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            me.role.label,
+                            style: const TextStyle(fontSize: 13, color: Colors.white70),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.unfold_more_rounded,
+                              size: 14, color: Colors.white70),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),

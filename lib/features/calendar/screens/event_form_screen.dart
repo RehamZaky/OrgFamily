@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/enum_display.dart';
+import '../../../core/utils/event_attachment_store.dart';
 import '../../../core/widgets/member_avatar.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
 import '../../../data/local/database.dart';
@@ -35,9 +41,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
       TextEditingController(text: widget.existing?.title);
   late final _locationController =
       TextEditingController(text: widget.existing?.location);
+  late final _descController =
+      TextEditingController(text: widget.existing?.description);
   late DateTime _startAt;
   late EventCategory _category;
-  String? _memberId;
+  Set<String> _memberIds = {};
+  int? _colorValue;
+  String? _attachmentPath;
 
   @override
   void initState() {
@@ -46,12 +56,21 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     if (e != null) {
       _startAt = e.startAt;
       _category = e.category;
-      _memberId = e.memberId;
+      _colorValue = e.colorValue;
+      _attachmentPath = e.attachmentPath;
+      // The member list lives in a separate join table now (an event can
+      // have more than one person), so — unlike every other field, which
+      // comes straight off the passed-in Event — this needs an async
+      // fetch. A one-time read is enough: nothing else in this app edits
+      // an event's members while this form is open.
+      ref.read(eventRepositoryProvider).watchMembersForEvent(e.id).first.then((ids) {
+        if (mounted) setState(() => _memberIds = ids.toSet());
+      });
     } else {
       final base = widget.initialDate ?? DateTime.now();
       _startAt = DateTime(base.year, base.month, base.day, 9, 0);
       _category = EventCategory.other;
-      _memberId = widget.initialMemberId;
+      if (widget.initialMemberId != null) _memberIds = {widget.initialMemberId!};
     }
   }
 
@@ -59,6 +78,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   void dispose() {
     _titleController.dispose();
     _locationController.dispose();
+    _descController.dispose();
     super.dispose();
   }
 
@@ -107,29 +127,107 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     if (category != null) setState(() => _category = category);
   }
 
+  Future<void> _pickColor() async {
+    _unfocus();
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showModalBottomSheet<int?>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.labelColor,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(sheetContext).pop(-1),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: _category.color.withValues(alpha: 0.15),
+                      child: _colorValue == null
+                          ? Icon(Icons.check, color: _category.color, size: 18)
+                          : null,
+                    ),
+                  ),
+                  for (final c in AppColors.eventPalette)
+                    GestureDetector(
+                      onTap: () => Navigator.of(sheetContext).pop(c.toARGB32()),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: c,
+                        child: _colorValue == c.toARGB32()
+                            ? const Icon(Icons.check, color: Colors.white, size: 18)
+                            : null,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.eventFormColorDefaultHint,
+                  style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+            ],
+          ),
+        ),
+      ),
+    );
+    _unfocus();
+    if (result != null) setState(() => _colorValue = result == -1 ? null : result);
+  }
+
+  Future<void> _pickAttachment() async {
+    _unfocus();
+    final path = await pickAndSaveEventAttachment(context);
+    if (path != null) setState(() => _attachmentPath = path);
+  }
+
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
+    if (!checkPermission(context, ref, FamilyAction.manageCalendar)) return;
     final location =
         _locationController.text.trim().isEmpty ? null : _locationController.text.trim();
+    final description =
+        _descController.text.trim().isEmpty ? null : _descController.text.trim();
+    final actingRole = ref.read(activeRoleProvider);
     final repo = ref.read(eventRepositoryProvider);
+    final memberIds = _memberIds.toList();
     if (widget.existing == null) {
       await repo.addEvent(
         id: const Uuid().v4(),
         title: title,
+        description: description,
         startAt: _startAt,
         location: location,
         category: _category,
-        memberId: _memberId,
+        memberIds: memberIds,
+        colorValue: _colorValue,
+        attachmentPath: _attachmentPath,
+        actingRole: actingRole,
       );
     } else {
-      await repo.updateEvent(widget.existing!.copyWith(
-        title: title,
-        startAt: _startAt,
-        location: Value(location),
-        category: _category,
-        memberId: Value(_memberId),
-      ));
+      await repo.updateEvent(
+        widget.existing!.copyWith(
+          title: title,
+          description: Value(description),
+          startAt: _startAt,
+          location: Value(location),
+          category: _category,
+          colorValue: Value(_colorValue),
+          attachmentPath: Value(_attachmentPath),
+        ),
+        memberIds: memberIds,
+        actingRole: actingRole,
+      );
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -154,8 +252,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
-    await ref.read(eventRepositoryProvider).deleteEvent(widget.existing!.id);
+    if (confirmed != true || !mounted) return;
+    if (!checkPermission(context, ref, FamilyAction.manageCalendar)) return;
+    await ref.read(eventRepositoryProvider).deleteEvent(
+          widget.existing!.id,
+          actingRole: ref.read(activeRoleProvider),
+        );
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -328,6 +430,99 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                 ),
                 const SizedBox(height: 20),
                 _FieldRow(
+                  icon: Icons.palette_outlined,
+                  label: l10n.labelColor,
+                  field: InkWell(
+                    onTap: _pickColor,
+                    borderRadius: BorderRadius.circular(_fieldRadius),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(_fieldRadius),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: _colorValue != null ? Color(_colorValue!) : _category.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(_colorValue != null
+                                ? l10n.labelColor
+                                : l10n.eventFormColorDefaultHint),
+                          ),
+                          const Icon(Icons.keyboard_arrow_down, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _FieldRow(
+                  icon: Icons.attach_file_rounded,
+                  label: l10n.eventFormAttachmentLabel,
+                  field: _attachmentPath == null
+                      ? OutlinedButton.icon(
+                          onPressed: _pickAttachment,
+                          icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                          label: Text(l10n.eventFormAddAttachment),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(_fieldRadius),
+                            ),
+                          ),
+                        )
+                      : Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(_fieldRadius),
+                              child: Image.file(
+                                File(_attachmentPath!),
+                                height: 120,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 6,
+                              right: 6,
+                              child: InkWell(
+                                onTap: () => setState(() => _attachmentPath = null),
+                                customBorder: const CircleBorder(),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 20),
+                _FieldRow(
+                  icon: Icons.notes_rounded,
+                  label: l10n.labelNotes,
+                  field: TextField(
+                    controller: _descController,
+                    decoration: _fieldDecoration(l10n.eventFormDescriptionHint),
+                    textCapitalization: TextCapitalization.sentences,
+                    maxLines: 3,
+                    minLines: 1,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _FieldRow(
                   icon: Icons.people_alt_outlined,
                   label: l10n.labelWho,
                   field: Column(
@@ -337,19 +532,25 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                         spacing: 10,
                         children: [
                           GestureDetector(
-                            onTap: () => setState(() => _memberId = null),
+                            onTap: () => setState(() => _memberIds = {}),
                             child: CircleAvatar(
                               radius: 20,
-                              backgroundColor: _memberId == null
+                              backgroundColor: _memberIds.isEmpty
                                   ? AppColors.primary.withValues(alpha: 0.15)
                                   : Colors.grey.shade100,
                               child: const Icon(Icons.people_outline, size: 18),
                             ),
                           ),
                           ...members.map((m) {
-                            final selected = m.id == _memberId;
+                            final selected = _memberIds.contains(m.id);
                             return GestureDetector(
-                              onTap: () => setState(() => _memberId = m.id),
+                              onTap: () => setState(() {
+                                if (selected) {
+                                  _memberIds = {..._memberIds}..remove(m.id);
+                                } else {
+                                  _memberIds = {..._memberIds, m.id};
+                                }
+                              }),
                               child: Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,

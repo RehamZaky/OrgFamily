@@ -13,6 +13,13 @@ extension DateFormatX on DateTime {
         day == tomorrow.day;
   }
 
+  bool get isYesterday {
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    return year == yesterday.year &&
+        month == yesterday.month &&
+        day == yesterday.day;
+  }
+
   String get relativeDay {
     if (isToday) return 'Today';
     if (isTomorrow) return 'Tomorrow';
@@ -43,4 +50,11 @@ extension DateFormatX on DateTime {
     if (diff.inDays < 7) return '${diff.inDays} days ago';
     return shortDate;
   }
+}
+
+/// Formats a task's `dueTimeMinutes` (minutes since midnight) the same way
+/// [DateFormatX.timeLabel] formats a full [DateTime].
+extension MinutesSinceMidnightX on int {
+  String get timeOfDayLabel =>
+      DateFormat('h:mm a').format(DateTime(2000, 1, 1, this ~/ 60, this % 60));
 }

@@ -6,9 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/avatar_photo_store.dart';
 import '../../../core/utils/enum_display.dart';
+import '../../../core/widgets/member_avatar.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
@@ -45,6 +49,8 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   static const _emojis = [
     '👨', '👩', '👧', '👦', '👵', '👴', '🧑',
   ];
+
+  String? get _emojiAsset => memberAvatarAssets[_emoji];
 
   @override
   void dispose() {
@@ -92,6 +98,13 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
+    // The very first member (onboarding) has no one to check permission
+    // against yet — activeRoleProvider already resolves to Owner in that
+    // case, so this guard is a no-op there and a real check afterward.
+    if (!widget.isFirstMember && !checkPermission(context, ref, FamilyAction.manageMembers)) {
+      return;
+    }
+    final actingRole = ref.read(activeRoleProvider);
     final repo = ref.read(familyRepositoryProvider);
     final grade = _gradeController.text.trim();
     final school = _schoolController.text.trim();
@@ -108,19 +121,23 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
         grade: grade.isEmpty ? null : grade,
         school: school.isEmpty ? null : school,
         notes: notes.isEmpty ? null : notes,
+        actingRole: actingRole,
       );
     } else {
-      await repo.updateMember(widget.existing!.copyWith(
-        name: name,
-        avatarEmoji: _emoji,
-        photoPath: Value(_photoPath),
-        colorValue: _color.toARGB32(),
-        role: _role,
-        birthday: Value(_birthday),
-        grade: Value(grade.isEmpty ? null : grade),
-        school: Value(school.isEmpty ? null : school),
-        notes: Value(notes.isEmpty ? null : notes),
-      ));
+      await repo.updateMember(
+        widget.existing!.copyWith(
+          name: name,
+          avatarEmoji: _emoji,
+          photoPath: Value(_photoPath),
+          colorValue: _color.toARGB32(),
+          role: _role,
+          birthday: Value(_birthday),
+          grade: Value(grade.isEmpty ? null : grade),
+          school: Value(school.isEmpty ? null : school),
+          notes: Value(notes.isEmpty ? null : notes),
+        ),
+        actingRole: actingRole,
+      );
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -153,9 +170,12 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                 CircleAvatar(
                   radius: 44,
                   backgroundColor: _color.withValues(alpha: 0.18),
-                  backgroundImage:
-                      _photoPath != null ? FileImage(File(_photoPath!)) : null,
-                  child: _photoPath == null
+                  backgroundImage: _photoPath != null
+                      ? FileImage(File(_photoPath!))
+                      : _emojiAsset != null
+                          ? AssetImage(_emojiAsset!)
+                          : null,
+                  child: _photoPath == null && _emojiAsset == null
                       ? Text(_emoji, style: const TextStyle(fontSize: 40))
                       : null,
                 ),
@@ -288,6 +308,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             spacing: 10,
             children: _emojis.map((e) {
               final selected = _photoPath == null && e == _emoji;
+              final asset = memberAvatarAssets[e];
               return GestureDetector(
                 onTap: () => setState(() {
                   _emoji = e;
@@ -298,7 +319,10 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                   backgroundColor: selected
                       ? _color.withValues(alpha: 0.25)
                       : Colors.grey.shade100,
-                  child: Text(e, style: const TextStyle(fontSize: 22)),
+                  backgroundImage: asset != null ? AssetImage(asset) : null,
+                  child: asset == null
+                      ? Text(e, style: const TextStyle(fontSize: 22))
+                      : null,
                 ),
               );
             }).toList(),

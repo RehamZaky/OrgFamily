@@ -2,11 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/notifications/notification_service.dart';
 import 'local/database.dart';
+import 'repositories/budget_repository.dart';
 import 'repositories/event_repository.dart';
 import 'repositories/family_profile_repository.dart';
 import 'repositories/family_repository.dart';
 import 'repositories/note_repository.dart';
 import 'repositories/responsibility_repository.dart';
+import 'repositories/savings_goal_repository.dart';
 import 'repositories/shopping_repository.dart';
 import 'repositories/task_repository.dart';
 
@@ -46,4 +48,12 @@ final responsibilityRepositoryProvider = Provider<ResponsibilityRepository>((ref
 
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {
   return NoteRepository(ref.watch(databaseProvider));
+});
+
+final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
+  return BudgetRepository(ref.watch(databaseProvider));
+});
+
+final savingsGoalRepositoryProvider = Provider<SavingsGoalRepository>((ref) {
+  return SavingsGoalRepository(ref.watch(databaseProvider));
 });

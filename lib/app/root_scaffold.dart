@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/permissions/active_profile_provider.dart';
+import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/theme/app_colors.dart';
+import '../features/budget/screens/money_overview_screen.dart';
+import '../features/budget/widgets/add_transaction_sheet.dart';
 import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/screens/home_screen.dart';
 import '../features/family/providers/family_providers.dart';
@@ -34,7 +38,8 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
       1 => const TasksScreen(),
       2 => const CalendarScreen(),
       3 => const ShoppingScreen(),
-      _ => const FamilyScreen(),
+      4 => const FamilyScreen(),
+      _ => const MoneyOverviewScreen(),
     };
   }
 
@@ -53,16 +58,31 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
       return const OnboardingScreen();
     }
 
+    // Finances are Owner/Adult only — Child profiles never see the Money
+    // tab. If the active profile switches to Child while it's open, fall
+    // back to Home rather than leaving a Child looking at a screen it can
+    // no longer navigate to.
+    final canViewFinances =
+        canPerform(ref.watch(activeRoleProvider), FamilyAction.viewFinances);
+    if (_index == 5 && !canViewFinances) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _index = 0);
+      });
+    }
+
     return Scaffold(
       body: _buildScreen(_index),
       floatingActionButton: FloatingActionButton(
         heroTag: 'root_quick_add',
-        // On the Tasks tab, the global "+" jumps straight to Quick Task
+        // On the Tasks tab, the global "+" jumps straight to Quick Task,
+        // and on the Money tab it jumps straight to Add Transaction,
         // instead of the generic type-picker sheet, since that's the only
-        // thing worth quick-adding from a screen already about tasks.
-        onPressed: () => _index == 1
-            ? showQuickAddTaskSheet(context)
-            : showQuickAddSheet(context),
+        // thing worth quick-adding from a screen already about that type.
+        onPressed: () => switch (_index) {
+          1 => showQuickAddTaskSheet(context),
+          5 => showAddTransactionSheet(context),
+          _ => showQuickAddSheet(context),
+        },
         shape: const CircleBorder(),
         child: const Icon(Icons.add, size: 28),
       ),
@@ -114,6 +134,15 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
                 onTap: () => setState(() => _index = 4),
               ),
             ),
+            if (canViewFinances)
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: l10n.navBudget,
+                  selected: _index == 5,
+                  onTap: () => setState(() => _index = 5),
+                ),
+              ),
           ],
         ),
       ),
