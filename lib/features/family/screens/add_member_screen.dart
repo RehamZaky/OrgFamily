@@ -314,15 +314,25 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                   _emoji = e;
                   _photoPath = null;
                 }),
-                child: CircleAvatar(
-                  radius: 22,
-                  backgroundColor: selected
-                      ? _color.withValues(alpha: 0.25)
-                      : Colors.grey.shade100,
-                  backgroundImage: asset != null ? AssetImage(asset) : null,
-                  child: asset == null
-                      ? Text(e, style: const TextStyle(fontSize: 22))
-                      : null,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected ? _color : Colors.transparent,
+                      width: 2.5,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: selected
+                        ? _color.withValues(alpha: 0.25)
+                        : Colors.grey.shade100,
+                    backgroundImage: asset != null ? AssetImage(asset) : null,
+                    child: asset == null
+                        ? Text(e, style: const TextStyle(fontSize: 22))
+                        : null,
+                  ),
                 ),
               );
             }).toList(),

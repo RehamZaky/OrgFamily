@@ -36,8 +36,15 @@ class BudgetScreen extends ConsumerWidget {
 
     // Every category with either spend or a limit set this month, spend
     // descending — categories with neither simply don't clutter the list.
+    // Ties (e.g. multiple categories at $0 spent) fall back to declaration
+    // order so the list doesn't reshuffle on every rebuild: List.sort isn't
+    // stable, so an amount-only comparator lets tied rows jump around each
+    // time the underlying transaction stream re-emits.
     final categories = {...categoryTotals.keys, ...categoryLimits.keys}.toList()
-      ..sort((a, b) => (categoryTotals[b] ?? 0).compareTo(categoryTotals[a] ?? 0));
+      ..sort((a, b) {
+        final byAmount = (categoryTotals[b] ?? 0).compareTo(categoryTotals[a] ?? 0);
+        return byAmount != 0 ? byAmount : a.index.compareTo(b.index);
+      });
 
     return Scaffold(
       appBar: AppBar(

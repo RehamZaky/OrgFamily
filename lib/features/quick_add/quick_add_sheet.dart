@@ -8,7 +8,6 @@ import '../../l10n/app_localizations.dart';
 import '../budget/widgets/add_transaction_sheet.dart';
 import '../calendar/screens/event_form_screen.dart';
 import '../notes/screens/note_form_screen.dart';
-import '../shopping/screens/add_shopping_item_screen.dart';
 import '../tasks/widgets/quick_add_task_sheet.dart';
 
 void showQuickAddSheet(BuildContext context) {
@@ -72,17 +71,6 @@ class _QuickAddSheet extends ConsumerWidget {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const EventFormScreen()),
-                    );
-                  },
-                ),
-                _QuickAddOption(
-                  icon: Icons.shopping_cart_outlined,
-                  label: l10n.quickAddShopping,
-                  color: AppColors.success,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AddShoppingItemScreen()),
                     );
                   },
                 ),

@@ -5,6 +5,7 @@ import '../core/permissions/active_profile_provider.dart';
 import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/theme/app_colors.dart';
+import '../core/widgets/banner_ad_widget.dart';
 import '../features/budget/screens/money_overview_screen.dart';
 import '../features/budget/widgets/add_transaction_sheet.dart';
 import '../features/calendar/screens/calendar_screen.dart';
@@ -70,8 +71,19 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
       });
     }
 
+    // Ads sit above the bottom nav on the browsing-heavy tabs — not on
+    // Tasks/Lists, which are already dense with actionable content. Home
+    // shows its own banner inline (between Upcoming and Family Activity)
+    // instead of pinned here.
+    final showBanner = _index == 2 || _index == 4 || _index == 5;
+
     return Scaffold(
-      body: _buildScreen(_index),
+      body: Column(
+        children: [
+          Expanded(child: _buildScreen(_index)),
+          if (showBanner) const BannerAdWidget(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'root_quick_add',
         // On the Tasks tab, the global "+" jumps straight to Quick Task,

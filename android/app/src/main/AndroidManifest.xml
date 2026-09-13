@@ -36,6 +36,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Google's official TEST AdMob App ID — safe to ship during
+             development since it only ever serves Google's test ads.
+             Replace with the real AdMob App ID from your account before
+             a production release. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
         <!-- Required by flutter_local_notifications for scheduled task/event
              reminders: dispatches the alarm when it fires, and re-schedules
              pending reminders after a reboot. -->

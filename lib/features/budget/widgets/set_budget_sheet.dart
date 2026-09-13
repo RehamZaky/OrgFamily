@@ -203,6 +203,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
     final l10n = AppLocalizations.of(context)!;
     final currencyCode = ref.watch(currencyCodeProvider);
     final totalLimit = ref.watch(totalLimitCentsProvider);
+    final hasBudget = totalLimit != null;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -233,94 +234,129 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
                 Text(l10n.setBudget,
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Text(l10n.setTotalBudget,
-                        style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-                    const SizedBox(width: 6),
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: _editTotalBudget,
-                      child: Padding(
-                        padding: const EdgeInsets.all(2),
-                        child: Icon(Icons.edit_outlined,
-                            size: 14, color: context.colors.textSecondary),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  totalLimit == null
-                      ? l10n.noBudgetSet
-                      : formatCents(totalLimit, currencyCode: currencyCode),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: totalLimit == null ? context.colors.textSecondary : null,
-                  ),
-                ),
-                if (ref.watch(unallocatedBudgetCentsProvider) case final unallocated?) ...[
+                // Nothing to allocate to categories against until a total
+                // exists — category limits are validated against it (see
+                // _saveCategory) — so the first-time sheet only asks for
+                // that, straight into an editable field rather than an
+                // inert "No budget set" label the user has to go find an
+                // edit icon to act on.
+                if (!hasBudget) ...[
+                  Text(l10n.setTotalBudget,
+                      style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                   const SizedBox(height: 6),
-                  Text(
-                    unallocated < 0
-                        ? l10n.budgetOverTotalWarning(
-                            formatCents(-unallocated, currencyCode: currencyCode))
-                        : l10n.budgetUnallocatedLabel(
-                            formatCents(unallocated, currencyCode: currencyCode)),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: unallocated < 0 ? FontWeight.w600 : FontWeight.normal,
-                      color: unallocated < 0 ? AppColors.priorityUrgent : context.colors.textSecondary,
-                    ),
+                  PickerRow(
+                    icon: Icons.attach_money,
+                    iconColor: context.colors.textSecondary,
+                    label: l10n.currency,
+                    value: currencyCode,
+                    onTap: _pickCurrency,
                   ),
-                ],
-                const SizedBox(height: 16),
-                Text(l10n.setCategoryBudget,
-                    style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-                const SizedBox(height: 6),
-                PickerRow(
-                  icon: _category.icon,
-                  iconColor: _category.color,
-                  label: l10n.transactionCategoryLabel,
-                  value: _category.label(l10n),
-                  onTap: _pickCategory,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _categoryController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                        ],
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: context.colors.background,
-                          prefixText: '$currencyCode ',
-                          hintText: l10n.budgetLimitPlaceholder,
-                        ),
-                        onChanged: (_) {
-                          if (_categoryError != null) setState(() => _categoryError = null);
-                        },
-                      ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _totalController,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                    ],
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: context.colors.background,
+                      prefixText: '$currencyCode ',
+                      hintText: l10n.budgetLimitPlaceholder,
                     ),
-                    const SizedBox(width: 8),
-                    FilledButton(onPressed: _saveCategory, child: Text(l10n.saveChanges)),
-                  ],
-                ),
-                if (_categoryError != null) ...[
+                    onSubmitted: (_) => _saveTotal(),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: _saveTotal,
+                    child: Text(l10n.setBudget),
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Text(l10n.setTotalBudget,
+                          style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+                      const SizedBox(width: 6),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _editTotalBudget,
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Icon(Icons.edit_outlined,
+                              size: 14, color: context.colors.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    _categoryError!,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.priorityUrgent,
-                    ),
+                    formatCents(totalLimit, currencyCode: currencyCode),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
                   ),
+                  if (ref.watch(unallocatedBudgetCentsProvider) case final unallocated?) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      unallocated < 0
+                          ? l10n.budgetOverTotalWarning(
+                              formatCents(-unallocated, currencyCode: currencyCode))
+                          : l10n.budgetUnallocatedLabel(
+                              formatCents(unallocated, currencyCode: currencyCode)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: unallocated < 0 ? FontWeight.w600 : FontWeight.normal,
+                        color:
+                            unallocated < 0 ? AppColors.priorityUrgent : context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(l10n.setCategoryBudget,
+                      style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+                  const SizedBox(height: 6),
+                  PickerRow(
+                    icon: _category.icon,
+                    iconColor: _category.color,
+                    label: l10n.transactionCategoryLabel,
+                    value: _category.label(l10n),
+                    onTap: _pickCategory,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _categoryController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: context.colors.background,
+                            prefixText: '$currencyCode ',
+                            hintText: l10n.budgetLimitPlaceholder,
+                          ),
+                          onChanged: (_) {
+                            if (_categoryError != null) setState(() => _categoryError = null);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(onPressed: _saveCategory, child: Text(l10n.saveChanges)),
+                    ],
+                  ),
+                  if (_categoryError != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _categoryError!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.priorityUrgent,
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),

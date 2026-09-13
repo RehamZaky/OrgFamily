@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "482713768862",
+    "project_id": "orgfamily-c40ae",
+    "storage_bucket": "orgfamily-c40ae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482713768862:android:f826b0833a58a21abffc8f",
+        "android_client_info": {
+          "package_name": "com.example.org_family"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr5mStFdi9q9U3XLyF2PDsiLH3V3JGhKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

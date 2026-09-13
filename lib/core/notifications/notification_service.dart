@@ -132,29 +132,37 @@ class NotificationService {
     required String payload,
   }) async {
     if (!at.isAfter(DateTime.now())) return;
-    await init();
-    await _ensurePermission();
-    await _plugin.zonedSchedule(
-      id: id,
-      title: title,
-      body: body,
-      scheduledDate: tz.TZDateTime.from(at, tz.local),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      payload: payload,
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          _androidChannelId,
-          _androidChannelName,
-          channelDescription: 'Reminders for due tasks and upcoming events',
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
+    try {
+      await init();
+      await _ensurePermission();
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tz.TZDateTime.from(at, tz.local),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _androidChannelId,
+            _androidChannelName,
+            channelDescription: 'Reminders for due tasks and upcoming events',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+          ),
+          iOS: DarwinNotificationDetails(),
+          macOS: DarwinNotificationDetails(),
+          linux: LinuxNotificationDetails(),
+          windows: WindowsNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-        macOS: DarwinNotificationDetails(),
-        linux: LinuxNotificationDetails(),
-        windows: WindowsNotificationDetails(),
-      ),
-    );
+      );
+    } catch (_) {
+      // Best-effort, like the timezone resolution above: the task/event
+      // itself is already saved by the time this runs (see
+      // TaskRepository/EventRepository — the DB write happens first), so a
+      // plugin/permission hiccup here must not surface as a save failure
+      // and leave the caller's form stuck open re-throwing on every retry.
+    }
   }
 
   Future<void> _cancel(int id) async {

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'app/app.dart';
+import 'core/ads/ad_config.dart';
 import 'core/notifications/boot_detector.dart';
 import 'data/providers.dart';
 import 'features/family/providers/family_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (isMobileAdsSupportedPlatform) await MobileAds.instance.initialize();
   final container = ProviderContainer();
   container.read(activeMemberIdProvider.notifier).state =
       await loadPersistedActiveMemberId();

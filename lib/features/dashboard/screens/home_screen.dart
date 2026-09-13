@@ -13,6 +13,7 @@ import '../../../core/utils/avatar_photo_store.dart';
 import '../../../core/utils/date_format_x.dart' show DateFormatX;
 import '../../../core/utils/enum_display.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../core/widgets/header_wave_clipper.dart';
 import '../../../core/widgets/member_avatar.dart';
 import '../../../core/widgets/section_header.dart';
@@ -341,6 +342,8 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  const BannerAdWidget(),
                   const SizedBox(height: 20),
                   SectionHeader(title: l10n.sectionFamilyActivity),
                   const SizedBox(height: 10),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../core/permissions/family_permissions.dart';
 import '../../../core/permissions/permission_ui.dart';
@@ -137,13 +138,48 @@ class MoneyOverviewScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.totalBalance,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                  const SizedBox(height: 8),
-                  Text(
-                    formatCents(balance, currencyCode: currencyCode),
-                    style: const TextStyle(
-                        color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.totalBalance,
+                                style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                            const SizedBox(height: 8),
+                            Text(
+                              formatCents(balance, currencyCode: currencyCode),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 96,
+                        height: 96,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        // The source art is a static illustration on an
+                        // opaque light background (not a transparent
+                        // animation), so it gets its own white badge here
+                        // instead of floating loose on the purple card.
+                        child: Lottie.asset('assets/lottie/wallet_detailed_lottie.json'),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Row(
