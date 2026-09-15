@@ -28,6 +28,12 @@ class FamilyRepository {
     String? grade,
     String? school,
     String? notes,
+    // The Firebase uid this member should be linked to at creation time —
+    // used by the sign-up flow (the new Owner links themselves
+    // immediately) and by "add an Adult with their own account". Never
+    // set for Child members. See docs/architecture.md "Family identity
+    // and authentication".
+    String? linkedUid,
     FamilyRole actingRole = FamilyRole.owner,
   }) {
     if (!canPerform(actingRole, FamilyAction.manageMembers)) {
@@ -47,9 +53,37 @@ class FamilyRepository {
               grade: Value(grade),
               school: Value(school),
               notes: Value(notes),
+              linkedUid: Value(linkedUid),
             ),
           );
     });
+  }
+
+  /// Every Owner/Adult member not yet linked to a Firebase account — the
+  /// candidates shown by the post-sign-in "which of these are you?"
+  /// picker on an upgraded V1 install. Children never appear here (see
+  /// `linkMember` below).
+  Stream<List<FamilyMember>> watchUnlinkedAdults() {
+    return (_db.select(_db.familyMembers)
+          ..where((m) => m.linkedUid.isNull() & m.role.equalsValue(FamilyRole.child).not()))
+        .watch();
+  }
+
+  /// Links an *existing* Owner/Adult member to a signed-in Firebase
+  /// account — the "which of these are you?" step for an upgraded V1
+  /// install, or an Adult linking their own account later from Settings.
+  /// Deliberately narrower than `updateMember`: it only ever touches
+  /// `linkedUid`, so it can't accidentally overwrite anything else about
+  /// the member, and it refuses to link a Child (children stay
+  /// credential-free by design).
+  Future<void> linkMember(String id, String uid) async {
+    final member = await (_db.select(_db.familyMembers)..where((m) => m.id.equals(id)))
+        .getSingle();
+    if (member.role == FamilyRole.child) {
+      throw StateError('Child members are never linked to a Firebase account.');
+    }
+    await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id)))
+        .write(FamilyMembersCompanion(linkedUid: Value(uid)));
   }
 
   Future<void> updateMember(

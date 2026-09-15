@@ -50,6 +50,11 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   @override
   void initState() {
     super.initState();
+    // Default a new task to the person creating it — otherwise it's
+    // silently unassigned, which reads as "someone" in the family activity
+    // feed and never counts toward that member's stats even after they
+    // complete it themselves. Still overridable via the assignee picker.
+    _assigneeId = ref.read(currentMemberProvider)?.id;
     _initSpeech();
   }
 

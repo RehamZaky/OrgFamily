@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/notifications/notification_service.dart';
 import 'local/database.dart';
+import 'repositories/auth_repository.dart';
 import 'repositories/budget_repository.dart';
 import 'repositories/event_repository.dart';
 import 'repositories/family_profile_repository.dart';
@@ -20,6 +22,21 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
+});
+
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
+  return FirebaseAuth.instance;
+});
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository(ref.watch(firebaseAuthProvider));
+});
+
+/// Live signed-in-user state — null while signed out. See
+/// `lib/core/auth/auth_config.dart`: on desktop this stream never emits a
+/// non-null user, since Firebase is never initialized there.
+final authStateProvider = StreamProvider<User?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges();
 });
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {

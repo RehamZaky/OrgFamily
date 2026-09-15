@@ -7,7 +7,9 @@
 - **Drift** (SQLite) as the local database — the source of truth for V1.
   `drift_flutter`'s `driftDatabase()` picks the right backend per
   platform automatically.
-- No Firebase / cloud yet. See "Why local-first" below.
+- **Firebase Auth** (V2) for per-adult sign-in — see "Family identity and
+  authentication" below. No Firestore/cloud data sync yet; Drift is
+  still the source of truth. See "Why local-first" below.
 
 ## Layering
 
@@ -63,13 +65,47 @@ persistence models specifically *to support sync/conflict resolution*;
 that becomes worth the extra indirection when Phase 2 (cloud sync) is
 actually being built, not before.
 
-## Family identity without auth
+## Family identity and authentication (V2)
 
-There's no login in V1. The **owner** role (or the first member added, if
-no owner is set) is treated as "you" for the dashboard greeting and as
-the default "added by" on new shopping items. This is a placeholder for
-real auth in Phase 2, not a permissions system — every family member's
-device currently sees the same local database.
+Three distinct identities, kept deliberately separate:
+
+- **Firebase Auth** answers "who has access to this family" — one real
+  account per adult (`FirebaseAuth` via `auth_repository.dart`).
+- **`FamilyMember`** answers "who are they inside the family" — the local
+  Drift row, same as always.
+- **`activeMemberIdProvider`** answers "which profile is acting on this
+  device right now" — a soft, local profile switcher, unrelated to auth.
+
+Only adults get real accounts; children never sign in and keep
+zero-friction local profile access. A `FamilyMember` links to its
+Firebase account via the nullable `linkedUid` column
+(`family_members_table.dart`); `FamilyProfile` carries `familyId` (a
+stable id generated once, by whichever Owner/Adult links first) and
+`ownerUid` (set only once the local **Owner** specifically links, so an
+Adult linking first can't accidentally become the cloud owner).
+
+An authenticated parent can still locally switch into a child's profile
+on a shared device — that's `activeMemberIdProvider` doing its normal
+job, and it keeps driving today's local permission checks
+(`canPerform`/`FamilyRole` in `family_permissions.dart`) exactly as
+before. **Rule to hold onto for the Firestore-sync work still ahead**:
+`activeMemberIdProvider` may keep driving local UI/business permissions,
+but must never be trusted for cloud/server authorization — that has to
+come from the authenticated Firebase `uid` and cloud family-membership
+records, not the local acting-profile picker.
+
+**V1 → V2 migration guarantee**: signing in never recreates or
+duplicates an existing local family. A fresh install with no local
+family requires sign-in before the first `AddMemberScreen` save (which
+sets `linkedUid`/`ownerUid`/`familyId` on that first Owner). An existing
+V1 install opens exactly as before; from Settings, an adult can sign in
+and, via `LinkMemberScreen`, claim one of the existing unlinked
+Owner/Adult members instead of a new one being created.
+
+**Auth doesn't move data across devices yet.** Drift stays the local
+source of truth this pass — signing in on a second device only
+identifies *who*, it doesn't fetch or merge any family data there. That
+starts with Firestore sync (next roadmap item), not this one.
 
 ## Testing
 

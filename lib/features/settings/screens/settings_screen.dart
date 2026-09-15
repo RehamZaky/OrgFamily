@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_config.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
+import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/screens/sign_in_screen.dart';
+import '../../family/providers/family_providers.dart';
 import 'money_guide_screen.dart';
 
 /// A sentinel distinct from any real [Locale] to represent "follow system"
@@ -90,6 +94,71 @@ class SettingsScreen extends ConsumerWidget {
                         selected == _systemLocale ? null : selected;
                   },
                 ),
+                const SizedBox(height: 28),
+                const Text('Account', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 12),
+                // Local family data and the cloud account are independent —
+                // signing out only disconnects the cloud side, it never
+                // clears the local family, so each gets its own status line
+                // instead of one row that implies they're the same thing.
+                // See docs/architecture.md "Family identity and authentication".
+                Builder(
+                  builder: (context) {
+                    final memberCount =
+                        ref.watch(familyMembersProvider).valueOrNull?.length ?? 0;
+                    return Card(
+                      margin: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: const Icon(Icons.storage_outlined, color: AppColors.primary),
+                        title: const Text('Local family'),
+                        subtitle: Text(
+                          memberCount == 1
+                              ? '1 member on this device · Available offline'
+                              : '$memberCount members on this device · Available offline',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (isFirebaseAuthSupportedPlatform) ...[
+                  const SizedBox(height: 8),
+                  Builder(
+                    builder: (context) {
+                      final user = ref.watch(authStateProvider).valueOrNull;
+                      if (user == null) {
+                        return Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: const Icon(Icons.cloud_off_outlined,
+                                color: AppColors.textSecondary),
+                            title: const Text('Cloud account'),
+                            subtitle: const Text('Not connected'),
+                            trailing: TextButton(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const SignInScreen()),
+                              ),
+                              child: const Text('Connect'),
+                            ),
+                          ),
+                        );
+                      }
+                      return Card(
+                        margin: EdgeInsets.zero,
+                        child: ListTile(
+                          leading:
+                              const Icon(Icons.cloud_done_outlined, color: AppColors.priorityLow),
+                          title: const Text('Cloud account'),
+                          subtitle:
+                              Text('${user.email ?? user.displayName ?? user.uid} · Connected'),
+                          trailing: TextButton(
+                            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+                            child: const Text('Disconnect'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 const SizedBox(height: 28),
                 Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),

@@ -56,6 +56,10 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if ((membersAsync.valueOrNull ?? []).isEmpty) {
+      // Fresh install, no local family at all: show the intro slides
+      // first. Sign-in (on a platform that supports it) and creating the
+      // first Owner both happen at the end of that flow — see
+      // OnboardingScreen's `_addYourself`.
       return const OnboardingScreen();
     }
 

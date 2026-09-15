@@ -47,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,6 +110,16 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(budgetTransactions, budgetTransactions.account);
             await m.addColumn(budgetTransactions, budgetTransactions.toAccount);
             await m.dropColumn(budgetTransactions, 'source');
+          }
+          if (from < 12) {
+            // V2 Auth: links an Owner/Adult FamilyMember to a Firebase
+            // uid, and gives the family a stable id — see
+            // docs/architecture.md "Family identity and authentication".
+            // Purely additive, nullable columns: every existing row (and
+            // every pre-Auth local family) keeps working unchanged.
+            await m.addColumn(familyMembers, familyMembers.linkedUid);
+            await m.addColumn(familyProfile, familyProfile.familyId);
+            await m.addColumn(familyProfile, familyProfile.ownerUid);
           }
         },
       );

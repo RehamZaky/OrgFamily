@@ -121,6 +121,17 @@ class $FamilyMembersTable extends FamilyMembers
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _linkedUidMeta = const VerificationMeta(
+    'linkedUid',
+  );
+  @override
+  late final GeneratedColumn<String> linkedUid = GeneratedColumn<String>(
+    'linked_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -134,6 +145,7 @@ class $FamilyMembersTable extends FamilyMembers
     school,
     notes,
     createdAt,
+    linkedUid,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -213,6 +225,12 @@ class $FamilyMembersTable extends FamilyMembers
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('linked_uid')) {
+      context.handle(
+        _linkedUidMeta,
+        linkedUid.isAcceptableOrUnknown(data['linked_uid']!, _linkedUidMeta),
+      );
+    }
     return context;
   }
 
@@ -268,6 +286,10 @@ class $FamilyMembersTable extends FamilyMembers
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      linkedUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}linked_uid'],
+      ),
     );
   }
 
@@ -292,6 +314,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
   final String? school;
   final String? notes;
   final DateTime createdAt;
+  final String? linkedUid;
   const FamilyMember({
     required this.id,
     required this.name,
@@ -304,6 +327,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
     this.school,
     this.notes,
     required this.createdAt,
+    this.linkedUid,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -333,6 +357,9 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
       map['notes'] = Variable<String>(notes);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || linkedUid != null) {
+      map['linked_uid'] = Variable<String>(linkedUid);
+    }
     return map;
   }
 
@@ -359,6 +386,9 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
           ? const Value.absent()
           : Value(notes),
       createdAt: Value(createdAt),
+      linkedUid: linkedUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedUid),
     );
   }
 
@@ -381,6 +411,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
       school: serializer.fromJson<String?>(json['school']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      linkedUid: serializer.fromJson<String?>(json['linkedUid']),
     );
   }
   @override
@@ -400,6 +431,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
       'school': serializer.toJson<String?>(school),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'linkedUid': serializer.toJson<String?>(linkedUid),
     };
   }
 
@@ -415,6 +447,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
     Value<String?> school = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
+    Value<String?> linkedUid = const Value.absent(),
   }) => FamilyMember(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -427,6 +460,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
     school: school.present ? school.value : this.school,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
+    linkedUid: linkedUid.present ? linkedUid.value : this.linkedUid,
   );
   FamilyMember copyWithCompanion(FamilyMembersCompanion data) {
     return FamilyMember(
@@ -445,6 +479,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
       school: data.school.present ? data.school.value : this.school,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      linkedUid: data.linkedUid.present ? data.linkedUid.value : this.linkedUid,
     );
   }
 
@@ -461,7 +496,8 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
           ..write('grade: $grade, ')
           ..write('school: $school, ')
           ..write('notes: $notes, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('linkedUid: $linkedUid')
           ..write(')'))
         .toString();
   }
@@ -479,6 +515,7 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
     school,
     notes,
     createdAt,
+    linkedUid,
   );
   @override
   bool operator ==(Object other) =>
@@ -494,7 +531,8 @@ class FamilyMember extends DataClass implements Insertable<FamilyMember> {
           other.grade == this.grade &&
           other.school == this.school &&
           other.notes == this.notes &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.linkedUid == this.linkedUid);
 }
 
 class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
@@ -509,6 +547,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
   final Value<String?> school;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
+  final Value<String?> linkedUid;
   final Value<int> rowid;
   const FamilyMembersCompanion({
     this.id = const Value.absent(),
@@ -522,6 +561,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
     this.school = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.linkedUid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FamilyMembersCompanion.insert({
@@ -536,6 +576,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
     this.school = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.linkedUid = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -552,6 +593,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
     Expression<String>? school,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
+    Expression<String>? linkedUid,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -566,6 +608,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
       if (school != null) 'school': school,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
+      if (linkedUid != null) 'linked_uid': linkedUid,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -582,6 +625,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
     Value<String?>? school,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
+    Value<String?>? linkedUid,
     Value<int>? rowid,
   }) {
     return FamilyMembersCompanion(
@@ -596,6 +640,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
       school: school ?? this.school,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
+      linkedUid: linkedUid ?? this.linkedUid,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -638,6 +683,9 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (linkedUid.present) {
+      map['linked_uid'] = Variable<String>(linkedUid.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -658,6 +706,7 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
           ..write('school: $school, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
+          ..write('linkedUid: $linkedUid, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4175,8 +4224,30 @@ class $FamilyProfileTable extends FamilyProfile
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _familyIdMeta = const VerificationMeta(
+    'familyId',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, photoPath];
+  late final GeneratedColumn<String> familyId = GeneratedColumn<String>(
+    'family_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ownerUidMeta = const VerificationMeta(
+    'ownerUid',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUid = GeneratedColumn<String>(
+    'owner_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, photoPath, familyId, ownerUid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4198,6 +4269,18 @@ class $FamilyProfileTable extends FamilyProfile
         photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
       );
     }
+    if (data.containsKey('family_id')) {
+      context.handle(
+        _familyIdMeta,
+        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
+      );
+    }
+    if (data.containsKey('owner_uid')) {
+      context.handle(
+        _ownerUidMeta,
+        ownerUid.isAcceptableOrUnknown(data['owner_uid']!, _ownerUidMeta),
+      );
+    }
     return context;
   }
 
@@ -4215,6 +4298,14 @@ class $FamilyProfileTable extends FamilyProfile
         DriftSqlType.string,
         data['${effectivePrefix}photo_path'],
       ),
+      familyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}family_id'],
+      ),
+      ownerUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_uid'],
+      ),
     );
   }
 
@@ -4228,13 +4319,26 @@ class FamilyProfileData extends DataClass
     implements Insertable<FamilyProfileData> {
   final int id;
   final String? photoPath;
-  const FamilyProfileData({required this.id, this.photoPath});
+  final String? familyId;
+  final String? ownerUid;
+  const FamilyProfileData({
+    required this.id,
+    this.photoPath,
+    this.familyId,
+    this.ownerUid,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || photoPath != null) {
       map['photo_path'] = Variable<String>(photoPath);
+    }
+    if (!nullToAbsent || familyId != null) {
+      map['family_id'] = Variable<String>(familyId);
+    }
+    if (!nullToAbsent || ownerUid != null) {
+      map['owner_uid'] = Variable<String>(ownerUid);
     }
     return map;
   }
@@ -4245,6 +4349,12 @@ class FamilyProfileData extends DataClass
       photoPath: photoPath == null && nullToAbsent
           ? const Value.absent()
           : Value(photoPath),
+      familyId: familyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(familyId),
+      ownerUid: ownerUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUid),
     );
   }
 
@@ -4256,6 +4366,8 @@ class FamilyProfileData extends DataClass
     return FamilyProfileData(
       id: serializer.fromJson<int>(json['id']),
       photoPath: serializer.fromJson<String?>(json['photoPath']),
+      familyId: serializer.fromJson<String?>(json['familyId']),
+      ownerUid: serializer.fromJson<String?>(json['ownerUid']),
     );
   }
   @override
@@ -4264,20 +4376,28 @@ class FamilyProfileData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'photoPath': serializer.toJson<String?>(photoPath),
+      'familyId': serializer.toJson<String?>(familyId),
+      'ownerUid': serializer.toJson<String?>(ownerUid),
     };
   }
 
   FamilyProfileData copyWith({
     int? id,
     Value<String?> photoPath = const Value.absent(),
+    Value<String?> familyId = const Value.absent(),
+    Value<String?> ownerUid = const Value.absent(),
   }) => FamilyProfileData(
     id: id ?? this.id,
     photoPath: photoPath.present ? photoPath.value : this.photoPath,
+    familyId: familyId.present ? familyId.value : this.familyId,
+    ownerUid: ownerUid.present ? ownerUid.value : this.ownerUid,
   );
   FamilyProfileData copyWithCompanion(FamilyProfileCompanion data) {
     return FamilyProfileData(
       id: data.id.present ? data.id.value : this.id,
       photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
+      familyId: data.familyId.present ? data.familyId.value : this.familyId,
+      ownerUid: data.ownerUid.present ? data.ownerUid.value : this.ownerUid,
     );
   }
 
@@ -4285,46 +4405,67 @@ class FamilyProfileData extends DataClass
   String toString() {
     return (StringBuffer('FamilyProfileData(')
           ..write('id: $id, ')
-          ..write('photoPath: $photoPath')
+          ..write('photoPath: $photoPath, ')
+          ..write('familyId: $familyId, ')
+          ..write('ownerUid: $ownerUid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, photoPath);
+  int get hashCode => Object.hash(id, photoPath, familyId, ownerUid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FamilyProfileData &&
           other.id == this.id &&
-          other.photoPath == this.photoPath);
+          other.photoPath == this.photoPath &&
+          other.familyId == this.familyId &&
+          other.ownerUid == this.ownerUid);
 }
 
 class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
   final Value<int> id;
   final Value<String?> photoPath;
+  final Value<String?> familyId;
+  final Value<String?> ownerUid;
   const FamilyProfileCompanion({
     this.id = const Value.absent(),
     this.photoPath = const Value.absent(),
+    this.familyId = const Value.absent(),
+    this.ownerUid = const Value.absent(),
   });
   FamilyProfileCompanion.insert({
     this.id = const Value.absent(),
     this.photoPath = const Value.absent(),
+    this.familyId = const Value.absent(),
+    this.ownerUid = const Value.absent(),
   });
   static Insertable<FamilyProfileData> custom({
     Expression<int>? id,
     Expression<String>? photoPath,
+    Expression<String>? familyId,
+    Expression<String>? ownerUid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (photoPath != null) 'photo_path': photoPath,
+      if (familyId != null) 'family_id': familyId,
+      if (ownerUid != null) 'owner_uid': ownerUid,
     });
   }
 
-  FamilyProfileCompanion copyWith({Value<int>? id, Value<String?>? photoPath}) {
+  FamilyProfileCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? photoPath,
+    Value<String?>? familyId,
+    Value<String?>? ownerUid,
+  }) {
     return FamilyProfileCompanion(
       id: id ?? this.id,
       photoPath: photoPath ?? this.photoPath,
+      familyId: familyId ?? this.familyId,
+      ownerUid: ownerUid ?? this.ownerUid,
     );
   }
 
@@ -4337,6 +4478,12 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     if (photoPath.present) {
       map['photo_path'] = Variable<String>(photoPath.value);
     }
+    if (familyId.present) {
+      map['family_id'] = Variable<String>(familyId.value);
+    }
+    if (ownerUid.present) {
+      map['owner_uid'] = Variable<String>(ownerUid.value);
+    }
     return map;
   }
 
@@ -4344,7 +4491,9 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
   String toString() {
     return (StringBuffer('FamilyProfileCompanion(')
           ..write('id: $id, ')
-          ..write('photoPath: $photoPath')
+          ..write('photoPath: $photoPath, ')
+          ..write('familyId: $familyId, ')
+          ..write('ownerUid: $ownerUid')
           ..write(')'))
         .toString();
   }
@@ -6405,6 +6554,7 @@ typedef $$FamilyMembersTableCreateCompanionBuilder =
       Value<String?> school,
       Value<String?> notes,
       Value<DateTime> createdAt,
+      Value<String?> linkedUid,
       Value<int> rowid,
     });
 typedef $$FamilyMembersTableUpdateCompanionBuilder =
@@ -6420,6 +6570,7 @@ typedef $$FamilyMembersTableUpdateCompanionBuilder =
       Value<String?> school,
       Value<String?> notes,
       Value<DateTime> createdAt,
+      Value<String?> linkedUid,
       Value<int> rowid,
     });
 
@@ -6612,6 +6763,11 @@ class $$FamilyMembersTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linkedUid => $composableBuilder(
+    column: $table.linkedUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6829,6 +6985,11 @@ class $$FamilyMembersTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get linkedUid => $composableBuilder(
+    column: $table.linkedUid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FamilyMembersTableAnnotationComposer
@@ -6876,6 +7037,9 @@ class $$FamilyMembersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get linkedUid =>
+      $composableBuilder(column: $table.linkedUid, builder: (column) => column);
 
   Expression<T> eventsRefs<T extends Object>(
     Expression<T> Function($$EventsTableAnnotationComposer a) f,
@@ -7075,6 +7239,7 @@ class $$FamilyMembersTableTableManager
                 Value<String?> school = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> linkedUid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FamilyMembersCompanion(
                 id: id,
@@ -7088,6 +7253,7 @@ class $$FamilyMembersTableTableManager
                 school: school,
                 notes: notes,
                 createdAt: createdAt,
+                linkedUid: linkedUid,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -7103,6 +7269,7 @@ class $$FamilyMembersTableTableManager
                 Value<String?> school = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> linkedUid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FamilyMembersCompanion.insert(
                 id: id,
@@ -7116,6 +7283,7 @@ class $$FamilyMembersTableTableManager
                 school: school,
                 notes: notes,
                 createdAt: createdAt,
+                linkedUid: linkedUid,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -10195,9 +10363,19 @@ typedef $$NotesTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$FamilyProfileTableCreateCompanionBuilder =
-    FamilyProfileCompanion Function({Value<int> id, Value<String?> photoPath});
+    FamilyProfileCompanion Function({
+      Value<int> id,
+      Value<String?> photoPath,
+      Value<String?> familyId,
+      Value<String?> ownerUid,
+    });
 typedef $$FamilyProfileTableUpdateCompanionBuilder =
-    FamilyProfileCompanion Function({Value<int> id, Value<String?> photoPath});
+    FamilyProfileCompanion Function({
+      Value<int> id,
+      Value<String?> photoPath,
+      Value<String?> familyId,
+      Value<String?> ownerUid,
+    });
 
 class $$FamilyProfileTableFilterComposer
     extends Composer<_$AppDatabase, $FamilyProfileTable> {
@@ -10215,6 +10393,16 @@ class $$FamilyProfileTableFilterComposer
 
   ColumnFilters<String> get photoPath => $composableBuilder(
     column: $table.photoPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10237,6 +10425,16 @@ class $$FamilyProfileTableOrderingComposer
     column: $table.photoPath,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FamilyProfileTableAnnotationComposer
@@ -10253,6 +10451,12 @@ class $$FamilyProfileTableAnnotationComposer
 
   GeneratedColumn<String> get photoPath =>
       $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
+  GeneratedColumn<String> get familyId =>
+      $composableBuilder(column: $table.familyId, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUid =>
+      $composableBuilder(column: $table.ownerUid, builder: (column) => column);
 }
 
 class $$FamilyProfileTableTableManager
@@ -10292,12 +10496,26 @@ class $$FamilyProfileTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> photoPath = const Value.absent(),
-              }) => FamilyProfileCompanion(id: id, photoPath: photoPath),
+                Value<String?> familyId = const Value.absent(),
+                Value<String?> ownerUid = const Value.absent(),
+              }) => FamilyProfileCompanion(
+                id: id,
+                photoPath: photoPath,
+                familyId: familyId,
+                ownerUid: ownerUid,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> photoPath = const Value.absent(),
-              }) => FamilyProfileCompanion.insert(id: id, photoPath: photoPath),
+                Value<String?> familyId = const Value.absent(),
+                Value<String?> ownerUid = const Value.absent(),
+              }) => FamilyProfileCompanion.insert(
+                id: id,
+                photoPath: photoPath,
+                familyId: familyId,
+                ownerUid: ownerUid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),

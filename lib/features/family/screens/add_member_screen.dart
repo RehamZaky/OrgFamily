@@ -12,6 +12,7 @@ import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/avatar_photo_store.dart';
 import '../../../core/utils/enum_display.dart';
+import '../../../core/widgets/boxed_field.dart';
 import '../../../core/widgets/member_avatar.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
 import '../../../data/local/database.dart';
@@ -110,6 +111,13 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
     final school = _schoolController.text.trim();
     final notes = _notesController.text.trim();
     if (widget.existing == null) {
+      // The very first member is created right after SignInScreen (see
+      // root_scaffold.dart) on a platform where that ran, so the signed-in
+      // uid becomes this Owner's linkedUid immediately — no separate
+      // "link your account" step needed for this one case. See
+      // docs/architecture.md "Family identity and authentication".
+      final ownerUid =
+          widget.isFirstMember ? ref.read(authRepositoryProvider).currentUser?.uid : null;
       await repo.addMember(
         id: _memberId,
         name: name,
@@ -121,8 +129,14 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
         grade: grade.isEmpty ? null : grade,
         school: school.isEmpty ? null : school,
         notes: notes.isEmpty ? null : notes,
+        linkedUid: ownerUid,
         actingRole: actingRole,
       );
+      if (ownerUid != null) {
+        await ref
+            .read(familyProfileRepositoryProvider)
+            .recordLink(uid: ownerUid, isOwner: true);
+      }
     } else {
       await repo.updateMember(
         widget.existing!.copyWith(
@@ -200,7 +214,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _BoxedField(
+          BoxedField(
             label: 'Name',
             child: TextField(
               controller: _nameController,
@@ -216,7 +230,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
           ),
           if (!widget.isFirstMember) ...[
             const SizedBox(height: 16),
-            _BoxedField(
+            BoxedField(
               label: 'Role',
               child: InkWell(
                 onTap: _pickRole,
@@ -231,7 +245,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          _BoxedField(
+          BoxedField(
             label: 'Birthday',
             child: InkWell(
               onTap: _pickBirthday,
@@ -256,7 +270,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _BoxedField(
+          BoxedField(
             label: 'Grade (optional)',
             child: TextField(
               controller: _gradeController,
@@ -270,7 +284,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _BoxedField(
+          BoxedField(
             label: 'School (optional)',
             child: TextField(
               controller: _schoolController,
@@ -284,7 +298,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _BoxedField(
+          BoxedField(
             label: 'Notes (optional)',
             child: TextField(
               controller: _notesController,
@@ -366,35 +380,6 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// A labeled, bordered field container — label above, boxed content below —
-/// matching the Add/Edit Member design (2026-09-01).
-class _BoxedField extends StatelessWidget {
-  const _BoxedField({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: child,
-        ),
-      ],
     );
   }
 }

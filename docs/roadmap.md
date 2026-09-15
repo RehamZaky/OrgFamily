@@ -63,7 +63,21 @@ Local-only, single shared database, no auth.
 
 The point where Firebase actually earns its place.
 
-- [ ] Auth (per-member sign-in, not just a local "owner" role)
+- [x] Auth (per-member sign-in, not just a local "owner" role) — email/
+      password + Google sign-in for adults, wired end-to-end
+      (`auth_repository.dart`, `SignInScreen`, `LinkMemberScreen`); a
+      `FamilyMember` links to its Firebase account via `linkedUid`,
+      `FamilyProfile` carries `familyId`/`ownerUid` (see
+      [architecture.md](architecture.md)'s "Family identity and
+      authentication"). Children never sign in, by design. Real app id
+      (`com.orgfamily.app`) registered for both Android and iOS in the
+      `orgfamily-c40ae` Firebase project via `flutterfire configure`,
+      debug SHA-1 already attached for Google Sign-In on Android. Web
+      deliberately excluded (`isFirebaseAuthSupportedPlatform`) — no
+      product need for it. Still needs, before it's live in the field:
+      the Email/Password + Google providers turned on under
+      Authentication in the Firebase console (console-only toggle,
+      nothing to configure in code for it).
 - [ ] Firestore sync behind the existing repository interfaces —
       screens should need zero changes
 - [ ] Family invitations, multi-device sync

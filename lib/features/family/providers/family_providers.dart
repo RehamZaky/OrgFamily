@@ -16,6 +16,15 @@ const _activeMemberIdPrefsKey = 'active_member_id';
 /// tree is built) and updated by [setActiveMember] whenever someone picks a
 /// different profile. Null means "no explicit pick" — [currentMemberProvider]
 /// then falls back to the Owner, same as if this provider didn't exist.
+///
+/// V2 Auth note: signing in as an adult already linked to a member (see
+/// `SignInScreen`/`LinkMemberScreen`) calls [setActiveMember] once, right
+/// at that moment, to default the picker to them — a one-time nudge, not
+/// a standing rule. This provider still drives only local UI/business
+/// permissions (`canPerform`/`activeRoleProvider`); free switching to any
+/// profile, including a child's, on a shared device is unchanged
+/// afterward, and this value must never be used for cloud/Firestore
+/// authorization — see docs/architecture.md.
 final activeMemberIdProvider = StateProvider<String?>((ref) => null);
 
 Future<String?> loadPersistedActiveMemberId() async {
@@ -38,6 +47,13 @@ Future<void> setActiveMember(WidgetRef ref, String? memberId) async {
 
 final familyMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
   return ref.watch(familyRepositoryProvider).watchMembers();
+});
+
+/// Owner/Adult members nobody's linked a Firebase account to yet — the
+/// candidates `LinkMemberScreen` offers a freshly signed-in adult to pick
+/// themselves as, on a device whose local family predates V2 Auth.
+final unlinkedAdultMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
+  return ref.watch(familyRepositoryProvider).watchUnlinkedAdults();
 });
 
 /// The family group photo shown in the home screen header — distinct from
