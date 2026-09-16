@@ -3,11 +3,14 @@ import 'package:drift/drift.dart';
 import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
+import '../local/tables/sync_outbox_table.dart';
+import '../sync/sync_engine.dart';
 
 class ShoppingRepository {
-  ShoppingRepository(this._db);
+  ShoppingRepository(this._db, this._sync);
 
   final AppDatabase _db;
+  final SyncEngine _sync;
 
   Stream<List<ShoppingList>> watchLists() {
     return (_db.select(_db.shoppingLists)
@@ -52,13 +55,16 @@ class ShoppingRepository {
     if (!canPerform(actingRole, FamilyAction.manageLists)) {
       throw FamilyPermissionException(FamilyAction.manageLists, actingRole);
     }
-    return _db.into(_db.shoppingLists).insert(
-          ShoppingListsCompanion.insert(
-            id: id,
-            name: name,
-            emoji: Value(emoji),
-          ),
-        );
+    return _db.transaction(() async {
+      await _db.into(_db.shoppingLists).insert(
+            ShoppingListsCompanion.insert(
+              id: id,
+              name: name,
+              emoji: Value(emoji),
+            ),
+          );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingList, entityId: id);
+    });
   }
 
   /// Soft-deletes the list and every item under it (see tasks_table.dart's
@@ -71,10 +77,19 @@ class ShoppingRepository {
     }
     final now = DateTime.now();
     return _db.transaction(() async {
+      final itemIds = await (_db.selectOnly(_db.shoppingItems)
+            ..addColumns([_db.shoppingItems.id])
+            ..where(_db.shoppingItems.listId.equals(id)))
+          .map((row) => row.read(_db.shoppingItems.id)!)
+          .get();
       await (_db.update(_db.shoppingLists)..where((l) => l.id.equals(id)))
           .write(ShoppingListsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
       await (_db.update(_db.shoppingItems)..where((i) => i.listId.equals(id)))
           .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingList, entityId: id);
+      for (final itemId in itemIds) {
+        await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: itemId);
+      }
     });
   }
 
@@ -89,30 +104,39 @@ class ShoppingRepository {
     if (!canPerform(actingRole, FamilyAction.addListItem)) {
       throw FamilyPermissionException(FamilyAction.addListItem, actingRole);
     }
-    return _db.into(_db.shoppingItems).insert(
-          ShoppingItemsCompanion.insert(
-            id: id,
-            listId: listId,
-            name: name,
-            quantity: Value(quantity),
-            addedById: Value(addedById),
-          ),
-        );
+    return _db.transaction(() async {
+      await _db.into(_db.shoppingItems).insert(
+            ShoppingItemsCompanion.insert(
+              id: id,
+              listId: listId,
+              name: name,
+              quantity: Value(quantity),
+              addedById: Value(addedById),
+            ),
+          );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+    });
   }
 
   Future<void> setPurchased(String id, bool isPurchased) {
-    return (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id))).write(
-      ShoppingItemsCompanion(
-        isPurchased: Value(isPurchased),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
+    return _db.transaction(() async {
+      await (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id))).write(
+        ShoppingItemsCompanion(
+          isPurchased: Value(isPurchased),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+    });
   }
 
   /// Soft-delete (see tasks_table.dart's deletedAt doc comment).
   Future<void> deleteItem(String id) {
     final now = DateTime.now();
-    return (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id)))
-        .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+    return _db.transaction(() async {
+      await (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id)))
+          .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+    });
   }
 }

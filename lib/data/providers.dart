@@ -15,8 +15,12 @@ import 'repositories/responsibility_repository.dart';
 import 'repositories/savings_goal_repository.dart';
 import 'repositories/shopping_repository.dart';
 import 'repositories/task_repository.dart';
+import 'sync/adapters/event_sync_adapter.dart';
 import 'sync/adapters/family_member_sync_adapter.dart';
 import 'sync/adapters/family_profile_sync_adapter.dart';
+import 'sync/adapters/shopping_item_sync_adapter.dart';
+import 'sync/adapters/shopping_list_sync_adapter.dart';
+import 'sync/adapters/task_sync_adapter.dart';
 import 'sync/sync_engine.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -59,6 +63,10 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
   return SyncEngine(db, ref.watch(firestoreProvider), [
     FamilyMemberSyncAdapter(db),
     FamilyProfileSyncAdapter(db),
+    TaskSyncAdapter(db),
+    EventSyncAdapter(db),
+    ShoppingListSyncAdapter(db),
+    ShoppingItemSyncAdapter(db),
   ]);
 });
 
@@ -86,15 +94,23 @@ final familyProfileRepositoryProvider = Provider<FamilyProfileRepository>((ref) 
 });
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  return TaskRepository(ref.watch(databaseProvider), ref.watch(notificationServiceProvider));
+  return TaskRepository(
+    ref.watch(databaseProvider),
+    ref.watch(notificationServiceProvider),
+    ref.watch(syncEngineProvider),
+  );
 });
 
 final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  return EventRepository(ref.watch(databaseProvider), ref.watch(notificationServiceProvider));
+  return EventRepository(
+    ref.watch(databaseProvider),
+    ref.watch(notificationServiceProvider),
+    ref.watch(syncEngineProvider),
+  );
 });
 
 final shoppingRepositoryProvider = Provider<ShoppingRepository>((ref) {
-  return ShoppingRepository(ref.watch(databaseProvider));
+  return ShoppingRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
 });
 
 final responsibilityRepositoryProvider = Provider<ResponsibilityRepository>((ref) {

@@ -7,13 +7,16 @@ import '../../core/utils/date_format_x.dart';
 import '../../features/tasks/domain/task_status_calculator.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
+import '../local/tables/sync_outbox_table.dart';
 import '../local/tables/tasks_table.dart';
+import '../sync/sync_engine.dart';
 
 class TaskRepository {
-  TaskRepository(this._db, this._notifications);
+  TaskRepository(this._db, this._notifications, this._sync);
 
   final AppDatabase _db;
   final NotificationService _notifications;
+  final SyncEngine _sync;
 
   /// "Due at 6:00 PM • Assigned to you" (or "Due today" for a date-only
   /// task, or just the due clause when unassigned) — built fresh each time
@@ -150,23 +153,26 @@ class TaskRepository {
     if (!canPerform(actingRole, FamilyAction.createTask)) {
       throw FamilyPermissionException(FamilyAction.createTask, actingRole);
     }
-    await _db.into(_db.tasks).insert(
-          TasksCompanion.insert(
-            id: id,
-            title: title,
-            description: Value(description),
-            dueDate: Value(dueDate),
-            dueTimeMinutes: Value(dueTimeMinutes),
-            priority: Value(priority),
-            category: Value(category),
-            assigneeId: Value(assigneeId),
-            recurrence: Value(recurrence),
-            reminderType: Value(reminderType),
-            reminderOffsetMinutes: Value(reminderOffsetMinutes),
-            reminderAt: Value(reminderAt),
-            createdByMemberId: Value(actingMemberId),
-          ),
-        );
+    await _db.transaction(() async {
+      await _db.into(_db.tasks).insert(
+            TasksCompanion.insert(
+              id: id,
+              title: title,
+              description: Value(description),
+              dueDate: Value(dueDate),
+              dueTimeMinutes: Value(dueTimeMinutes),
+              priority: Value(priority),
+              category: Value(category),
+              assigneeId: Value(assigneeId),
+              recurrence: Value(recurrence),
+              reminderType: Value(reminderType),
+              reminderOffsetMinutes: Value(reminderOffsetMinutes),
+              reminderAt: Value(reminderAt),
+              createdByMemberId: Value(actingMemberId),
+            ),
+          );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: id);
+    });
     await _updateReminder(
       id: id,
       title: title,
@@ -192,9 +198,10 @@ class TaskRepository {
     if (!canPerform(actingRole, requiredAction)) {
       throw FamilyPermissionException(requiredAction, actingRole);
     }
-    await _db.update(_db.tasks).replace(
-          task.copyWith(updatedAt: DateTime.now()),
-        );
+    await _db.transaction(() async {
+      await _db.update(_db.tasks).replace(task.copyWith(updatedAt: DateTime.now()));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: task.id);
+    });
     await _updateReminder(
       id: task.id,
       title: task.title,
@@ -225,14 +232,17 @@ class TaskRepository {
         throw FamilyPermissionException(action, actingRole);
       }
     }
-    await (_db.update(_db.tasks)..where((t) => t.id.equals(id))).write(
-      TasksCompanion(
-        isCompleted: Value(isCompleted),
-        completedAt: Value(isCompleted ? DateTime.now() : null),
-        completedByMemberId: Value(isCompleted ? actingMemberId : null),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
+    await _db.transaction(() async {
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(id))).write(
+        TasksCompanion(
+          isCompleted: Value(isCompleted),
+          completedAt: Value(isCompleted ? DateTime.now() : null),
+          completedByMemberId: Value(isCompleted ? actingMemberId : null),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: id);
+    });
     if (task == null) return;
     if (isCompleted) {
       await _notifications.cancelTaskReminder(id);
@@ -318,8 +328,11 @@ class TaskRepository {
     // Soft-delete (see tasks_table.dart's deletedAt doc comment) rather than
     // a hard DELETE, so the tombstone can propagate through Firestore sync.
     final now = DateTime.now();
-    await (_db.update(_db.tasks)..where((t) => t.id.equals(id)))
-        .write(TasksCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+    await _db.transaction(() async {
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(id)))
+          .write(TasksCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: id);
+    });
     await _notifications.cancelTaskReminder(id);
     await _notifications.cancelTaskOverdueFollowup(id);
   }

@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:org_family/data/local/database.dart';
 import 'package:org_family/data/local/tables/tasks_table.dart';
 import 'package:org_family/data/repositories/task_repository.dart';
+import 'package:org_family/data/sync/sync_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes/fake_notification_service.dart';
@@ -12,7 +13,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    repo = TaskRepository(db, FakeNotificationService());
+    repo = TaskRepository(db, FakeNotificationService(), SyncEngine.inert(db));
   });
 
   tearDown(() => db.close());
