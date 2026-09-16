@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// See docs/architecture.md "Firestore sync" for the design this
+// implements. Deploy with: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Subcollection rules can't see their parent family doc's
+    // resource.data directly, so they fetch it explicitly. The family
+    // doc's own rules read resource.data/request.resource.data directly
+    // instead (cheaper — no extra read).
+    function isFamilyMember(familyId) {
+      return isSignedIn() &&
+        request.auth.uid in
+          get(/databases/$(database)/documents/families/$(familyId)).data.memberUids;
+    }
+
+    match /families/{familyId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.memberUids;
+
+      // Only the linking Owner may create the family doc, and only with
+      // themselves as the sole initial member — no self-service join in
+      // this pass (see the Firestore sync plan's "Security rules"
+      // section). Knowing a familyId is not proof of belonging to it;
+      // real second-adult onboarding is the invitations pass's job.
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids.size() == 1
+        && request.resource.data.memberUids[0] == request.auth.uid;
+
+      // ownerUid/memberUids are authorization metadata, immutable after
+      // creation by anyone, including the owner — any other field a
+      // member adds later (there are none yet) may change freely.
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.memberUids
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.memberUids == resource.data.memberUids;
+
+      allow delete: if false;
+
+      match /members/{memberId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      match /tasks/{taskId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      match /events/{eventId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      match /shoppingLists/{listId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      match /shoppingItems/{itemId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+    }
+  }
+}

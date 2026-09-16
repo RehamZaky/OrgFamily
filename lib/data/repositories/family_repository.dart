@@ -3,11 +3,14 @@ import 'package:drift/drift.dart';
 import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
+import '../local/tables/sync_outbox_table.dart';
+import '../sync/sync_engine.dart';
 
 class FamilyRepository {
-  FamilyRepository(this._db);
+  FamilyRepository(this._db, this._sync);
 
   final AppDatabase _db;
+  final SyncEngine _sync;
 
   Stream<List<FamilyMember>> watchMembers() {
     return (_db.select(_db.familyMembers)
@@ -58,6 +61,7 @@ class FamilyRepository {
               linkedUid: Value(linkedUid),
             ),
           );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: id);
     });
   }
 
@@ -87,9 +91,12 @@ class FamilyRepository {
     if (member.role == FamilyRole.child) {
       throw StateError('Child members are never linked to a Firebase account.');
     }
-    await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id))).write(
-      FamilyMembersCompanion(linkedUid: Value(uid), updatedAt: Value(DateTime.now())),
-    );
+    await _db.transaction(() async {
+      await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id))).write(
+        FamilyMembersCompanion(linkedUid: Value(uid), updatedAt: Value(DateTime.now())),
+      );
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: id);
+    });
   }
 
   Future<void> updateMember(
@@ -104,6 +111,7 @@ class FamilyRepository {
         await _demoteOtherOwners(exceptId: member.id);
       }
       await _db.update(_db.familyMembers).replace(member.copyWith(updatedAt: DateTime.now()));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: member.id);
     });
   }
 
@@ -121,6 +129,7 @@ class FamilyRepository {
             updatedAt: Value(DateTime.now()),
           ),
         );
+        await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: m.id);
       }
     }
   }
@@ -132,7 +141,10 @@ class FamilyRepository {
       throw FamilyPermissionException(FamilyAction.manageMembers, actingRole);
     }
     final now = DateTime.now();
-    return (_db.update(_db.familyMembers)..where((m) => m.id.equals(id)))
-        .write(FamilyMembersCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+    return _db.transaction(() async {
+      await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id)))
+          .write(FamilyMembersCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: id);
+    });
   }
 }

@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
+import '../local/tables/sync_outbox_table.dart';
+import '../sync/sync_engine.dart';
 
 /// Manages the single-row [FamilyProfile] table — family-level settings
 /// that don't belong to any one [FamilyMember], starting with the photo
@@ -11,9 +13,10 @@ import '../local/tables/family_members_table.dart';
 /// (V2 Auth) — see docs/architecture.md "Family identity and
 /// authentication".
 class FamilyProfileRepository {
-  FamilyProfileRepository(this._db);
+  FamilyProfileRepository(this._db, this._sync);
 
   final AppDatabase _db;
+  final SyncEngine _sync;
 
   static const _rowId = 1;
 
@@ -49,13 +52,28 @@ class FamilyProfileRepository {
         await (_db.select(_db.familyProfile)..where((p) => p.id.equals(_rowId)))
             .getSingleOrNull();
     final familyId = existing?.familyId ?? const Uuid().v4();
-    await _db.into(_db.familyProfile).insertOnConflictUpdate(
-          FamilyProfileCompanion.insert(
-            id: const Value(_rowId),
-            familyId: Value(familyId),
-            ownerUid: isOwner ? Value(uid) : Value(existing?.ownerUid),
-            updatedAt: Value(DateTime.now()),
-          ),
+    await _db.transaction(() async {
+      await _db.into(_db.familyProfile).insertOnConflictUpdate(
+            FamilyProfileCompanion.insert(
+              id: const Value(_rowId),
+              familyId: Value(familyId),
+              ownerUid: isOwner ? Value(uid) : Value(existing?.ownerUid),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+      // Sync only ever activates once the true local Owner has linked —
+      // the Firestore family doc can only be *created* by the Owner's own
+      // uid (see firestore.rules), so an Adult linking first still gets
+      // familyId bookkeeping above, but sync stays dormant until the
+      // Owner links too.
+      if (isOwner) {
+        _sync.start(familyId);
+        await _sync.enqueueUpsert(
+          db: _db,
+          type: SyncEntityType.familyProfile,
+          entityId: familyId,
         );
+      }
+    });
   }
 }

@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:org_family/app/app.dart';
 import 'package:org_family/data/local/database.dart';
 import 'package:org_family/data/providers.dart';
+import 'package:org_family/data/sync/sync_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +18,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         databaseProvider.overrideWithValue(db),
+        syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
         notificationServiceProvider.overrideWithValue(FakeNotificationService()),
       ],
     );
