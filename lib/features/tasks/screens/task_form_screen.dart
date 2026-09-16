@@ -19,6 +19,7 @@ import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import '../domain/task_status_calculator.dart';
+import '../widgets/reminder_picker_sheet.dart';
 
 class TaskFormScreen extends ConsumerStatefulWidget {
   const TaskFormScreen({
@@ -28,6 +29,9 @@ class TaskFormScreen extends ConsumerStatefulWidget {
     this.initialDueDate,
     this.initialPriority,
     this.initialAssigneeId,
+    this.initialReminderType,
+    this.initialReminderOffsetMinutes,
+    this.initialReminderAt,
   });
 
   final Task? existing;
@@ -39,6 +43,9 @@ class TaskFormScreen extends ConsumerStatefulWidget {
   final DateTime? initialDueDate;
   final TaskPriority? initialPriority;
   final String? initialAssigneeId;
+  final TaskReminderType? initialReminderType;
+  final int? initialReminderOffsetMinutes;
+  final DateTime? initialReminderAt;
 
   @override
   ConsumerState<TaskFormScreen> createState() => _TaskFormScreenState();
@@ -55,6 +62,9 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   late TaskCategory _category;
   late TaskRecurrence _recurrence;
   String? _assigneeId;
+  late TaskReminderType _reminderType;
+  int? _reminderOffsetMinutes;
+  DateTime? _reminderAt;
 
   @override
   void initState() {
@@ -69,6 +79,10 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     _category = e?.category ?? TaskCategory.other;
     _recurrence = e?.recurrence ?? TaskRecurrence.none;
     _assigneeId = e?.assigneeId ?? widget.initialAssigneeId;
+    _reminderType =
+        e?.reminderType ?? widget.initialReminderType ?? TaskReminderType.dueTime;
+    _reminderOffsetMinutes = e?.reminderOffsetMinutes ?? widget.initialReminderOffsetMinutes;
+    _reminderAt = e?.reminderAt ?? widget.initialReminderAt;
   }
 
   @override
@@ -203,6 +217,32 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     setState(() => _assigneeId = result == unassignedSentinel ? null : result);
   }
 
+  Future<void> _pickReminder() async {
+    final dueDate = _dueDate;
+    if (dueDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.reminderSelectDueDateFirst)),
+      );
+      return;
+    }
+    _unfocus();
+    final result = await showReminderPickerSheet(
+      context: context,
+      dueDate: dueDate,
+      dueTimeMinutes: _dueTimeMinutes,
+      currentType: _reminderType,
+      currentOffsetMinutes: _reminderOffsetMinutes,
+      currentReminderAt: _reminderAt,
+    );
+    _unfocus();
+    if (result == null) return;
+    setState(() {
+      _reminderType = result.type;
+      _reminderOffsetMinutes = result.offsetMinutes;
+      _reminderAt = result.reminderAt;
+    });
+  }
+
   void _comingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.taskFormComingSoon(feature))),
@@ -228,6 +268,9 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         category: _category,
         assigneeId: _assigneeId,
         recurrence: _recurrence,
+        reminderType: _reminderType,
+        reminderOffsetMinutes: _reminderOffsetMinutes,
+        reminderAt: _reminderAt,
         actingRole: actingRole,
         actingMemberId: actingMemberId,
       );
@@ -242,6 +285,9 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         category: _category,
         assigneeId: Value(_assigneeId),
         recurrence: _recurrence,
+        reminderType: _reminderType,
+        reminderOffsetMinutes: Value(_reminderOffsetMinutes),
+        reminderAt: Value(_reminderAt),
       );
       final requiredAction =
           taskUpdateAction(widget.existing!, updated, actingMemberId);
@@ -341,6 +387,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                         onPressed: () => setState(() {
                           _dueDate = null;
                           _dueTimeMinutes = null;
+                          // A reminder only ever makes sense relative to
+                          // (or alongside) a due date — see _pickReminder.
+                          _reminderType = TaskReminderType.dueTime;
+                          _reminderOffsetMinutes = null;
+                          _reminderAt = null;
                         }),
                       ),
                   ],
@@ -489,7 +540,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                 child: _QuickActionButton(
                   icon: Icons.notifications_outlined,
                   label: l10n.taskFormReminder,
-                  onTap: () => _comingSoon(l10n.taskFormReminder),
+                  onTap: _pickReminder,
                 ),
               ),
               const SizedBox(width: 8),
@@ -518,7 +569,20 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              l10n.reminderSummary(reminderSummaryLabel(
+                l10n,
+                type: _reminderType,
+                offsetMinutes: _reminderOffsetMinutes,
+                reminderAt: _reminderAt,
+              )),
+              style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
+            ),
+          ),
+          const SizedBox(height: 20),
           FilledButton(
             onPressed: _save,
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),

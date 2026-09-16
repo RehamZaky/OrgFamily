@@ -17,6 +17,7 @@ import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import '../screens/task_form_screen.dart';
+import 'reminder_picker_sheet.dart';
 
 /// The fast path for adding a task: title (+ voice, once wired up) plus
 /// four one-tap shortcuts, with "More options" as the escape hatch into the
@@ -44,6 +45,10 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   DateTime? _dueDate;
   TaskPriority? _priority;
   String? _assigneeId;
+  TaskReminderType _reminderType = TaskReminderType.dueTime;
+  int? _reminderOffsetMinutes;
+  DateTime? _reminderAt;
+  String? _reminderError;
   bool _speechEnabled = false;
   bool _isListening = false;
 
@@ -130,13 +135,6 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
   }
 
-  void _comingSoon(String feature) {
-    final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.taskFormComingSoon(feature))),
-    );
-  }
-
   Future<void> _pickDate() async {
     _unfocus();
     final date = await showDatePicker(
@@ -147,7 +145,10 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
     _unfocus();
     if (date == null) return;
-    setState(() => _dueDate = DateTime(date.year, date.month, date.day));
+    setState(() {
+      _dueDate = DateTime(date.year, date.month, date.day);
+      _reminderError = null;
+    });
   }
 
   Future<void> _pickPriority() async {
@@ -163,6 +164,35 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
     _unfocus();
     if (priority != null) setState(() => _priority = priority);
+  }
+
+  Future<void> _pickReminder() async {
+    final dueDate = _dueDate;
+    if (dueDate == null) {
+      // A plain SnackBar would attach to the page's Scaffold underneath
+      // this modal bottom sheet and render behind it, invisible to the
+      // user — shown inline in the sheet itself instead.
+      final l10n = AppLocalizations.of(context)!;
+      setState(() => _reminderError = l10n.reminderSelectDueDateFirst);
+      return;
+    }
+    _unfocus();
+    final result = await showReminderPickerSheet(
+      context: context,
+      dueDate: dueDate,
+      dueTimeMinutes: null,
+      currentType: _reminderType,
+      currentOffsetMinutes: _reminderOffsetMinutes,
+      currentReminderAt: _reminderAt,
+    );
+    _unfocus();
+    if (result == null) return;
+    setState(() {
+      _reminderType = result.type;
+      _reminderOffsetMinutes = result.offsetMinutes;
+      _reminderAt = result.reminderAt;
+      _reminderError = null;
+    });
   }
 
   Future<void> _pickAssignee() async {
@@ -225,6 +255,9 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           dueDate: _dueDate,
           priority: _priority ?? TaskPriority.normal,
           assigneeId: _assigneeId,
+          reminderType: _reminderType,
+          reminderOffsetMinutes: _reminderOffsetMinutes,
+          reminderAt: _reminderAt,
           actingRole: ref.read(activeRoleProvider),
           actingMemberId: ref.read(activeMemberIdProvider),
         );
@@ -241,6 +274,9 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           initialDueDate: _dueDate,
           initialPriority: _priority,
           initialAssigneeId: _assigneeId,
+          initialReminderType: _reminderType,
+          initialReminderOffsetMinutes: _reminderOffsetMinutes,
+          initialReminderAt: _reminderAt,
         ),
       ),
     );
@@ -333,9 +369,16 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                   _ShortcutChip(
                     icon: Icons.notifications_outlined,
                     color: AppColors.info,
-                    label: l10n.taskFormReminder,
-                    active: false,
-                    onTap: () => _comingSoon(l10n.taskFormReminder),
+                    label: _reminderType == TaskReminderType.dueTime
+                        ? l10n.taskFormReminder
+                        : reminderSummaryLabel(
+                            l10n,
+                            type: _reminderType,
+                            offsetMinutes: _reminderOffsetMinutes,
+                            reminderAt: _reminderAt,
+                          ),
+                    active: _reminderType != TaskReminderType.dueTime,
+                    onTap: _pickReminder,
                   ),
                   _ShortcutChip(
                     icon: (priority ?? TaskPriority.normal).icon,
@@ -355,6 +398,13 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                   ),
                 ],
               ),
+              if (_reminderError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _reminderError!,
+                  style: const TextStyle(color: AppColors.priorityUrgent, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 children: [

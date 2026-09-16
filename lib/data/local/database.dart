@@ -47,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -120,6 +120,16 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(familyMembers, familyMembers.linkedUid);
             await m.addColumn(familyProfile, familyProfile.familyId);
             await m.addColumn(familyProfile, familyProfile.ownerUid);
+          }
+          if (from < 13) {
+            // Reminder picker: a task's notification time can now differ
+            // from its due date/time (a preset offset before due, an
+            // explicit custom moment, or none at all) instead of always
+            // firing exactly at the due time. reminderType's default
+            // (dueTime) preserves every existing task's current behavior.
+            await m.addColumn(tasks, tasks.reminderType);
+            await m.addColumn(tasks, tasks.reminderOffsetMinutes);
+            await m.addColumn(tasks, tasks.reminderAt);
           }
         },
       );

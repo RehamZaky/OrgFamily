@@ -852,6 +852,42 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get reminderOptionDueTime => 'عند وقت الاستحقاق';
+
+  @override
+  String get reminderOption15MinBefore => 'قبل 15 دقيقة';
+
+  @override
+  String get reminderOption30MinBefore => 'قبل 30 دقيقة';
+
+  @override
+  String get reminderOption1HourBefore => 'قبل ساعة واحدة';
+
+  @override
+  String get reminderOption1DayBefore => 'قبل يوم واحد';
+
+  @override
+  String get reminderOptionCustom => 'تاريخ ووقت مخصص';
+
+  @override
+  String get reminderOptionNone => 'بدون تذكير';
+
+  @override
+  String get reminderSelectDueDateFirst =>
+      'حدد تاريخ استحقاق أولاً لضبط تذكير.';
+
+  @override
+  String get reminderPastError => 'لقد فات موعد هذا التذكير بالفعل.';
+
+  @override
+  String get reminderRemindNow => 'ذكّرني الآن بدلاً من ذلك';
+
+  @override
+  String reminderSummary(Object value) {
+    return 'تذكير: $value';
+  }
+
+  @override
   String get taskFormCreateButton => 'إنشاء المهمة';
 
   @override

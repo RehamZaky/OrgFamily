@@ -868,6 +868,37 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         requiredDuringInsert: false,
         defaultValue: const Constant(0),
       ).withConverter<TaskRecurrence>($TasksTable.$converterrecurrence);
+  @override
+  late final GeneratedColumnWithTypeConverter<TaskReminderType, int>
+  reminderType = GeneratedColumn<int>(
+    'reminder_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  ).withConverter<TaskReminderType>($TasksTable.$converterreminderType);
+  static const VerificationMeta _reminderOffsetMinutesMeta =
+      const VerificationMeta('reminderOffsetMinutes');
+  @override
+  late final GeneratedColumn<int> reminderOffsetMinutes = GeneratedColumn<int>(
+    'reminder_offset_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reminderAtMeta = const VerificationMeta(
+    'reminderAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reminderAt = GeneratedColumn<DateTime>(
+    'reminder_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -907,6 +938,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     completedAt,
     completedByMemberId,
     recurrence,
+    reminderType,
+    reminderOffsetMinutes,
+    reminderAt,
     createdAt,
     updatedAt,
   ];
@@ -1001,6 +1035,21 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         ),
       );
     }
+    if (data.containsKey('reminder_offset_minutes')) {
+      context.handle(
+        _reminderOffsetMinutesMeta,
+        reminderOffsetMinutes.isAcceptableOrUnknown(
+          data['reminder_offset_minutes']!,
+          _reminderOffsetMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_at')) {
+      context.handle(
+        _reminderAtMeta,
+        reminderAt.isAcceptableOrUnknown(data['reminder_at']!, _reminderAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1080,6 +1129,20 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           data['${effectivePrefix}recurrence'],
         )!,
       ),
+      reminderType: $TasksTable.$converterreminderType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}reminder_type'],
+        )!,
+      ),
+      reminderOffsetMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_offset_minutes'],
+      ),
+      reminderAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reminder_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1102,6 +1165,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       const EnumIndexConverter<TaskCategory>(TaskCategory.values);
   static JsonTypeConverter2<TaskRecurrence, int, int> $converterrecurrence =
       const EnumIndexConverter<TaskRecurrence>(TaskRecurrence.values);
+  static JsonTypeConverter2<TaskReminderType, int, int> $converterreminderType =
+      const EnumIndexConverter<TaskReminderType>(TaskReminderType.values);
 }
 
 class Task extends DataClass implements Insertable<Task> {
@@ -1137,6 +1202,19 @@ class Task extends DataClass implements Insertable<Task> {
   /// completion doesn't require being the assignee.
   final String? completedByMemberId;
   final TaskRecurrence recurrence;
+
+  /// Defaults to [TaskReminderType.dueTime] — an existing task with no
+  /// reminder configured (every row from before this column existed)
+  /// notifies at its due time, exactly as it always did.
+  final TaskReminderType reminderType;
+
+  /// Only meaningful when [reminderType] is [TaskReminderType.offset]:
+  /// minutes before the due moment to notify (15/30/60/1440, ...).
+  final int? reminderOffsetMinutes;
+
+  /// Only meaningful when [reminderType] is [TaskReminderType.custom]: the
+  /// exact moment to notify, independent of the due date entirely.
+  final DateTime? reminderAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Task({
@@ -1153,6 +1231,9 @@ class Task extends DataClass implements Insertable<Task> {
     this.completedAt,
     this.completedByMemberId,
     required this.recurrence,
+    required this.reminderType,
+    this.reminderOffsetMinutes,
+    this.reminderAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1198,6 +1279,17 @@ class Task extends DataClass implements Insertable<Task> {
         $TasksTable.$converterrecurrence.toSql(recurrence),
       );
     }
+    {
+      map['reminder_type'] = Variable<int>(
+        $TasksTable.$converterreminderType.toSql(reminderType),
+      );
+    }
+    if (!nullToAbsent || reminderOffsetMinutes != null) {
+      map['reminder_offset_minutes'] = Variable<int>(reminderOffsetMinutes);
+    }
+    if (!nullToAbsent || reminderAt != null) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1232,6 +1324,13 @@ class Task extends DataClass implements Insertable<Task> {
           ? const Value.absent()
           : Value(completedByMemberId),
       recurrence: Value(recurrence),
+      reminderType: Value(reminderType),
+      reminderOffsetMinutes: reminderOffsetMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderOffsetMinutes),
+      reminderAt: reminderAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1266,6 +1365,13 @@ class Task extends DataClass implements Insertable<Task> {
       recurrence: $TasksTable.$converterrecurrence.fromJson(
         serializer.fromJson<int>(json['recurrence']),
       ),
+      reminderType: $TasksTable.$converterreminderType.fromJson(
+        serializer.fromJson<int>(json['reminderType']),
+      ),
+      reminderOffsetMinutes: serializer.fromJson<int?>(
+        json['reminderOffsetMinutes'],
+      ),
+      reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1293,6 +1399,11 @@ class Task extends DataClass implements Insertable<Task> {
       'recurrence': serializer.toJson<int>(
         $TasksTable.$converterrecurrence.toJson(recurrence),
       ),
+      'reminderType': serializer.toJson<int>(
+        $TasksTable.$converterreminderType.toJson(reminderType),
+      ),
+      'reminderOffsetMinutes': serializer.toJson<int?>(reminderOffsetMinutes),
+      'reminderAt': serializer.toJson<DateTime?>(reminderAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1312,6 +1423,9 @@ class Task extends DataClass implements Insertable<Task> {
     Value<DateTime?> completedAt = const Value.absent(),
     Value<String?> completedByMemberId = const Value.absent(),
     TaskRecurrence? recurrence,
+    TaskReminderType? reminderType,
+    Value<int?> reminderOffsetMinutes = const Value.absent(),
+    Value<DateTime?> reminderAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Task(
@@ -1334,6 +1448,11 @@ class Task extends DataClass implements Insertable<Task> {
         ? completedByMemberId.value
         : this.completedByMemberId,
     recurrence: recurrence ?? this.recurrence,
+    reminderType: reminderType ?? this.reminderType,
+    reminderOffsetMinutes: reminderOffsetMinutes.present
+        ? reminderOffsetMinutes.value
+        : this.reminderOffsetMinutes,
+    reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1368,6 +1487,15 @@ class Task extends DataClass implements Insertable<Task> {
       recurrence: data.recurrence.present
           ? data.recurrence.value
           : this.recurrence,
+      reminderType: data.reminderType.present
+          ? data.reminderType.value
+          : this.reminderType,
+      reminderOffsetMinutes: data.reminderOffsetMinutes.present
+          ? data.reminderOffsetMinutes.value
+          : this.reminderOffsetMinutes,
+      reminderAt: data.reminderAt.present
+          ? data.reminderAt.value
+          : this.reminderAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1389,6 +1517,9 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('completedAt: $completedAt, ')
           ..write('completedByMemberId: $completedByMemberId, ')
           ..write('recurrence: $recurrence, ')
+          ..write('reminderType: $reminderType, ')
+          ..write('reminderOffsetMinutes: $reminderOffsetMinutes, ')
+          ..write('reminderAt: $reminderAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1410,6 +1541,9 @@ class Task extends DataClass implements Insertable<Task> {
     completedAt,
     completedByMemberId,
     recurrence,
+    reminderType,
+    reminderOffsetMinutes,
+    reminderAt,
     createdAt,
     updatedAt,
   );
@@ -1430,6 +1564,9 @@ class Task extends DataClass implements Insertable<Task> {
           other.completedAt == this.completedAt &&
           other.completedByMemberId == this.completedByMemberId &&
           other.recurrence == this.recurrence &&
+          other.reminderType == this.reminderType &&
+          other.reminderOffsetMinutes == this.reminderOffsetMinutes &&
+          other.reminderAt == this.reminderAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1448,6 +1585,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<DateTime?> completedAt;
   final Value<String?> completedByMemberId;
   final Value<TaskRecurrence> recurrence;
+  final Value<TaskReminderType> reminderType;
+  final Value<int?> reminderOffsetMinutes;
+  final Value<DateTime?> reminderAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1465,6 +1605,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.completedAt = const Value.absent(),
     this.completedByMemberId = const Value.absent(),
     this.recurrence = const Value.absent(),
+    this.reminderType = const Value.absent(),
+    this.reminderOffsetMinutes = const Value.absent(),
+    this.reminderAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1483,6 +1626,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.completedAt = const Value.absent(),
     this.completedByMemberId = const Value.absent(),
     this.recurrence = const Value.absent(),
+    this.reminderType = const Value.absent(),
+    this.reminderOffsetMinutes = const Value.absent(),
+    this.reminderAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1502,6 +1648,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<DateTime>? completedAt,
     Expression<String>? completedByMemberId,
     Expression<int>? recurrence,
+    Expression<int>? reminderType,
+    Expression<int>? reminderOffsetMinutes,
+    Expression<DateTime>? reminderAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1521,6 +1670,10 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (completedByMemberId != null)
         'completed_by_member_id': completedByMemberId,
       if (recurrence != null) 'recurrence': recurrence,
+      if (reminderType != null) 'reminder_type': reminderType,
+      if (reminderOffsetMinutes != null)
+        'reminder_offset_minutes': reminderOffsetMinutes,
+      if (reminderAt != null) 'reminder_at': reminderAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1541,6 +1694,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<DateTime?>? completedAt,
     Value<String?>? completedByMemberId,
     Value<TaskRecurrence>? recurrence,
+    Value<TaskReminderType>? reminderType,
+    Value<int?>? reminderOffsetMinutes,
+    Value<DateTime?>? reminderAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1559,6 +1715,10 @@ class TasksCompanion extends UpdateCompanion<Task> {
       completedAt: completedAt ?? this.completedAt,
       completedByMemberId: completedByMemberId ?? this.completedByMemberId,
       recurrence: recurrence ?? this.recurrence,
+      reminderType: reminderType ?? this.reminderType,
+      reminderOffsetMinutes:
+          reminderOffsetMinutes ?? this.reminderOffsetMinutes,
+      reminderAt: reminderAt ?? this.reminderAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1615,6 +1775,19 @@ class TasksCompanion extends UpdateCompanion<Task> {
         $TasksTable.$converterrecurrence.toSql(recurrence.value),
       );
     }
+    if (reminderType.present) {
+      map['reminder_type'] = Variable<int>(
+        $TasksTable.$converterreminderType.toSql(reminderType.value),
+      );
+    }
+    if (reminderOffsetMinutes.present) {
+      map['reminder_offset_minutes'] = Variable<int>(
+        reminderOffsetMinutes.value,
+      );
+    }
+    if (reminderAt.present) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1643,6 +1816,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('completedAt: $completedAt, ')
           ..write('completedByMemberId: $completedByMemberId, ')
           ..write('recurrence: $recurrence, ')
+          ..write('reminderType: $reminderType, ')
+          ..write('reminderOffsetMinutes: $reminderOffsetMinutes, ')
+          ..write('reminderAt: $reminderAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -7486,6 +7662,9 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<DateTime?> completedAt,
       Value<String?> completedByMemberId,
       Value<TaskRecurrence> recurrence,
+      Value<TaskReminderType> reminderType,
+      Value<int?> reminderOffsetMinutes,
+      Value<DateTime?> reminderAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -7505,6 +7684,9 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<DateTime?> completedAt,
       Value<String?> completedByMemberId,
       Value<TaskRecurrence> recurrence,
+      Value<TaskReminderType> reminderType,
+      Value<int?> reminderOffsetMinutes,
+      Value<DateTime?> reminderAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -7627,6 +7809,22 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
   get recurrence => $composableBuilder(
     column: $table.recurrence,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TaskReminderType, TaskReminderType, int>
+  get reminderType => $composableBuilder(
+    column: $table.reminderType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get reminderOffsetMinutes => $composableBuilder(
+    column: $table.reminderOffsetMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
@@ -7768,6 +7966,21 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get reminderType => $composableBuilder(
+    column: $table.reminderType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reminderOffsetMinutes => $composableBuilder(
+    column: $table.reminderOffsetMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -7898,6 +8111,22 @@ class $$TasksTableAnnotationComposer
         builder: (column) => column,
       );
 
+  GeneratedColumnWithTypeConverter<TaskReminderType, int> get reminderType =>
+      $composableBuilder(
+        column: $table.reminderType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<int> get reminderOffsetMinutes => $composableBuilder(
+    column: $table.reminderOffsetMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -8019,6 +8248,9 @@ class $$TasksTableTableManager
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<String?> completedByMemberId = const Value.absent(),
                 Value<TaskRecurrence> recurrence = const Value.absent(),
+                Value<TaskReminderType> reminderType = const Value.absent(),
+                Value<int?> reminderOffsetMinutes = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8036,6 +8268,9 @@ class $$TasksTableTableManager
                 completedAt: completedAt,
                 completedByMemberId: completedByMemberId,
                 recurrence: recurrence,
+                reminderType: reminderType,
+                reminderOffsetMinutes: reminderOffsetMinutes,
+                reminderAt: reminderAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -8055,6 +8290,9 @@ class $$TasksTableTableManager
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<String?> completedByMemberId = const Value.absent(),
                 Value<TaskRecurrence> recurrence = const Value.absent(),
+                Value<TaskReminderType> reminderType = const Value.absent(),
+                Value<int?> reminderOffsetMinutes = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8072,6 +8310,9 @@ class $$TasksTableTableManager
                 completedAt: completedAt,
                 completedByMemberId: completedByMemberId,
                 recurrence: recurrence,
+                reminderType: reminderType,
+                reminderOffsetMinutes: reminderOffsetMinutes,
+                reminderAt: reminderAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

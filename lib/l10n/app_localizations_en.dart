@@ -804,6 +804,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reminderOptionDueTime => 'At the due time';
+
+  @override
+  String get reminderOption15MinBefore => '15 minutes before';
+
+  @override
+  String get reminderOption30MinBefore => '30 minutes before';
+
+  @override
+  String get reminderOption1HourBefore => '1 hour before';
+
+  @override
+  String get reminderOption1DayBefore => '1 day before';
+
+  @override
+  String get reminderOptionCustom => 'Custom date and time';
+
+  @override
+  String get reminderOptionNone => 'No reminder';
+
+  @override
+  String get reminderSelectDueDateFirst =>
+      'Select a due date first to set a reminder.';
+
+  @override
+  String get reminderPastError => 'That reminder time has already passed.';
+
+  @override
+  String get reminderRemindNow => 'Remind me now instead';
+
+  @override
+  String reminderSummary(Object value) {
+    return 'Reminder: $value';
+  }
+
+  @override
   String get taskFormCreateButton => 'Create Task';
 
   @override

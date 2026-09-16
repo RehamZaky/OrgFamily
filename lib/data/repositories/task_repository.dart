@@ -33,41 +33,50 @@ class TaskRepository {
     return '$due • Assigned to $who';
   }
 
-  /// Schedules the initial "it's due" reminder and the single overdue
-  /// follow-up together — see [taskReminderAt]/[taskOverdueFollowupAt] for
-  /// exactly when each fires. Either can be a no-op if its time already
-  /// passed (the notification service silently skips scheduling for the
-  /// past).
-  Future<void> _scheduleReminders({
+  /// (Re)schedules a task's single reminder notification from its current
+  /// due date and reminder configuration (see [taskReminderNotifyAt]),
+  /// cancelling it first — covers "no due date", "completed", and
+  /// "reminder explicitly turned off" by simply not rescheduling in those
+  /// cases. A no-op if the computed time is null or already in the past
+  /// (the picker validates that up front; this is just a backstop).
+  ///
+  /// The overdue follow-up is deliberately *not* scheduled here anymore:
+  /// it used to fire automatically for every dated task alongside the due
+  /// reminder, but is being pulled out into its own separate, configurable
+  /// feature (not yet built) rather than being an automatic side effect of
+  /// setting a due date. Cancelling it unconditionally on every reschedule
+  /// cleans up anything an older app version already scheduled.
+  Future<void> _updateReminder({
     required String id,
     required String title,
-    required DateTime dueDate,
+    required DateTime? dueDate,
     required int? dueTimeMinutes,
     required String? assigneeId,
+    required bool isCompleted,
+    required TaskReminderType reminderType,
+    required int? reminderOffsetMinutes,
+    required DateTime? reminderAt,
   }) async {
-    final input = TaskDeadlineInput(
-      dueDate: dueDate,
-      dueTimeMinutes: dueTimeMinutes,
-      isCompleted: false,
-    );
-    final reminderAt = taskReminderAt(input)!;
+    await _notifications.cancelTaskReminder(id);
+    await _notifications.cancelTaskOverdueFollowup(id);
+    if (isCompleted || dueDate == null) return;
+    final notifyAt = taskReminderNotifyAt(TaskReminderInput(
+      deadline: TaskDeadlineInput(
+        dueDate: dueDate,
+        dueTimeMinutes: dueTimeMinutes,
+        isCompleted: isCompleted,
+      ),
+      reminderType: reminderType,
+      reminderOffsetMinutes: reminderOffsetMinutes,
+      reminderAt: reminderAt,
+    ));
+    if (notifyAt == null) return;
     await _notifications.scheduleTaskReminder(
       taskId: id,
       title: title,
       body: await _reminderBody(dueTimeMinutes, assigneeId),
-      dueDate: reminderAt,
+      dueDate: notifyAt,
     );
-    await _notifications.scheduleTaskOverdueFollowup(
-      taskId: id,
-      title: 'Still needs attention',
-      body: '$title is overdue',
-      at: taskOverdueFollowupAt(input)!,
-    );
-  }
-
-  Future<void> _cancelReminders(String id) async {
-    await _notifications.cancelTaskReminder(id);
-    await _notifications.cancelTaskOverdueFollowup(id);
   }
 
   Future<Task?> getById(String id) {
@@ -82,12 +91,16 @@ class TaskRepository {
     final tasks = await _db.select(_db.tasks).get();
     for (final t in tasks) {
       if (!t.isCompleted && t.dueDate != null) {
-        await _scheduleReminders(
+        await _updateReminder(
           id: t.id,
           title: t.title,
-          dueDate: t.dueDate!,
+          dueDate: t.dueDate,
           dueTimeMinutes: t.dueTimeMinutes,
           assigneeId: t.assigneeId,
+          isCompleted: t.isCompleted,
+          reminderType: t.reminderType,
+          reminderOffsetMinutes: t.reminderOffsetMinutes,
+          reminderAt: t.reminderAt,
         );
       }
     }
@@ -125,6 +138,9 @@ class TaskRepository {
     TaskCategory category = TaskCategory.other,
     String? assigneeId,
     TaskRecurrence recurrence = TaskRecurrence.none,
+    TaskReminderType reminderType = TaskReminderType.dueTime,
+    int? reminderOffsetMinutes,
+    DateTime? reminderAt,
     FamilyRole actingRole = FamilyRole.owner,
     String? actingMemberId,
   }) async {
@@ -142,18 +158,23 @@ class TaskRepository {
             category: Value(category),
             assigneeId: Value(assigneeId),
             recurrence: Value(recurrence),
+            reminderType: Value(reminderType),
+            reminderOffsetMinutes: Value(reminderOffsetMinutes),
+            reminderAt: Value(reminderAt),
             createdByMemberId: Value(actingMemberId),
           ),
         );
-    if (dueDate != null) {
-      await _scheduleReminders(
-        id: id,
-        title: title,
-        dueDate: dueDate,
-        dueTimeMinutes: dueTimeMinutes,
-        assigneeId: assigneeId,
-      );
-    }
+    await _updateReminder(
+      id: id,
+      title: title,
+      dueDate: dueDate,
+      dueTimeMinutes: dueTimeMinutes,
+      assigneeId: assigneeId,
+      isCompleted: false,
+      reminderType: reminderType,
+      reminderOffsetMinutes: reminderOffsetMinutes,
+      reminderAt: reminderAt,
+    );
   }
 
   Future<void> updateTask(
@@ -171,17 +192,17 @@ class TaskRepository {
     await _db.update(_db.tasks).replace(
           task.copyWith(updatedAt: DateTime.now()),
         );
-    if (task.dueDate != null && !task.isCompleted) {
-      await _scheduleReminders(
-        id: task.id,
-        title: task.title,
-        dueDate: task.dueDate!,
-        dueTimeMinutes: task.dueTimeMinutes,
-        assigneeId: task.assigneeId,
-      );
-    } else {
-      await _cancelReminders(task.id);
-    }
+    await _updateReminder(
+      id: task.id,
+      title: task.title,
+      dueDate: task.dueDate,
+      dueTimeMinutes: task.dueTimeMinutes,
+      assigneeId: task.assigneeId,
+      isCompleted: task.isCompleted,
+      reminderType: task.reminderType,
+      reminderOffsetMinutes: task.reminderOffsetMinutes,
+      reminderAt: task.reminderAt,
+    );
   }
 
   Future<void> setCompleted(
@@ -210,11 +231,16 @@ class TaskRepository {
     );
     if (task == null) return;
     if (isCompleted) {
-      await _cancelReminders(id);
+      await _notifications.cancelTaskReminder(id);
+      await _notifications.cancelTaskOverdueFollowup(id);
       if (task.recurrence != TaskRecurrence.none) {
         // The new occurrence continues the same recurring series, so it
         // keeps the series' original creator — not whoever happened to
-        // complete this particular instance.
+        // complete this particular instance. A relative reminder (at the
+        // due time, or an offset before it) still makes sense for the next
+        // occurrence; a custom absolute moment doesn't, so that downgrades
+        // to the due time rather than carrying over a timestamp from the
+        // instance that just completed.
         await addTask(
           id: const Uuid().v4(),
           title: task.title,
@@ -225,16 +251,24 @@ class TaskRepository {
           category: task.category,
           assigneeId: task.assigneeId,
           recurrence: task.recurrence,
+          reminderType: task.reminderType == TaskReminderType.custom
+              ? TaskReminderType.dueTime
+              : task.reminderType,
+          reminderOffsetMinutes: task.reminderOffsetMinutes,
           actingMemberId: task.createdByMemberId,
         );
       }
-    } else if (task.dueDate != null) {
-      await _scheduleReminders(
+    } else {
+      await _updateReminder(
         id: id,
         title: task.title,
-        dueDate: task.dueDate!,
+        dueDate: task.dueDate,
         dueTimeMinutes: task.dueTimeMinutes,
         assigneeId: task.assigneeId,
+        isCompleted: false,
+        reminderType: task.reminderType,
+        reminderOffsetMinutes: task.reminderOffsetMinutes,
+        reminderAt: task.reminderAt,
       );
     }
   }
@@ -279,5 +313,6 @@ class TaskRepository {
     }
     await (_db.delete(_db.tasks)..where((t) => t.id.equals(id))).go();
     await _notifications.cancelTaskReminder(id);
+    await _notifications.cancelTaskOverdueFollowup(id);
   }
 }

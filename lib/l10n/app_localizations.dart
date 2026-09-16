@@ -1532,6 +1532,72 @@ abstract class AppLocalizations {
   /// **'{feature} is coming soon'**
   String taskFormComingSoon(Object feature);
 
+  /// No description provided for @reminderOptionDueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'At the due time'**
+  String get reminderOptionDueTime;
+
+  /// No description provided for @reminderOption15MinBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes before'**
+  String get reminderOption15MinBefore;
+
+  /// No description provided for @reminderOption30MinBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'30 minutes before'**
+  String get reminderOption30MinBefore;
+
+  /// No description provided for @reminderOption1HourBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour before'**
+  String get reminderOption1HourBefore;
+
+  /// No description provided for @reminderOption1DayBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day before'**
+  String get reminderOption1DayBefore;
+
+  /// No description provided for @reminderOptionCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom date and time'**
+  String get reminderOptionCustom;
+
+  /// No description provided for @reminderOptionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get reminderOptionNone;
+
+  /// No description provided for @reminderSelectDueDateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a due date first to set a reminder.'**
+  String get reminderSelectDueDateFirst;
+
+  /// No description provided for @reminderPastError.
+  ///
+  /// In en, this message translates to:
+  /// **'That reminder time has already passed.'**
+  String get reminderPastError;
+
+  /// No description provided for @reminderRemindNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me now instead'**
+  String get reminderRemindNow;
+
+  /// No description provided for @reminderSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder: {value}'**
+  String reminderSummary(Object value);
+
   /// No description provided for @taskFormCreateButton.
   ///
   /// In en, this message translates to:

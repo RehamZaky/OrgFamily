@@ -361,6 +361,22 @@
       "feature": {}
     }
   },
+  "reminderOptionDueTime": "At the due time",
+  "reminderOption15MinBefore": "15 minutes before",
+  "reminderOption30MinBefore": "30 minutes before",
+  "reminderOption1HourBefore": "1 hour before",
+  "reminderOption1DayBefore": "1 day before",
+  "reminderOptionCustom": "Custom date and time",
+  "reminderOptionNone": "No reminder",
+  "reminderSelectDueDateFirst": "Select a due date first to set a reminder.",
+  "reminderPastError": "That reminder time has already passed.",
+  "reminderRemindNow": "Remind me now instead",
+  "reminderSummary": "Reminder: {value}",
+  "@reminderSummary": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "taskFormCreateButton": "Create Task",
   "saveChanges": "Save changes",
 
