@@ -21,6 +21,9 @@ class ShoppingItemSyncAdapter implements SyncAdapter<ShoppingItem> {
   String collectionPath(String familyId) => 'families/$familyId/shoppingItems';
 
   @override
+  bool get isSingleton => false;
+
+  @override
   DateTime updatedAtOf(ShoppingItem row) => row.updatedAt;
 
   @override

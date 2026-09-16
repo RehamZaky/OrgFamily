@@ -6,11 +6,14 @@ import '../sync_adapter.dart';
 
 /// Mirrors the singleton [FamilyProfile] row to the family doc itself,
 /// `families/{familyId}` — not a subcollection like every other adapter,
-/// since there's exactly one of these per family. Reuses the same generic
-/// [SyncAdapter] shape by treating the top-level `families` collection as
-/// [collectionPath] and the family's own id as the "entity id": Firestore
-/// security rules scope what's readable to just this family's doc anyway
-/// (see `firestore.rules`), so listening on the whole collection is safe.
+/// since there's exactly one of these per family. [isSingleton] tells
+/// `SyncEngine` to always address it via `.doc()`, never an unconstrained
+/// `.collection('families').get()/.snapshots()` — Firestore's security
+/// rules can't prove a `resource.data`-dependent read rule holds for
+/// every document a *query* over the whole collection could ever return
+/// (there could be other families' docs in there too), and denies such a
+/// query outright, even though a `get`/listen on one specific, known
+/// document id works fine under the exact same rule.
 ///
 /// Only `ownerUid` (and the `memberUids` derived from it) are synced here
 /// — `photoPath` is local-only, and `familyId` is the doc id itself, not a
@@ -37,6 +40,9 @@ class FamilyProfileSyncAdapter implements SyncAdapter<FamilyProfileData> {
 
   @override
   String collectionPath(String familyId) => 'families';
+
+  @override
+  bool get isSingleton => true;
 
   @override
   DateTime updatedAtOf(FamilyProfileData row) => row.updatedAt;

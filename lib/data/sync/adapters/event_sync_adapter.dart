@@ -35,6 +35,9 @@ class EventSyncAdapter implements SyncAdapter<EventWithMembers> {
   String collectionPath(String familyId) => 'families/$familyId/events';
 
   @override
+  bool get isSingleton => false;
+
+  @override
   DateTime updatedAtOf(EventWithMembers row) => row.event.updatedAt;
 
   @override

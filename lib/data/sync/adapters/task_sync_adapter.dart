@@ -19,6 +19,9 @@ class TaskSyncAdapter implements SyncAdapter<Task> {
   String collectionPath(String familyId) => 'families/$familyId/tasks';
 
   @override
+  bool get isSingleton => false;
+
+  @override
   DateTime updatedAtOf(Task row) => row.updatedAt;
 
   @override

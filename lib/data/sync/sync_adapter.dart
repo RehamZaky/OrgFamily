@@ -10,6 +10,17 @@ abstract class SyncAdapter<T> {
   /// e.g. `families/$familyId/tasks`.
   String collectionPath(String familyId);
 
+  /// True only for [FamilyProfileSyncAdapter]. Firestore's security rules
+  /// can evaluate a rule against one specific, known document's own data
+  /// (a `get`) — but not against an unconstrained collection *query*
+  /// whose rule depends on each result's own data (a `list`): it can't
+  /// prove the rule holds for every document that collection could ever
+  /// contain, and denies the whole query outright. A singleton is
+  /// therefore always addressed via `.doc()`, never
+  /// `.collection().get()/.snapshots()`, even though [collectionPath]
+  /// still names its parent collection.
+  bool get isSingleton => false;
+
   DateTime updatedAtOf(T row);
   DateTime? deletedAtOf(T row);
 

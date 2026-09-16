@@ -1,14 +1,12 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart';
 
 import '../local/database.dart';
 import '../local/tables/sync_outbox_table.dart';
+import 'outbox_failure_policy.dart';
 import 'sync_adapter.dart';
-
-enum _FailureKind { transient, permanent, unknown }
 
 /// Drives Firestore sync for every registered [SyncAdapter] — see
 /// `docs/architecture.md` "Firestore sync" for the full design this
@@ -36,24 +34,43 @@ class SyncEngine {
   final AppDatabase _db;
   final FirebaseFirestore? _firestore;
   final Map<SyncEntityType, SyncAdapter> _adapters;
-  final List<StreamSubscription<QuerySnapshot<Map<String, dynamic>>>> _subscriptions = [];
+  final List<StreamSubscription> _subscriptions = [];
   String? _activeFamilyId;
 
   String? get activeFamilyId => _activeFamilyId;
 
-  /// Begins syncing against [familyId]: attaches a live listener per
-  /// registered adapter's collection and starts draining any queued
-  /// outbox rows for that family. Idempotent — calling again with the same
-  /// [familyId] is a no-op; a different one restarts listeners against it.
+  /// Begins syncing against [familyId]: runs the initial reconciliation
+  /// pass if needed, drains the outbox, and only then attaches a live
+  /// listener per registered adapter — deliberately in that order, not
+  /// listeners-first, since a listener attached before this device's
+  /// membership exists remotely (i.e. before the family doc itself has
+  /// been pushed) gets permanently denied by Firestore's security rules
+  /// rather than just waiting. Idempotent — calling again with the same
+  /// [familyId] is a no-op; a different one restarts against it.
+  ///
+  /// May be called from inside a Drift transaction (`recordLink` does
+  /// exactly that) — the async work is dispatched via `Zone.root.run` so
+  /// it runs detached from that transaction's zone, since Drift routes
+  /// `_db`'s queries to the transaction's own executor for anything
+  /// launched inside its zone, even unawaited, and that executor is
+  /// invalid the moment the transaction itself closes.
   void start(String familyId) {
     if (_firestore == null) return;
     if (_activeFamilyId == familyId) return;
     stop();
     _activeFamilyId = familyId;
+    Zone.root.run(() => unawaited(_activateSync(familyId)));
+  }
+
+  Future<void> _activateSync(String familyId) async {
+    await _runInitialReconciliationIfNeeded(familyId);
+    await drainNow();
+    // A stop()/different start() may have run while the above awaited —
+    // don't attach listeners for a family that's no longer the active one.
+    if (_activeFamilyId != familyId) return;
     for (final adapter in _adapters.values) {
       _listen(adapter, familyId);
     }
-    unawaited(_runInitialReconciliationIfNeeded(familyId).then((_) => drainNow()));
   }
 
   /// Detaches every listener and stops draining. Does not touch the
@@ -70,6 +87,20 @@ class SyncEngine {
 
   void _listen(SyncAdapter adapter, String familyId) {
     // Only ever called from start(), which already checked _firestore != null.
+    if (adapter.isSingleton) {
+      final sub = _firestore!
+          .collection(adapter.collectionPath(familyId))
+          .doc(familyId)
+          .snapshots()
+          .listen((doc) async {
+        if (doc.metadata.hasPendingWrites) return;
+        final data = doc.data();
+        if (data == null) return;
+        await _mergeIncoming(adapter, familyId, data);
+      });
+      _subscriptions.add(sub);
+      return;
+    }
     final sub = _firestore!
         .collection(adapter.collectionPath(familyId))
         .snapshots()
@@ -130,6 +161,10 @@ class SyncEngine {
   }
 
   Future<void> _reconcileAdapterFully(SyncAdapter adapter, String familyId) async {
+    if (adapter.isSingleton) {
+      await _reconcileSingleton(adapter, familyId);
+      return;
+    }
     final localIds = await adapter.allLocalIds(familyId);
     final remoteSnap = await _firestore!.collection(adapter.collectionPath(familyId)).get();
     final remoteDocs = {for (final d in remoteSnap.docs) d.id: d.data()};
@@ -160,6 +195,28 @@ class SyncEngine {
     }
   }
 
+  /// [_reconcileAdapterFully]'s counterpart for a singleton — a direct
+  /// `.doc()` get instead of an unconstrained collection query, for the
+  /// same reason [SyncAdapter.isSingleton]'s doc comment explains.
+  Future<void> _reconcileSingleton(SyncAdapter adapter, String familyId) async {
+    final docRef = _firestore!.collection(adapter.collectionPath(familyId)).doc(familyId);
+    final remote = (await docRef.get()).data();
+    if (remote == null) {
+      final local = await adapter.getLocalById(familyId);
+      if (local == null) return;
+      final data = Map<String, dynamic>.from(adapter.toFirestoreFields(local));
+      data['updatedAt'] = FieldValue.serverTimestamp();
+      await docRef.set(data);
+      return;
+    }
+    final remoteUpdatedAt = (remote['updatedAt'] as Timestamp?)?.toDate();
+    if (remoteUpdatedAt == null) return;
+    final local = await adapter.getLocalById(familyId);
+    if (local == null || remoteUpdatedAt.isAfter(adapter.updatedAtOf(local))) {
+      await adapter.applyRemoteUpsert(familyId, remote, remoteUpdatedAt);
+    }
+  }
+
   Future<bool> _hasPendingLocalWrite(SyncEntityType type, String entityId) async {
     final rows = await (_db.select(_db.syncOutbox)
           ..where((o) =>
@@ -177,6 +234,12 @@ class SyncEngine {
   /// so the two commit atomically (see the Firestore sync plan's
   /// "Durability" section for why). A no-op if sync isn't active yet
   /// (nothing local has a family to push to).
+  ///
+  /// The follow-up drain is dispatched via `Zone.root.run`, the same
+  /// escape [start] uses and for the same reason — this is always called
+  /// from inside the caller's transaction, and an unawaited continuation
+  /// launched inside that zone would otherwise try to keep using the
+  /// transaction's executor after Drift has already closed it.
   Future<void> enqueueUpsert({
     required AppDatabase db,
     required SyncEntityType type,
@@ -192,7 +255,7 @@ class SyncEngine {
             operation: SyncOperation.upsert,
           ),
         );
-    unawaited(drainNow());
+    Zone.root.run(() => unawaited(drainNow()));
   }
 
   /// The manual "Retry" action for the Settings sync status row: `failed`
@@ -271,14 +334,15 @@ class SyncEngine {
       (_db.delete(_db.syncOutbox)..where((o) => o.id.equals(id))).go();
 
   Future<void> _recordFailure(SyncOutboxData row, Object error) async {
-    final kind = _classify(error);
+    final kind = classifyOutboxFailure(error);
     final code = error is FirebaseException ? error.code : 'unknown';
     final attempt = row.attemptCount + 1;
     final now = DateTime.now();
     // Permanent, or an unclassified error that's failed enough times in a
     // row to stop assuming it'll resolve itself — surfaced to the user
     // rather than retried forever (see the plan's "Outbox failure policy").
-    if (kind == _FailureKind.permanent || (kind == _FailureKind.unknown && attempt >= 3)) {
+    if (kind == FailureKind.permanent ||
+        (kind == FailureKind.unknown && attempt >= unknownFailureRetryLimit)) {
       await (_db.update(_db.syncOutbox)..where((o) => o.id.equals(row.id))).write(
         SyncOutboxCompanion(
           status: const Value(SyncOutboxStatus.failed),
@@ -294,41 +358,11 @@ class SyncEngine {
       SyncOutboxCompanion(
         status: const Value(SyncOutboxStatus.retrying),
         attemptCount: Value(attempt),
-        nextRetryAt: Value(now.add(_backoffFor(row.attemptCount))),
+        nextRetryAt: Value(now.add(backoffForAttempt(row.attemptCount))),
         lastErrorCode: Value(code),
         lastErrorMessage: Value(error.toString()),
         lastAttemptAt: Value(now),
       ),
     );
-  }
-
-  _FailureKind _classify(Object error) {
-    if (error is! FirebaseException) return _FailureKind.unknown;
-    switch (error.code) {
-      case 'unavailable':
-      case 'deadline-exceeded':
-      case 'resource-exhausted':
-      case 'aborted':
-      case 'internal':
-      case 'cancelled':
-        return _FailureKind.transient;
-      case 'permission-denied':
-      case 'invalid-argument':
-      case 'not-found':
-      case 'already-exists':
-      case 'unauthenticated':
-      case 'failed-precondition':
-        return _FailureKind.permanent;
-      default:
-        return _FailureKind.unknown;
-    }
-  }
-
-  /// ~5s → 15s → 1m → 5m → 15m → 30m → capped at 1h, plus up to 1s of
-  /// jitter so multiple pending rows don't all retry in lockstep.
-  Duration _backoffFor(int attemptCount) {
-    const stepsSeconds = [5, 15, 60, 300, 900, 1800, 3600];
-    final seconds = stepsSeconds[attemptCount.clamp(0, stepsSeconds.length - 1)];
-    return Duration(seconds: seconds, milliseconds: Random().nextInt(1000));
   }
 }

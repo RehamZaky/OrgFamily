@@ -21,6 +21,9 @@ class FamilyMemberSyncAdapter implements SyncAdapter<FamilyMember> {
   String collectionPath(String familyId) => 'families/$familyId/members';
 
   @override
+  bool get isSingleton => false;
+
+  @override
   DateTime updatedAtOf(FamilyMember row) => row.updatedAt;
 
   @override
