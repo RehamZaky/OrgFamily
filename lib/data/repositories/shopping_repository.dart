@@ -28,10 +28,16 @@ class ShoppingRepository {
   Future<void> seedDefaultCategoriesIfEmpty() async {
     final hasAnyList = await (_db.select(_db.shoppingLists)..limit(1)).get();
     if (hasAnyList.isNotEmpty) return;
+    final now = DateTime.now();
     await _db.batch((b) {
       b.insertAll(_db.shoppingLists, [
         for (final (id, name, emoji) in defaultShoppingCategories)
-          ShoppingListsCompanion.insert(id: id, name: name, emoji: Value(emoji)),
+          ShoppingListsCompanion.insert(
+            id: id,
+            name: name,
+            emoji: Value(emoji),
+            updatedAt: Value(now),
+          ),
       ]);
     });
   }
@@ -61,6 +67,7 @@ class ShoppingRepository {
               id: id,
               name: name,
               emoji: Value(emoji),
+              updatedAt: Value(DateTime.now()),
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingList, entityId: id);
@@ -112,6 +119,7 @@ class ShoppingRepository {
               name: name,
               quantity: Value(quantity),
               addedById: Value(addedById),
+              updatedAt: Value(DateTime.now()),
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);

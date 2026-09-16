@@ -115,6 +115,7 @@ class EventRepository {
               category: Value(category),
               colorValue: Value(colorValue),
               attachmentPath: Value(attachmentPath),
+              updatedAt: Value(DateTime.now()),
             ),
           );
       await _setMembers(id, memberIds);

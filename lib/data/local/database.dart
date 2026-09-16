@@ -51,6 +51,23 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 14;
 
+  /// Whether [table] already has [column] — lets a migration step check
+  /// before altering, so it's safe to resume after a partial failure (see
+  /// the `from < 14` migration step's comment for why that's not just a
+  /// hypothetical).
+  Future<bool> _columnExists(String table, String column) async {
+    final rows = await customSelect('PRAGMA table_info($table)').get();
+    return rows.any((r) => r.data['name'] == column);
+  }
+
+  Future<bool> _tableExists(String table) async {
+    final rows = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable.withString(table)],
+    ).get();
+    return rows.isNotEmpty;
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
@@ -140,24 +157,62 @@ class AppDatabase extends _$AppDatabase {
             // remotely" is otherwise ambiguous between "never uploaded" and
             // "was deleted" once there are two persisted copies of the
             // data), and SyncOutbox is the durable "this write still needs
-            // to reach Firestore" queue. Every existing row gets `updatedAt
-            // = now` via the column default below, which is a reasonable
-            // starting point — none of them have synced yet anyway.
-            await m.addColumn(tasks, tasks.deletedAt);
-            await m.addColumn(familyMembers, familyMembers.updatedAt);
-            await m.addColumn(familyMembers, familyMembers.deletedAt);
-            await m.addColumn(familyProfile, familyProfile.updatedAt);
-            await m.addColumn(
-              familyProfile,
-              familyProfile.initialCloudMigrationCompletedAt,
-            );
-            await m.addColumn(events, events.updatedAt);
-            await m.addColumn(events, events.deletedAt);
-            await m.addColumn(shoppingLists, shoppingLists.updatedAt);
-            await m.addColumn(shoppingLists, shoppingLists.deletedAt);
-            await m.addColumn(shoppingItems, shoppingItems.updatedAt);
-            await m.addColumn(shoppingItems, shoppingItems.deletedAt);
-            await m.createTable(syncOutbox);
+            // to reach Firestore" queue.
+            //
+            // Every step here checks whether it already applied before
+            // doing anything — not just for a hypothetical retry, but
+            // because it's exactly what already happened once during
+            // development: an earlier version of this migration crashed
+            // partway through (SQLite's `ALTER TABLE ADD COLUMN`, unlike
+            // `CREATE TABLE`, rejects a non-constant default), leaving some
+            // columns added and others not on any device that hit it. This
+            // makes the whole block safe to resume from that or any other
+            // partial state, not just safe to run once cleanly.
+            Future<void> addUpdatedAtWithBackfill(String table) async {
+              if (await _columnExists(table, 'updated_at')) return;
+              // The constant-default restriction means this column's
+              // SQL-level default is a placeholder (0), not
+              // currentDateAndTime — every insert path for these tables
+              // must stamp updatedAt explicitly rather than relying on it
+              // (see family_repository.dart/event_repository.dart/
+              // shopping_repository.dart's addMember/addEvent/addList/
+              // addItem).
+              await customStatement(
+                'ALTER TABLE $table ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0',
+              );
+              await customStatement("UPDATE $table SET updated_at = strftime('%s', 'now')");
+            }
+
+            await addUpdatedAtWithBackfill('family_members');
+            await addUpdatedAtWithBackfill('family_profile');
+            await addUpdatedAtWithBackfill('events');
+            await addUpdatedAtWithBackfill('shopping_lists');
+            await addUpdatedAtWithBackfill('shopping_items');
+
+            if (!await _columnExists('tasks', 'deleted_at')) {
+              await m.addColumn(tasks, tasks.deletedAt);
+            }
+            if (!await _columnExists('family_members', 'deleted_at')) {
+              await m.addColumn(familyMembers, familyMembers.deletedAt);
+            }
+            if (!await _columnExists('family_profile', 'initial_cloud_migration_completed_at')) {
+              await m.addColumn(
+                familyProfile,
+                familyProfile.initialCloudMigrationCompletedAt,
+              );
+            }
+            if (!await _columnExists('events', 'deleted_at')) {
+              await m.addColumn(events, events.deletedAt);
+            }
+            if (!await _columnExists('shopping_lists', 'deleted_at')) {
+              await m.addColumn(shoppingLists, shoppingLists.deletedAt);
+            }
+            if (!await _columnExists('shopping_items', 'deleted_at')) {
+              await m.addColumn(shoppingItems, shoppingItems.deletedAt);
+            }
+            if (!await _tableExists('sync_outbox')) {
+              await m.createTable(syncOutbox);
+            }
           }
         },
       );

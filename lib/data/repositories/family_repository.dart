@@ -59,6 +59,7 @@ class FamilyRepository {
               school: Value(school),
               notes: Value(notes),
               linkedUid: Value(linkedUid),
+              updatedAt: Value(DateTime.now()),
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: id);
