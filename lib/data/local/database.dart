@@ -9,6 +9,7 @@ import 'tables/notes_table.dart';
 import 'tables/responsibilities_table.dart';
 import 'tables/savings_goals_table.dart';
 import 'tables/shopping_table.dart';
+import 'tables/sync_outbox_table.dart';
 import 'tables/tasks_table.dart';
 
 part 'database.g.dart';
@@ -40,6 +41,7 @@ const defaultShoppingCategories = [
     BudgetCategoryLimits,
     BudgetSettings,
     SavingsGoals,
+    SyncOutbox,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -47,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -130,6 +132,32 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(tasks, tasks.reminderType);
             await m.addColumn(tasks, tasks.reminderOffsetMinutes);
             await m.addColumn(tasks, tasks.reminderAt);
+          }
+          if (from < 14) {
+            // Firestore sync (see docs/architecture.md "Firestore sync"):
+            // updatedAt drives last-write-wins conflict resolution,
+            // deletedAt is a soft-delete tombstone (needed because "missing
+            // remotely" is otherwise ambiguous between "never uploaded" and
+            // "was deleted" once there are two persisted copies of the
+            // data), and SyncOutbox is the durable "this write still needs
+            // to reach Firestore" queue. Every existing row gets `updatedAt
+            // = now` via the column default below, which is a reasonable
+            // starting point — none of them have synced yet anyway.
+            await m.addColumn(tasks, tasks.deletedAt);
+            await m.addColumn(familyMembers, familyMembers.updatedAt);
+            await m.addColumn(familyMembers, familyMembers.deletedAt);
+            await m.addColumn(familyProfile, familyProfile.updatedAt);
+            await m.addColumn(
+              familyProfile,
+              familyProfile.initialCloudMigrationCompletedAt,
+            );
+            await m.addColumn(events, events.updatedAt);
+            await m.addColumn(events, events.deletedAt);
+            await m.addColumn(shoppingLists, shoppingLists.updatedAt);
+            await m.addColumn(shoppingLists, shoppingLists.deletedAt);
+            await m.addColumn(shoppingItems, shoppingItems.updatedAt);
+            await m.addColumn(shoppingItems, shoppingItems.deletedAt);
+            await m.createTable(syncOutbox);
           }
         },
       );

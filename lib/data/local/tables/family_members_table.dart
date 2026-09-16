@@ -21,6 +21,10 @@ class FamilyMembers extends Table {
   // Owner/Adult who hasn't linked an account yet (including every
   // pre-V2-Auth local family on upgrade).
   TextColumn get linkedUid => text().nullable()();
+  /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt`/
+  /// `deletedAt` doc comments for why both exist.
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

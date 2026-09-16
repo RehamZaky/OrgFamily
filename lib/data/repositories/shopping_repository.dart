@@ -11,13 +11,17 @@ class ShoppingRepository {
 
   Stream<List<ShoppingList>> watchLists() {
     return (_db.select(_db.shoppingLists)
+          ..where((l) => l.deletedAt.isNull())
           ..orderBy([(l) => OrderingTerm.asc(l.createdAt)]))
         .watch();
   }
 
   /// Seeds the default category lists (Grocery, Vacation packing, etc.) the
   /// first time the app runs — a no-op once any list exists, so it never
-  /// resurrects lists the user has deleted.
+  /// resurrects lists the user has deleted. Deliberately checks *all* rows,
+  /// including soft-deleted ones (unlike every other query here) — a
+  /// family that once had lists and deleted them all should still never see
+  /// them reseeded.
   Future<void> seedDefaultCategoriesIfEmpty() async {
     final hasAnyList = await (_db.select(_db.shoppingLists)..limit(1)).get();
     if (hasAnyList.isNotEmpty) return;
@@ -31,7 +35,7 @@ class ShoppingRepository {
 
   Stream<List<ShoppingItem>> watchItems(String listId) {
     return (_db.select(_db.shoppingItems)
-          ..where((i) => i.listId.equals(listId))
+          ..where((i) => i.listId.equals(listId) & i.deletedAt.isNull())
           ..orderBy([
             (i) => OrderingTerm.asc(i.isPurchased),
             (i) => OrderingTerm.asc(i.createdAt),
@@ -57,11 +61,21 @@ class ShoppingRepository {
         );
   }
 
+  /// Soft-deletes the list and every item under it (see tasks_table.dart's
+  /// deletedAt doc comment) — the SQL cascade on [ShoppingItems.listId]
+  /// never fires here since no row is actually removed, so items are
+  /// tombstoned explicitly instead.
   Future<void> deleteList(String id, {FamilyRole actingRole = FamilyRole.owner}) {
     if (!canPerform(actingRole, FamilyAction.manageLists)) {
       throw FamilyPermissionException(FamilyAction.manageLists, actingRole);
     }
-    return (_db.delete(_db.shoppingLists)..where((l) => l.id.equals(id))).go();
+    final now = DateTime.now();
+    return _db.transaction(() async {
+      await (_db.update(_db.shoppingLists)..where((l) => l.id.equals(id)))
+          .write(ShoppingListsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await (_db.update(_db.shoppingItems)..where((i) => i.listId.equals(id)))
+          .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+    });
   }
 
   Future<void> addItem({
@@ -87,11 +101,18 @@ class ShoppingRepository {
   }
 
   Future<void> setPurchased(String id, bool isPurchased) {
-    return (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id)))
-        .write(ShoppingItemsCompanion(isPurchased: Value(isPurchased)));
+    return (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id))).write(
+      ShoppingItemsCompanion(
+        isPurchased: Value(isPurchased),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
+  /// Soft-delete (see tasks_table.dart's deletedAt doc comment).
   Future<void> deleteItem(String id) {
-    return (_db.delete(_db.shoppingItems)..where((i) => i.id.equals(id))).go();
+    final now = DateTime.now();
+    return (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id)))
+        .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
   }
 }

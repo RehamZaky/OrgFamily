@@ -16,6 +16,18 @@ class FamilyProfile extends Table {
   // first (an Adult can link before the Owner does). See
   // docs/architecture.md "Family identity and authentication".
   TextColumn get ownerUid => text().nullable()();
+  /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt` doc
+  /// comment. No `deletedAt`: this singleton row is never deleted, only
+  /// ever upserted.
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  /// Set once, only after the one-time initial reconciliation pass has
+  /// succeeded for *every* synced collection (not per-collection — see
+  /// `docs/architecture.md` "Firestore sync"). Local-only, never synced to
+  /// Firestore. Before this is set, a local row with no remote counterpart
+  /// is genuine pre-cloud V1 data to push; after, "missing remotely" is
+  /// never re-interpreted as "needs uploading" again, which is what stops
+  /// a deleted row from being resurrected on a later reconnect.
+  DateTimeColumn get initialCloudMigrationCompletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -75,6 +75,13 @@ class Tasks extends Table {
   DateTimeColumn get reminderAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  /// Soft-delete tombstone for Firestore sync — see `docs/architecture.md`
+  /// "Firestore sync". Null means active; sync propagates the tombstone
+  /// instead of a hard Firestore delete, since "missing remotely" can't
+  /// otherwise be told apart from "never uploaded" during reconciliation.
+  /// `deleteTask` sets this instead of removing the row; every `watchAll`/
+  /// `getById` filters it out so the UI is unaffected.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -80,7 +80,8 @@ class TaskRepository {
   }
 
   Future<Task?> getById(String id) {
-    return (_db.select(_db.tasks)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return (_db.select(_db.tasks)..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
+        .getSingleOrNull();
   }
 
   /// Re-schedules every incomplete, dated task's reminders from current DB
@@ -88,7 +89,7 @@ class TaskRepository {
   /// in boot_detector.dart) as a correctness backstop on top of the native
   /// BOOT_COMPLETED replay, which replays a snapshot rather than live data.
   Future<void> resyncReminders() async {
-    final tasks = await _db.select(_db.tasks).get();
+    final tasks = await (_db.select(_db.tasks)..where((t) => t.deletedAt.isNull())).get();
     for (final t in tasks) {
       if (!t.isCompleted && t.dueDate != null) {
         await _updateReminder(
@@ -108,6 +109,7 @@ class TaskRepository {
 
   Stream<List<Task>> watchAll() {
     return (_db.select(_db.tasks)
+          ..where((t) => t.deletedAt.isNull())
           ..orderBy([
             (t) => OrderingTerm.asc(t.isCompleted),
             (t) => OrderingTerm.asc(t.dueDate),
@@ -121,6 +123,7 @@ class TaskRepository {
     final endOfDay = startOfDay.add(const Duration(days: 1));
     return (_db.select(_db.tasks)
           ..where((t) =>
+              t.deletedAt.isNull() &
               t.isCompleted.equals(false) &
               t.dueDate.isBiggerOrEqualValue(startOfDay) &
               t.dueDate.isSmallerThanValue(endOfDay))
@@ -211,7 +214,8 @@ class TaskRepository {
     FamilyRole actingRole = FamilyRole.owner,
     String? actingMemberId,
   }) async {
-    final task = await (_db.select(_db.tasks)..where((t) => t.id.equals(id)))
+    final task = await (_db.select(_db.tasks)
+          ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
         .getSingleOrNull();
     if (task != null) {
       final isOwnTask = actingMemberId != null && task.assigneeId == actingMemberId;
@@ -311,7 +315,11 @@ class TaskRepository {
     if (task != null && !canDeleteTask(task, actingRole, actingMemberId)) {
       throw FamilyPermissionException(FamilyAction.deleteTask, actingRole);
     }
-    await (_db.delete(_db.tasks)..where((t) => t.id.equals(id))).go();
+    // Soft-delete (see tasks_table.dart's deletedAt doc comment) rather than
+    // a hard DELETE, so the tombstone can propagate through Firestore sync.
+    final now = DateTime.now();
+    await (_db.update(_db.tasks)..where((t) => t.id.equals(id)))
+        .write(TasksCompanion(deletedAt: Value(now), updatedAt: Value(now)));
     await _notifications.cancelTaskReminder(id);
     await _notifications.cancelTaskOverdueFollowup(id);
   }

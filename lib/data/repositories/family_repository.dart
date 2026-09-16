@@ -11,11 +11,13 @@ class FamilyRepository {
 
   Stream<List<FamilyMember>> watchMembers() {
     return (_db.select(_db.familyMembers)
+          ..where((m) => m.deletedAt.isNull())
           ..orderBy([(m) => OrderingTerm.asc(m.createdAt)]))
         .watch();
   }
 
-  Future<List<FamilyMember>> getMembers() => _db.select(_db.familyMembers).get();
+  Future<List<FamilyMember>> getMembers() =>
+      (_db.select(_db.familyMembers)..where((m) => m.deletedAt.isNull())).get();
 
   Future<void> addMember({
     required String id,
@@ -65,7 +67,10 @@ class FamilyRepository {
   /// `linkMember` below).
   Stream<List<FamilyMember>> watchUnlinkedAdults() {
     return (_db.select(_db.familyMembers)
-          ..where((m) => m.linkedUid.isNull() & m.role.equalsValue(FamilyRole.child).not()))
+          ..where((m) =>
+              m.deletedAt.isNull() &
+              m.linkedUid.isNull() &
+              m.role.equalsValue(FamilyRole.child).not()))
         .watch();
   }
 
@@ -82,8 +87,9 @@ class FamilyRepository {
     if (member.role == FamilyRole.child) {
       throw StateError('Child members are never linked to a Firebase account.');
     }
-    await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id)))
-        .write(FamilyMembersCompanion(linkedUid: Value(uid)));
+    await (_db.update(_db.familyMembers)..where((m) => m.id.equals(id))).write(
+      FamilyMembersCompanion(linkedUid: Value(uid), updatedAt: Value(DateTime.now())),
+    );
   }
 
   Future<void> updateMember(
@@ -97,7 +103,7 @@ class FamilyRepository {
       if (member.role == FamilyRole.owner) {
         await _demoteOtherOwners(exceptId: member.id);
       }
-      await _db.update(_db.familyMembers).replace(member);
+      await _db.update(_db.familyMembers).replace(member.copyWith(updatedAt: DateTime.now()));
     });
   }
 
@@ -109,16 +115,24 @@ class FamilyRepository {
     final members = await getMembers();
     for (final m in members) {
       if (m.id != exceptId && m.role == FamilyRole.owner) {
-        await (_db.update(_db.familyMembers)..where((t) => t.id.equals(m.id)))
-            .write(const FamilyMembersCompanion(role: Value(FamilyRole.adult)));
+        await (_db.update(_db.familyMembers)..where((t) => t.id.equals(m.id))).write(
+          FamilyMembersCompanion(
+            role: const Value(FamilyRole.adult),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
       }
     }
   }
 
+  /// Soft-delete (see `tasks_table.dart`'s `deletedAt` doc comment for why)
+  /// — the row stays, just excluded from `watchMembers`/`getMembers`.
   Future<void> deleteMember(String id, {FamilyRole actingRole = FamilyRole.owner}) {
     if (!canPerform(actingRole, FamilyAction.manageMembers)) {
       throw FamilyPermissionException(FamilyAction.manageMembers, actingRole);
     }
-    return (_db.delete(_db.familyMembers)..where((m) => m.id.equals(id))).go();
+    final now = DateTime.now();
+    return (_db.update(_db.familyMembers)..where((m) => m.id.equals(id)))
+        .write(FamilyMembersCompanion(deletedAt: Value(now), updatedAt: Value(now)));
   }
 }

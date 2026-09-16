@@ -54,6 +54,7 @@ class FamilyProfileRepository {
             id: const Value(_rowId),
             familyId: Value(familyId),
             ownerUid: isOwner ? Value(uid) : Value(existing?.ownerUid),
+            updatedAt: Value(DateTime.now()),
           ),
         );
   }
