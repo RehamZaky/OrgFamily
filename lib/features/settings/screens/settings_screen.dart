@@ -158,6 +158,46 @@ class SettingsScreen extends ConsumerWidget {
                       );
                     },
                   ),
+                  Builder(
+                    builder: (context) {
+                      final isActive = ref.watch(isCloudSyncActiveProvider);
+                      if (!isActive) return const SizedBox.shrink();
+                      final summary = ref.watch(syncOutboxSummaryProvider).valueOrNull;
+                      final failed = summary?.failed ?? 0;
+                      final pending = summary?.pending ?? 0;
+                      final upToDate = failed == 0 && pending == 0;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: Icon(
+                              failed > 0
+                                  ? Icons.cloud_off_outlined
+                                  : Icons.cloud_sync_outlined,
+                              color: failed > 0 ? AppColors.priorityUrgent : AppColors.primary,
+                            ),
+                            title: const Text('Cloud sync'),
+                            subtitle: Text(
+                              failed > 0
+                                  ? '$failed change${failed == 1 ? '' : 's'} need attention'
+                                  : upToDate
+                                      ? 'Up to date'
+                                      : '$pending change${pending == 1 ? '' : 's'} syncing',
+                            ),
+                            trailing: (failed > 0 || pending > 0)
+                                ? TextButton(
+                                    onPressed: () => failed > 0
+                                        ? ref.read(syncEngineProvider).retryFailed()
+                                        : ref.read(syncEngineProvider).drainNow(),
+                                    child: const Text('Retry'),
+                                  )
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
                 const SizedBox(height: 28),
                 Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),

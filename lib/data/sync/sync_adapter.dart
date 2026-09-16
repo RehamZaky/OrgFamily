@@ -20,6 +20,14 @@ abstract class SyncAdapter<T> {
 
   Future<T?> getLocalById(String id);
 
+  /// Every local row's id for this entity, unfiltered by `deletedAt` (a
+  /// tombstone still needs to be reconciled) — used only by the one-time
+  /// initial reconciliation pass (see `docs/architecture.md` "Firestore
+  /// sync") to diff the full local set against the full remote set.
+  /// [familyId] is only meaningful for the [FamilyProfileSyncAdapter]
+  /// singleton, which has no local id of its own to enumerate.
+  Future<List<String>> allLocalIds(String familyId);
+
   /// Upserts [fields] (as read back from Firestore, `updatedAt` already
   /// resolved to [updatedAt]) into Drift — used both for a genuine remote
   /// change and to reconcile the local row after this device's own push

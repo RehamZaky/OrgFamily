@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,7 @@ import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/banner_ad_widget.dart';
+import '../data/providers.dart';
 import '../features/budget/screens/money_overview_screen.dart';
 import '../features/budget/widgets/add_transaction_sheet.dart';
 import '../features/calendar/screens/calendar_screen.dart';
@@ -26,8 +29,44 @@ class RootScaffold extends ConsumerStatefulWidget {
   ConsumerState<RootScaffold> createState() => _RootScaffoldState();
 }
 
-class _RootScaffoldState extends ConsumerState<RootScaffold> {
+class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBindingObserver {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Starts/stops SyncEngine as sign-in/link state changes — fireImmediately
+    // so a fresh app boot that's already linked resumes syncing right away,
+    // not just at the moment recordLink itself runs. See
+    // docs/architecture.md "Firestore sync".
+    ref.listenManual(activeSyncFamilyIdProvider, (previous, next) {
+      final sync = ref.read(syncEngineProvider);
+      if (next != null) {
+        sync.start(next);
+      } else {
+        sync.stop();
+      }
+    }, fireImmediately: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // A proxy for "reconnect" without a dedicated connectivity dependency —
+    // Firestore's own listeners resume on their own, but a queued outbox
+    // row's retry backoff can be sitting well past due if the app was
+    // backgrounded for a while, so give it an immediate nudge on resume
+    // rather than waiting for its scheduled retry.
+    if (state == AppLifecycleState.resumed) {
+      unawaited(ref.read(syncEngineProvider).drainNow());
+    }
+  }
 
   Widget _buildScreen(int index) {
     return switch (index) {

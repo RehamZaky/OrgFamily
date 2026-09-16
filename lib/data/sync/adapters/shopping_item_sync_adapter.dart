@@ -47,6 +47,12 @@ class ShoppingItemSyncAdapter implements SyncAdapter<ShoppingItem> {
   }
 
   @override
+  Future<List<String>> allLocalIds(String familyId) async {
+    final rows = await _db.select(_db.shoppingItems).get();
+    return rows.map((r) => r.id).toList();
+  }
+
+  @override
   Future<void> applyRemoteUpsert(String id, Map<String, dynamic> fields, DateTime updatedAt) {
     return _db.into(_db.shoppingItems).insertOnConflictUpdate(
           ShoppingItemsCompanion.insert(

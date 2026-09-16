@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_config.dart';
 import '../core/notifications/notification_service.dart';
 import 'local/database.dart';
+import 'local/tables/sync_outbox_table.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/budget_repository.dart';
 import 'repositories/event_repository.dart';
@@ -70,19 +71,49 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
   ]);
 });
 
-/// True once this device is both signed in and linked to a family with an
-/// Owner — see `FamilyProfileSyncAdapter`'s doc comment on why "has an
-/// ownerUid", not just "has a familyId". Not yet wired to actually start/
-/// stop [syncEngineProvider] — that's the Firestore sync plan's
-/// "Lifecycle + reconciliation" step.
 final familyProfileStreamProvider = StreamProvider<FamilyProfileData?>((ref) {
   return ref.watch(familyProfileRepositoryProvider).watchProfile();
 });
 
-final isCloudSyncActiveProvider = Provider<bool>((ref) {
+/// The familyId [syncEngineProvider] should be syncing against right now,
+/// or null if it shouldn't be syncing at all — signed out, or linked but
+/// not yet Owner-confirmed (see `FamilyProfileSyncAdapter`'s doc comment
+/// on why "has an ownerUid", not just "has a familyId", is the bar).
+/// `RootScaffold` listens to this and calls `SyncEngine.start`/`stop`
+/// accordingly — see docs/architecture.md "Firestore sync".
+final activeSyncFamilyIdProvider = Provider<String?>((ref) {
   final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return null;
   final profile = ref.watch(familyProfileStreamProvider).valueOrNull;
-  return user != null && profile?.ownerUid != null;
+  if (profile?.ownerUid == null) return null;
+  return profile?.familyId;
+});
+
+final isCloudSyncActiveProvider = Provider<bool>((ref) {
+  return ref.watch(activeSyncFamilyIdProvider) != null;
+});
+
+/// How many locally-queued changes for the active family haven't reached
+/// Firestore yet ([pending]: still trying, possibly with backoff) versus
+/// given up on ([failed]: a permanent error, or too many unclassified
+/// ones — see `SyncEngine`'s "Outbox failure policy"). Null while sync
+/// isn't active at all.
+class SyncOutboxSummary {
+  const SyncOutboxSummary({required this.pending, required this.failed});
+  final int pending;
+  final int failed;
+}
+
+final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
+  final familyId = ref.watch(activeSyncFamilyIdProvider);
+  if (familyId == null) return Stream.value(null);
+  final db = ref.watch(databaseProvider);
+  return (db.select(db.syncOutbox)..where((o) => o.familyId.equals(familyId)))
+      .watch()
+      .map((rows) => SyncOutboxSummary(
+            pending: rows.where((r) => r.status != SyncOutboxStatus.failed).length,
+            failed: rows.where((r) => r.status == SyncOutboxStatus.failed).length,
+          ));
 });
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {

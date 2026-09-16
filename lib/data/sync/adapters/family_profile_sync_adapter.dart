@@ -63,6 +63,9 @@ class FamilyProfileSyncAdapter implements SyncAdapter<FamilyProfileData> {
   }
 
   @override
+  Future<List<String>> allLocalIds(String familyId) async => [familyId];
+
+  @override
   Future<void> applyRemoteUpsert(String id, Map<String, dynamic> fields, DateTime updatedAt) {
     return _db.into(_db.familyProfile).insertOnConflictUpdate(
           FamilyProfileCompanion.insert(

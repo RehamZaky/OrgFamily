@@ -53,7 +53,7 @@ class SyncEngine {
     for (final adapter in _adapters.values) {
       _listen(adapter, familyId);
     }
-    unawaited(drainNow());
+    unawaited(_runInitialReconciliationIfNeeded(familyId).then((_) => drainNow()));
   }
 
   /// Detaches every listener and stops draining. Does not touch the
@@ -99,6 +99,67 @@ class SyncEngine {
     }
   }
 
+  /// The one-time V1-data upload/download pass — see the Firestore sync
+  /// plan's "One shared merge function" section for why this only ever
+  /// runs once per family-link, gated by
+  /// `FamilyProfile.initialCloudMigrationCompletedAt`, and why after that
+  /// flag is set, "missing remotely" is never again treated as "needs
+  /// uploading" (that's what stops a deleted row from resurrecting on a
+  /// later reconnect). Only marks the flag once every adapter has
+  /// succeeded — a failure partway through (e.g. offline mid-pass) leaves
+  /// it unset so the next [start] retries the whole thing, rather than
+  /// silently skipping whatever didn't finish.
+  Future<void> _runInitialReconciliationIfNeeded(String familyId) async {
+    if (_firestore == null) return;
+    final profile =
+        await (_db.select(_db.familyProfile)..where((p) => p.id.equals(1))).getSingleOrNull();
+    if (profile?.initialCloudMigrationCompletedAt != null) return;
+    try {
+      for (final adapter in _adapters.values) {
+        await _reconcileAdapterFully(adapter, familyId);
+      }
+      await _db.into(_db.familyProfile).insertOnConflictUpdate(
+            FamilyProfileCompanion.insert(
+              id: const Value(1),
+              initialCloudMigrationCompletedAt: Value(DateTime.now()),
+            ),
+          );
+    } catch (_) {
+      // Leave the flag unset — retried the next time start() runs.
+    }
+  }
+
+  Future<void> _reconcileAdapterFully(SyncAdapter adapter, String familyId) async {
+    final localIds = await adapter.allLocalIds(familyId);
+    final remoteSnap = await _firestore!.collection(adapter.collectionPath(familyId)).get();
+    final remoteDocs = {for (final d in remoteSnap.docs) d.id: d.data()};
+
+    for (final id in localIds) {
+      final remote = remoteDocs.remove(id);
+      if (remote == null) {
+        // Genuinely never uploaded (this only runs pre-flag) — push it.
+        final local = await adapter.getLocalById(id);
+        if (local == null) continue;
+        final data = Map<String, dynamic>.from(adapter.toFirestoreFields(local));
+        data['updatedAt'] = FieldValue.serverTimestamp();
+        await _firestore.collection(adapter.collectionPath(familyId)).doc(id).set(data);
+        continue;
+      }
+      final remoteUpdatedAt = (remote['updatedAt'] as Timestamp?)?.toDate();
+      if (remoteUpdatedAt == null) continue;
+      final local = await adapter.getLocalById(id);
+      if (local == null || remoteUpdatedAt.isAfter(adapter.updatedAtOf(local))) {
+        await adapter.applyRemoteUpsert(id, remote, remoteUpdatedAt);
+      }
+    }
+    // Whatever's left has no local counterpart — pull it.
+    for (final entry in remoteDocs.entries) {
+      final remoteUpdatedAt = (entry.value['updatedAt'] as Timestamp?)?.toDate();
+      if (remoteUpdatedAt == null) continue;
+      await adapter.applyRemoteUpsert(entry.key, entry.value, remoteUpdatedAt);
+    }
+  }
+
   Future<bool> _hasPendingLocalWrite(SyncEntityType type, String entityId) async {
     final rows = await (_db.select(_db.syncOutbox)
           ..where((o) =>
@@ -132,6 +193,25 @@ class SyncEngine {
           ),
         );
     unawaited(drainNow());
+  }
+
+  /// The manual "Retry" action for the Settings sync status row: `failed`
+  /// rows are deliberately excluded from [drainNow]'s automatic sweep (see
+  /// "Outbox failure policy" in the Firestore sync plan — they're not
+  /// retried forever), so a user-initiated retry has to explicitly put
+  /// them back in the running by resetting their status before draining.
+  Future<void> retryFailed() async {
+    final familyId = _activeFamilyId;
+    if (familyId == null) return;
+    await (_db.update(_db.syncOutbox)
+          ..where((o) =>
+              o.familyId.equals(familyId) & o.status.equalsValue(SyncOutboxStatus.failed)))
+        .write(const SyncOutboxCompanion(
+      status: Value(SyncOutboxStatus.pending),
+      attemptCount: Value(0),
+      nextRetryAt: Value(null),
+    ));
+    await drainNow();
   }
 
   /// Attempts to push every due outbox row for the active family — call on
