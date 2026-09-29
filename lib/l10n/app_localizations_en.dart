@@ -886,7 +886,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickAddTaskMoreOptions => 'More options';
 
   @override
-  String get quickAddTaskAdd => 'Add Task';
+  String get quickAddTaskMoreShort => 'More';
+
+  @override
+  String get quickAddTaskAdd => 'Add task';
+
+  @override
+  String get quickAddTaskVoiceInput => 'Voice input';
 
   @override
   String get quickAddTaskVoiceUnavailable =>

@@ -292,7 +292,9 @@
   "quickAddNote": "ملاحظة",
 
   "quickAddTaskMoreOptions": "خيارات إضافية",
+  "quickAddTaskMoreShort": "المزيد",
   "quickAddTaskAdd": "إضافة مهمة",
+  "quickAddTaskVoiceInput": "الإدخال الصوتي",
   "quickAddTaskVoiceUnavailable": "الإدخال الصوتي غير متاح على هذا الجهاز",
   "quickAddTaskDateShort": "التاريخ",
   "quickAddTaskAssignShort": "إسناد",

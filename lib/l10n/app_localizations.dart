@@ -1688,11 +1688,23 @@ abstract class AppLocalizations {
   /// **'More options'**
   String get quickAddTaskMoreOptions;
 
+  /// No description provided for @quickAddTaskMoreShort.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get quickAddTaskMoreShort;
+
   /// No description provided for @quickAddTaskAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add Task'**
+  /// **'Add task'**
   String get quickAddTaskAdd;
+
+  /// No description provided for @quickAddTaskVoiceInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input'**
+  String get quickAddTaskVoiceInput;
 
   /// No description provided for @quickAddTaskVoiceUnavailable.
   ///

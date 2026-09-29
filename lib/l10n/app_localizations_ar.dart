@@ -934,7 +934,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quickAddTaskMoreOptions => 'خيارات إضافية';
 
   @override
+  String get quickAddTaskMoreShort => 'المزيد';
+
+  @override
   String get quickAddTaskAdd => 'إضافة مهمة';
+
+  @override
+  String get quickAddTaskVoiceInput => 'الإدخال الصوتي';
 
   @override
   String get quickAddTaskVoiceUnavailable =>
