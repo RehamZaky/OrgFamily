@@ -78,12 +78,84 @@ The point where Firebase actually earns its place.
       the Email/Password + Google providers turned on under
       Authentication in the Firebase console (console-only toggle,
       nothing to configure in code for it).
-- [ ] Firestore sync behind the existing repository interfaces —
-      screens should need zero changes
-- [ ] Family invitations, multi-device sync
-- [ ] Firestore security rules keyed on `familyId` membership
-- [ ] Conflict resolution policy (last-write-wins + `updatedAt`/`version`
-      fields, per the original design doc)
+- [x] Firestore sync behind the existing repository interfaces — screens
+      needed zero changes, per plan. FamilyMembers/FamilyProfile/Tasks/
+      Events/ShoppingLists/ShoppingItems sync to `families/{familyId}/...`
+      once the local Owner links; Budget/Notes/Responsibilities/
+      SavingsGoals stay local-only (own future pass). See
+      [architecture.md](architecture.md)'s "Firestore sync" for the full
+      design — `SyncEngine`, the `SyncOutbox` durable push queue, the
+      outbox failure/backoff policy, and the lifecycle wiring
+      (`RootScaffold` starts/stops it on sign-in/link/sign-out). Verified
+      end-to-end on a real device against the live `orgfamily-c40ae`
+      Firestore project: family/member/task/event docs all synced
+      correctly under the deployed security rules.
+- [x] Firestore security rules keyed on `familyId` membership —
+      `firestore.rules`, deployed. `ownerUid`/`memberUids` are
+      create-once, immutable authorization metadata (no self-service
+      join); ordinary content is read/write for any member uid, matching
+      today's local no-per-role-cloud-permissions model.
+- [x] Conflict resolution policy — last-write-wins on `updatedAt`
+      (resolved to a Firestore server timestamp after each push, not the
+      raw device clock, to avoid clock-skew bugs), plus a `deletedAt`
+      soft-delete tombstone so a remote deletion can't be mistaken for
+      "never uploaded" and resurrected by a later device's reconciliation
+      pass.
+- [x] Family invitations, multi-device sync for a *second* real adult —
+      a short-lived, single-use code (top-level `invites/{code}` in
+      Firestore) an existing member generates and a second adult, on
+      their own fresh device with their own Firebase account, claims via
+      the new `JoinFamilyScreen` (reachable from onboarding's "Join an
+      existing family instead"). Claiming grants access via a
+      `families/{familyId}/joinedUids/{uid}` doc rather than ever
+      mutating the family doc's own create-once-immutable
+      `ownerUid`/`memberUids` — see architecture.md's new "Family
+      invitations" section for the full design, including why claiming
+      is two sequential writes rather than one atomic transaction, and
+      why `activeSyncFamilyIdProvider`'s activation gate had to change
+      (a joiner never gets a local `ownerUid`) to make this possible at
+      all. The security-rule surface for this flow is now verified
+      against the real Firestore Local Emulator Suite (not mocked) — see
+      `firestore_rules_test/` — 37 passing cases covering create/claim/
+      expiry/single-use/tamper-proofing for `invites/{code}` and
+      `joinedUids/{uid}` (including a server-side bound on `expiresAt`
+      itself, added after review — the rules originally trusted the
+      client's "7 days" entirely, so a request bypassing the app could
+      have minted a functionally-forever invite). A pre-commit review
+      pass also caught and fixed a real last-write-wins inversion in
+      `recordJoin` (it stamped "now" instead of an epoch sentinel, so a
+      joiner's `ownerUid` could never sync down from the real, older
+      family doc — see architecture.md's "Family invitations" §"Local
+      join" and the regression test in `sync_engine_test.dart`). What's
+      *not* yet verified: real device-level
+      races (two Android/iOS devices actually claiming the same code at
+      once, `hasPendingWrites`/listener timing through the real
+      `cloud_firestore` plugin) — see the next item.
+- [x] Firebase-emulator-based tests for the sync engine's security rules
+      — `firestore_rules_test/` (a small Node subproject using
+      `@firebase/rules-unit-testing`, documented in its own README) runs
+      37 rules-level tests against the real emulator, covering exactly
+      the multi-document, rules-dependent behavior unit tests and
+      `fake_cloud_firestore` can't exercise: single-use invite claiming,
+      expiry, tamper-proofing, and the `joinedUids` grant's cross-document
+      `get()` check. Sanity-checked by deliberately breaking the
+      single-use guard in `firestore.rules` and confirming exactly one
+      test failed (the one testing it) before restoring it.
+      **Still open**: this only covers rules, not the Flutter/plugin
+      side — see the next item.
+- [ ] Device-level integration tests for the sync engine (multi-device
+      scenarios through the real `cloud_firestore`/`firebase_auth`
+      plugins, tombstone-doesn't-resurrect, two real devices racing an
+      invite claim) — blocked on having an Android/iOS device or emulator
+      available at all (`flutter devices` currently shows only Windows
+      desktop and browsers, both platforms this app deliberately excludes
+      from Firebase — see `isFirebaseAuthSupportedPlatform`). Current
+      coverage without one: unit tests for the pure outbox failure/backoff
+      logic (`test/sync/outbox_failure_policy_test.dart`), `SyncEngine`
+      logic tests against `fake_cloud_firestore` (not real rules —
+      `test/sync/sync_engine_test.dart`), the rules-level emulator tests
+      above, and manual on-device verification for the original sync
+      engine (not yet repeated for invitations).
 
 ## V2.1 — Family communication
 
@@ -133,9 +205,12 @@ user to pick Task/Event/Shopping item up front —
 ## Explicitly deferred infra decisions
 
 - **Local-first architecture** (Drift as source of truth, sync layer
-  added later) — decided, see [architecture.md](architecture.md).
+  added later) — decided, see [architecture.md](architecture.md); the
+  sync layer landed in V2 without disturbing this (Firestore is a mirror
+  underneath the repository layer, not a replacement for Drift).
 - **No `go_router`** — V1 navigation is a plain `IndexedStack` + bottom
   nav plus `Navigator.push` for forms; add routing only if deep-linking
   or web URL support becomes a real requirement.
-- **No domain-model layer separate from Drift rows** — revisit when V2
-  sync/conflict-resolution work starts.
+- **No domain-model layer separate from Drift rows** — held even through
+  V2 sync: each `SyncAdapter` maps a Drift row directly to its Firestore
+  fields, no separate domain-model layer needed to support it after all.

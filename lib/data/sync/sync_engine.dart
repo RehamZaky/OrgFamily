@@ -37,6 +37,11 @@ class SyncEngine {
   final List<StreamSubscription> _subscriptions = [];
   String? _activeFamilyId;
 
+  // Reentrancy guard for [drainNow] — see its doc comment for why a plain
+  // "already running, do nothing" early-return isn't safe here.
+  bool _draining = false;
+  bool _drainRequestedAgain = false;
+
   String? get activeFamilyId => _activeFamilyId;
 
   /// Begins syncing against [familyId]: runs the initial reconciliation
@@ -96,7 +101,13 @@ class SyncEngine {
         if (doc.metadata.hasPendingWrites) return;
         final data = doc.data();
         if (data == null) return;
-        await _mergeIncoming(adapter, familyId, data);
+        try {
+          await _mergeIncoming(adapter, familyId, data);
+        } catch (_) {
+          // A singleton has nothing to "drop siblings" for, but stays
+          // consistent with the collection branch below rather than
+          // crashing the whole listener over one bad merge.
+        }
       });
       _subscriptions.add(sub);
       return;
@@ -112,7 +123,15 @@ class SyncEngine {
         if (change.doc.metadata.hasPendingWrites) continue;
         final data = change.doc.data();
         if (data == null) continue;
-        await _mergeIncoming(adapter, change.doc.id, data);
+        try {
+          await _mergeIncoming(adapter, change.doc.id, data);
+        } catch (_) {
+          // One malformed/unexpected remote document (e.g. a field this
+          // build doesn't know how to decode) must not stop every sibling
+          // change in the same snapshot batch from being applied — Firestore
+          // only redelivers a doc when it changes again, so letting this
+          // propagate could lose a legitimate sibling update indefinitely.
+        }
       }
     });
     _subscriptions.add(sub);
@@ -147,8 +166,22 @@ class SyncEngine {
     if (profile?.initialCloudMigrationCompletedAt != null) return;
     try {
       for (final adapter in _adapters.values) {
+        // A stop()/different start() may have run while a previous
+        // adapter's pass awaited — bail out rather than keep reconciling
+        // (and, worse, eventually marking migration-complete for) a family
+        // that's no longer the active one. See the final check below for
+        // why this alone isn't sufficient.
+        if (_activeFamilyId != familyId) return;
         await _reconcileAdapterFully(adapter, familyId);
       }
+      // The loop above can only ever *return early* on a family switch,
+      // never race past this final check — but re-check anyway right
+      // before the write, since the switch could just as easily have
+      // happened during the very last adapter's own await. Writing this
+      // flag for a family that isn't [familyId] anymore would wrongly mark
+      // *this* family's migration complete without ever having reconciled
+      // it (this single-row table has no per-family scoping of its own).
+      if (_activeFamilyId != familyId) return;
       await _db.into(_db.familyProfile).insertOnConflictUpdate(
             FamilyProfileCompanion.insert(
               id: const Value(1),
@@ -217,13 +250,19 @@ class SyncEngine {
     }
   }
 
+  /// True if [entityId] has *any* outbox row at all, `failed` included —
+  /// not just `pending`/`retrying`. A `failed` local write is still a real
+  /// local edit nobody's resolved yet; if this returned false for it, an
+  /// incoming remote change would look "safe" to apply over it in
+  /// [_mergeIncoming], silently discarding that edit before the user ever
+  /// gets a chance to retry it. Blocking the merge instead leaves the
+  /// local edit in place — visibly stuck (Settings' "Cloud sync" card
+  /// shows it) rather than silently gone — until the user retries and
+  /// either it wins for real, or a subsequent legitimate remote update
+  /// arrives and there's no longer a failed row to block it.
   Future<bool> _hasPendingLocalWrite(SyncEntityType type, String entityId) async {
     final rows = await (_db.select(_db.syncOutbox)
-          ..where((o) =>
-              o.entityType.equalsValue(type) &
-              o.entityId.equals(entityId) &
-              (o.status.equalsValue(SyncOutboxStatus.pending) |
-                  o.status.equalsValue(SyncOutboxStatus.retrying)))
+          ..where((o) => o.entityType.equalsValue(type) & o.entityId.equals(entityId))
           ..limit(1))
         .get();
     return rows.isNotEmpty;
@@ -281,7 +320,36 @@ class SyncEngine {
   /// boot, on reconnect, and (via [enqueueUpsert]) right after a write, for
   /// the common fast path. Safe to call anytime; a no-op if sync isn't
   /// active or nothing is due yet.
+  ///
+  /// [start]'s own await and [enqueueUpsert]'s post-write kick can easily
+  /// overlap — e.g. a write lands right as `start()` is draining the
+  /// backlog. Two overlapping drains would both read the same "due" rows
+  /// before either's [_pushOne] removes them, race each other's push of
+  /// the same entity, and (since whichever `.set()` reaches the server
+  /// last wins, regardless of which local snapshot was actually newer)
+  /// can let a staler write clobber a fresher one in Firestore. Only one
+  /// drain pass runs at a time; a call that arrives mid-drain doesn't
+  /// start a second one but isn't dropped either — it schedules exactly
+  /// one more pass right after the current one finishes, so whatever
+  /// became due while draining still gets picked up promptly rather than
+  /// waiting for some later trigger.
   Future<void> drainNow() async {
+    if (_draining) {
+      _drainRequestedAgain = true;
+      return;
+    }
+    _draining = true;
+    try {
+      do {
+        _drainRequestedAgain = false;
+        await _drainOnce();
+      } while (_drainRequestedAgain);
+    } finally {
+      _draining = false;
+    }
+  }
+
+  Future<void> _drainOnce() async {
     final familyId = _activeFamilyId;
     if (familyId == null) return;
     final now = DateTime.now();
@@ -292,6 +360,12 @@ class SyncEngine {
               (o.nextRetryAt.isNull() | o.nextRetryAt.isSmallerOrEqualValue(now))))
         .get();
     for (final row in rows) {
+      // Mirrors _runInitialReconciliationIfNeeded's per-adapter guard — a
+      // sign-out/family-switch mid-drain (stop() sets _activeFamilyId to
+      // something else) must stop this loop from continuing to push
+      // [familyId]'s backlog using a family that's no longer active,
+      // rather than only checking once before the whole batch was read.
+      if (_activeFamilyId != familyId) return;
       await _pushOne(row);
     }
   }

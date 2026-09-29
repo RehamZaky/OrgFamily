@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_config.dart';
@@ -198,6 +199,30 @@ class SettingsScreen extends ConsumerWidget {
                       );
                     },
                   ),
+                  Builder(
+                    builder: (context) {
+                      final isActive = ref.watch(isCloudSyncActiveProvider);
+                      if (!isActive) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: const Icon(Icons.person_add_outlined,
+                                color: AppColors.primary),
+                            title: const Text('Invite a family member'),
+                            subtitle: const Text(
+                              'Generate a code for another adult to join on their own device',
+                            ),
+                            trailing: TextButton(
+                              onPressed: () => _showInviteDialog(context, ref),
+                              child: const Text('Invite'),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
                 const SizedBox(height: 28),
                 Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -222,4 +247,88 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Generates a fresh invite code and shows it in a dialog with a copy
+/// button — the code itself is the whole UI for "Family invitations" (see
+/// docs/architecture.md): there's no separate list of pending invites to
+/// manage, just "make a new one and send it".
+Future<void> _showInviteDialog(BuildContext context, WidgetRef ref) async {
+  final familyId = ref.read(activeSyncFamilyIdProvider);
+  final uid = ref.read(authRepositoryProvider).currentUser?.uid;
+  if (familyId == null || uid == null) return;
+  showDialog(
+    context: context,
+    builder: (dialogContext) => FutureBuilder<({String code, DateTime expiresAt})>(
+      future: ref.read(familyInviteRepositoryProvider).createInvite(
+            familyId: familyId,
+            creatorUid: uid,
+          ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData && !snapshot.hasError) {
+          return const AlertDialog(
+            content: SizedBox(
+              height: 80,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return AlertDialog(
+            title: const Text("Couldn't create an invite"),
+            content: const Text('Please check your connection and try again.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        }
+        final invite = snapshot.data!;
+        final code = invite.code;
+        // Derived from the invite actually created, not hardcoded — see
+        // FamilyInviteRepository.createInvite's doc comment on why this
+        // must never assume firestore.rules' looser 30-day server-side
+        // cap is what invites actually last.
+        final daysLeft = invite.expiresAt.difference(DateTime.now()).inHours / 24;
+        final daysText = daysLeft.ceil() == 1 ? '1 day' : '${daysLeft.ceil()} days';
+        return AlertDialog(
+          title: const Text('Invite code'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Send this to the adult joining your family. It expires in $daysText.'),
+              const SizedBox(height: 16),
+              Center(
+                child: SelectableText(
+                  code,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: code));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+              },
+              child: const Text('Copy'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    ),
+  );
 }

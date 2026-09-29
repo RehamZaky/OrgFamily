@@ -8,8 +8,11 @@
   `drift_flutter`'s `driftDatabase()` picks the right backend per
   platform automatically.
 - **Firebase Auth** (V2) for per-adult sign-in — see "Family identity and
-  authentication" below. No Firestore/cloud data sync yet; Drift is
-  still the source of truth. See "Why local-first" below.
+  authentication" below.
+- **Firestore** (V2) mirrors a subset of Drift tables to the cloud once a
+  family is linked — see "Firestore sync" below. Drift remains the local
+  source of truth; Firestore is a sync target, not a replacement — see
+  "Why local-first" below, which still holds.
 
 ## Layering
 
@@ -33,10 +36,12 @@ which watches a repository, which watches the database. This is the seam
 where a sync engine gets inserted later (see below) without touching any
 screen code.
 
-## Why local-first for V1 (no Firestore yet)
+## Why local-first (V1's starting point, still true with Firestore added)
 
-Deliberately deferred, following the same reasoning the original design
-doc for this project argued for:
+V1 deliberately shipped with no cloud sync at all, following the same
+reasoning the original design doc for this project argued for — and
+Firestore sync (see below) was built as a mirror *underneath* this, not
+a replacement for it, so the reasoning still holds:
 
 1. **Cost/design risk.** Firestore bills per document read/write through
    realtime listeners. Getting listener scoping wrong (e.g. "listen to
@@ -54,16 +59,18 @@ generated row classes) rather than raw query results, so swapping the
 underlying source (local DB → local DB + sync queue → Firestore-backed)
 is a repository-internal change, not a UI rewrite.
 
-## Domain models = Drift row classes (for now)
+## Domain models = Drift row classes (held even through Firestore sync)
 
-V1 does *not* introduce a separate domain-model layer distinct from
-Drift's generated table row classes (`Task`, `Event`, `FamilyMember`,
-`ShoppingList`, `ShoppingItem`) — using them directly in the UI is a
-deliberate simplification while the app is local-only. The original
-design doc for this project recommended separating domain models from
-persistence models specifically *to support sync/conflict resolution*;
-that becomes worth the extra indirection when Phase 2 (cloud sync) is
-actually being built, not before.
+The app still uses Drift's generated table row classes (`Task`, `Event`,
+`FamilyMember`, `ShoppingList`, `ShoppingItem`) directly, with no
+separate domain-model layer — the original design doc for this project
+recommended separating domain models from persistence models
+specifically *to support sync/conflict resolution*, on the assumption
+that'd be worth the extra indirection once cloud sync was actually
+built. In practice it wasn't needed: each `SyncAdapter`
+(`lib/data/sync/adapters/`) maps a Drift row straight to its explicit
+Firestore fields and back, so the row classes turned out to double as
+adequate sync boundary objects on their own.
 
 ## Family identity and authentication (V2)
 
@@ -102,10 +109,158 @@ V1 install opens exactly as before; from Settings, an adult can sign in
 and, via `LinkMemberScreen`, claim one of the existing unlinked
 Owner/Adult members instead of a new one being created.
 
-**Auth doesn't move data across devices yet.** Drift stays the local
-source of truth this pass — signing in on a second device only
-identifies *who*, it doesn't fetch or merge any family data there. That
-starts with Firestore sync (next roadmap item), not this one.
+**Auth alone doesn't move data across devices** — signing in only
+identifies *who*, it doesn't fetch or merge any family data by itself.
+Firestore sync (below) is what actually moves data, and only activates
+once the local Owner specifically links (not merely once a `familyId`
+exists — see "Firestore sync" § security rules for why).
+
+## Firestore sync (V2 Family Cloud)
+
+Once the local Owner links a Firebase account, `FamilyMembers`,
+`FamilyProfile`, `Tasks`, `Events`, `ShoppingLists`, and `ShoppingItems`
+sync to `families/{familyId}/...` in Firestore. Budget/Notes/
+Responsibilities/SavingsGoals are still local-only. Drift stays the
+source of truth throughout — the app reads/writes Drift exactly as
+before; Firestore is a mirror kept in sync underneath, invisible to
+every screen above the repository layer (per "Why local-first" and
+"Domain models" above, this is exactly the seam those sections were
+written to keep open).
+
+**Schema**: every synced table has `updatedAt` (last-write-wins) and
+`deletedAt` (a soft-delete tombstone — needed because "missing
+remotely" is otherwise ambiguous between "never uploaded" and "was
+deleted" once there are two persisted copies of the data). `deleteX`
+repository methods soft-delete; every `watchX`/`getX` query filters
+`deletedAt.isNull()` so the UI is unaffected. A `SyncOutbox` table is
+the durable "this write still needs to reach Firestore" queue — every
+repo mutation writes its outbox row in the same Drift transaction as
+the entity change, so a write and its sync intent commit atomically.
+
+**`SyncEngine`** (`lib/data/sync/sync_engine.dart`) owns:
+- **Push**: repository-internal and explicit, the same pattern
+  `NotificationService` already uses — `enqueueUpsert` queues, then a
+  drain pushes via `.set()` with `updatedAt: FieldValue.serverTimestamp()`,
+  reading the resolved server timestamp back into the local row afterward
+  so both sides always compare the same server-assigned clock (raw
+  device clocks would break last-write-wins under clock skew).
+- **Pull**: a `.snapshots()` listener per collection, merging incoming
+  changes only when newer and only when there's no matching outbox entry
+  still in flight for that entity (so a racing snapshot never clobbers
+  an optimistic local write mid-push).
+- **Initial reconciliation**: a one-time pass (gated by
+  `FamilyProfile.initialCloudMigrationCompletedAt`, set only once every
+  collection succeeds) that diffs local vs. remote and pushes/pulls
+  whichever side is missing or older. "Missing remotely" only ever
+  means "upload me" during this one pass — never again afterward, which
+  is what stops a row deleted on another device from resurrecting here
+  on a later reconnect.
+- **Outbox failure policy** (`lib/data/sync/outbox_failure_policy.dart`):
+  transient errors retry with capped exponential backoff indefinitely;
+  permanent errors (and unclassified ones after a few attempts) stop
+  retrying and surface in Settings ("Cloud sync" card) with a manual
+  retry action.
+- **Lifecycle**: `RootScaffold` listens to `activeSyncFamilyIdProvider`
+  (signed in + linked + Owner-confirmed) and calls `start`/`stop`
+  accordingly — covering app boot while already linked, pause on
+  sign-out, and resume on signing back into the same family. Always
+  injected as a non-null `SyncEngine` (an inert no-op instance on
+  desktop or in tests), same pattern as `NotificationService`.
+
+**Security rules** (`firestore.rules`): `ownerUid`/`memberUids` on the
+family doc are create-once, immutable authorization metadata — no
+self-service join in this pass, since knowing a `familyId` isn't proof
+of belonging to it. Ordinary content (tasks/events/lists/items) is
+read/write for any member uid, matching today's local model of no
+per-role cloud permissions. One Firestore-specific wrinkle: the family
+doc must be addressed via `.doc()`, never an unconstrained
+`.collection('families').get()/.snapshots()` — Firestore denies a
+collection *query* whose rule depends on each result's own data (it
+can't prove the rule holds for every document that collection could
+ever contain), even though the identical rule works fine for a `get`/
+listen on one specific, known document id. The five subcollections
+don't have this problem — their rule is scoped by the already-known
+`familyId` path segment, not by each result's own data.
+
+**Known gap, closed by "Family invitations" below**: a second real adult,
+on their own device with their own Firebase account, couldn't join an
+existing family's cloud data — membership was create-only with no
+invitation flow. Multi-device sync is still separately validated using
+the same authenticated uid across multiple personal devices, which needs
+no invitation system at all.
+
+## Family invitations (a second real adult joining)
+
+A short-lived, single-use code an existing member generates so a second
+real adult, on their own device with their own Firebase account, can join
+this family's cloud data — without ever mutating the family doc's
+`ownerUid`/`memberUids` (those stay create-once immutable, per "Security
+rules" above; teaching the join path to append to that array would have
+meant re-opening exactly the invariant that section exists to protect).
+
+**Data model** (`FamilyInviteRepository`, `lib/data/repositories/`) — pure
+Firestore control-plane, no local Drift table, no `SyncAdapter`:
+- `invites/{code}` — top-level, not nested under `families/{familyId}`,
+  because a joining device has no local `familyId` at all yet; it only
+  has the code, which carries `familyId` as a field once looked up.
+  Fields: `familyId`, `createdByUid`, `expiresAt` (7 days, computed
+  client-side — fine here even though `updatedAt`/last-write-wins
+  elsewhere deliberately avoids client clocks, since a multi-day expiry
+  window swallows any realistic clock skew), `usedByUid`/`usedAt` (both
+  null until claimed). `expiresAt` is also bounded server-side (must be a
+  real future timestamp, capped at 30 days — `firestore.rules`) — the
+  7-day figure is only the app's own default, not itself enforced by the
+  rules, so a client bypassing the app entirely can't mint a
+  functionally-forever invite by sending an arbitrary `expiresAt`. The 7
+  vs. 30 gap is deliberate slack, not a mismatch: `Settings`' invite
+  dialog always displays the *actual* `expiresAt` an invite was created
+  with (`FamilyInviteRepository.createInvite` returns it alongside the
+  code), never a hardcoded "7 days", specifically so the two limits are
+  free to diverge without the UI silently lying.
+- `families/{familyId}/joinedUids/{uid}` — what actually grants access;
+  doc id is the uid itself, so membership is a plain `exists()` check,
+  not a query. `isFamilyMember(familyId)` (`firestore.rules`) now checks
+  `uid in memberUids OR joinedUids/{uid} exists`, short-circuited so the
+  common single-owner case still costs exactly one read.
+
+**Flow**: generating an invite (Settings → "Invite a family member") is
+one write. Claiming one (`JoinFamilyScreen` →
+`FamilyInviteRepository.claimInvite`) is deliberately **two sequential
+writes, not one atomic transaction**: first mark the invite used, then
+create the `joinedUids` doc. A failure between them leaves a
+claimed-but-ungranted invite — a wasted code, recoverable by generating a
+new one — rather than a security gap, which is why that was chosen over
+the complexity (and rules-`get()`-ordering assumptions) of making the two
+writes atomic. That assumption — and the rest of this rules surface — is
+now verified against the real Firestore Local Emulator Suite, not just
+argued for in this doc comment: see "Testing" below.
+
+**Local join** (`AddMemberScreen(isFirstMember: true, joinFamilyId: ...)`,
+`FamilyProfileRepository.recordJoin`): the joining device sets its local
+`familyId` to the *joined* family (never mints a new one, unlike
+`recordLink`) and creates its own `FamilyMember` row with `linkedUid`
+set — `ownerUid` is deliberately left null, since only the real Owner's
+`recordLink` ever sets it. This is why `activeSyncFamilyIdProvider`
+(`lib/data/providers.dart`) no longer gates purely on `ownerUid != null`:
+a joiner's local `ownerUid` only ever arrives *through* sync pulling the
+family doc down, so requiring it up front would deadlock — sync could
+never start for them at all. It now also activates once the signed-in uid
+matches a local member's own `linkedUid`, which is true for the Owner
+immediately after `recordLink` and for a joiner immediately after this
+local step. Once sync starts, the existing initial reconciliation pass
+(see "Firestore sync" above) does the rest unmodified: this device's only
+local data is its own new member, so everything else — the rest of the
+family's members, tasks, events, lists — arrives exactly the way it
+already does for any fresh reconciliation.
+
+`recordJoin` stamps this local row's `updatedAt` far in the past (an
+epoch sentinel), not "now" — a bug caught by review before this shipped:
+stamping "now" made the local row look newer than the real family doc's
+`updatedAt` (set once, back when the Owner created it), so
+`SyncEngine`'s "apply only if remote is newer" check would never apply
+the real `ownerUid` — it would've stayed null on the joiner's device
+forever, quietly breaking the very invariant the previous paragraph
+describes. `test/sync/sync_engine_test.dart` covers this directly.
 
 ## Testing
 
@@ -113,7 +268,45 @@ starts with Firestore sync (next roadmap item), not this one.
 `AppDatabase.forTesting(NativeDatabase.memory())` — an in-memory Drift
 database — so widget tests don't touch disk or need platform channels.
 `AppDatabase` has a `forTesting(super.executor)` constructor specifically
-for this.
+for this. `test/sync/sync_engine_test.dart` layers `fake_cloud_firestore`
+on top of the same in-memory Drift setup to exercise `SyncEngine`'s pull/
+push/reconciliation logic without a real backend — but `fake_cloud_firestore`
+doesn't enforce security rules at all, so it can't say anything about
+whether `firestore.rules` itself is correct.
+
+**Firestore security-rules tests** (`firestore_rules_test/`, its own
+README has full instructions): a small Node subproject using
+`@firebase/rules-unit-testing`, run against the real Firestore Local
+Emulator Suite — not mocked, not the live `orgfamily-c40ae` project. This
+is the only layer that actually exercises `firestore.rules`' rule
+evaluation, and is what verifies the "Family invitations" design above:
+34 tests covering `families/{familyId}` (create-once immutability, read/
+write via either access path), `invites/{code}` (creation gated on
+membership, single-use claiming, expiry, tamper-proofing), and
+`families/{familyId}/joinedUids/{uid}` (the cross-document `get()` check
+that ties a grant to an actually-claimed invite). Sanity-checked by
+deliberately removing the single-use guard from `firestore.rules` and
+confirming exactly one test failed — the one testing it — before
+restoring it, so these aren't vacuously passing.
+
+One non-obvious gotcha if this suite grows: Node's test runner runs
+separate test *files* in parallel by default, and
+`testEnv.clearFirestore()` wipes an entire emulator *project*, not just
+whatever one file's own `testEnv` wrote — so every file must call
+`createTestEnv()` with its own unique project-id suffix (see
+`helpers.mjs`), or one file's `clearFirestore()` can wipe a document out
+from under another file's still-in-flight test, surfacing as a confusing
+rules-evaluation error (a `get()`/`exists()` mid-rule hitting a document
+that just vanished) rather than an obvious "wrong data" failure.
+
+**What's still not covered by anything above**: real device-level
+behavior through the actual `cloud_firestore`/`firebase_auth` Flutter
+plugins — two physical/emulated devices racing to claim the same invite,
+`hasPendingWrites` timing, the live listener under real network
+conditions. That needs an Android or iOS device/emulator driving the
+actual app against this same Firestore emulator, which is a materially
+bigger lift than the rules tests above (this is exactly why they were
+built first) and isn't set up yet — see docs/roadmap.md.
 
 ## Roadmap-relevant seams already in place
 

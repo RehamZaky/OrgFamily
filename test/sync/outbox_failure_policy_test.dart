@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,6 +43,24 @@ void main() {
 
     test('a non-Firestore error is unknown', () {
       expect(classifyOutboxFailure(StateError('boom')), FailureKind.unknown);
+    });
+
+    // Regression: a raw network/IO failure (no connectivity, DNS lookup
+    // failed, a bare timeout) never gets wrapped as a FirebaseException by
+    // the platform — it used to fall into FailureKind.unknown, which caps
+    // retries at unknownFailureRetryLimit and surfaces a permanent-looking
+    // "needs attention" failure for what's just a phone with no signal at
+    // the dinner table (see docs/architecture.md "Why local-first"). These
+    // must retry with unlimited backoff like any other transient error.
+    test('a SocketException (no connectivity) is transient, not unknown', () {
+      expect(
+        classifyOutboxFailure(const SocketException('Failed host lookup')),
+        FailureKind.transient,
+      );
+    });
+
+    test('a bare TimeoutException is transient, not unknown', () {
+      expect(classifyOutboxFailure(TimeoutException('timed out')), FailureKind.transient);
     });
   });
 

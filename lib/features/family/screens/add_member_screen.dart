@@ -20,10 +20,24 @@ import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
 
 class AddMemberScreen extends ConsumerStatefulWidget {
-  const AddMemberScreen({super.key, this.isFirstMember = false, this.existing});
+  const AddMemberScreen({
+    super.key,
+    this.isFirstMember = false,
+    this.existing,
+    this.joinFamilyId,
+  });
 
   final bool isFirstMember;
   final FamilyMember? existing;
+
+  /// Non-null only for the "join an existing family via invite code" path
+  /// (see `JoinFamilyScreen`) — implies [isFirstMember] (this device has no
+  /// local family yet either way), but forces the new member's role to
+  /// Adult instead of Owner, and links the signed-in uid via
+  /// `FamilyProfileRepository.recordJoin` instead of `recordLink`, since
+  /// this device isn't the real Owner. See docs/architecture.md "Family
+  /// invitations".
+  final String? joinFamilyId;
 
   @override
   ConsumerState<AddMemberScreen> createState() => _AddMemberScreenState();
@@ -47,6 +61,12 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   late FamilyRole _role = widget.existing?.role ?? FamilyRole.adult;
   late DateTime? _birthday = widget.existing?.birthday;
 
+  // Belt-and-suspenders alongside `FamilyProfileRepository.recordLink`'s own
+  // transactional guard (see its doc comment) — disabling the button stops
+  // a double-tap from firing this twice in the first place, rather than
+  // relying solely on the repository to make two concurrent calls safe.
+  bool _saving = false;
+
   static const _emojis = [
     '👨', '👩', '👧', '👦', '👵', '👴', '🧑',
   ];
@@ -65,7 +85,9 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.isFirstMember) _role = FamilyRole.owner;
+    if (widget.isFirstMember) {
+      _role = widget.joinFamilyId != null ? FamilyRole.adult : FamilyRole.owner;
+    }
   }
 
   Future<void> _pickPhoto() async {
@@ -97,6 +119,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
     // The very first member (onboarding) has no one to check permission
@@ -105,6 +128,16 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
     if (!widget.isFirstMember && !checkPermission(context, ref, FamilyAction.manageMembers)) {
       return;
     }
+    setState(() => _saving = true);
+    try {
+      await _doSave();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _doSave() async {
+    final name = _nameController.text.trim();
     final actingRole = ref.read(activeRoleProvider);
     final repo = ref.read(familyRepositoryProvider);
     final grade = _gradeController.text.trim();
@@ -113,11 +146,27 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
     if (widget.existing == null) {
       // The very first member is created right after SignInScreen (see
       // root_scaffold.dart) on a platform where that ran, so the signed-in
-      // uid becomes this Owner's linkedUid immediately — no separate
+      // uid becomes this member's linkedUid immediately — no separate
       // "link your account" step needed for this one case. See
       // docs/architecture.md "Family identity and authentication".
-      final ownerUid =
+      final linkedUid =
           widget.isFirstMember ? ref.read(authRepositoryProvider).currentUser?.uid : null;
+      final joinFamilyId = widget.joinFamilyId;
+      // For the join path (unlike the owner path below), familyId is
+      // already known — it came from the claimed invite, not minted here
+      // — so recordJoin can run first and start sync before addMember's
+      // own enqueueUpsert call. Doing it in the other order (as the owner
+      // path below necessarily does, since recordLink is what mints
+      // familyId in the first place) would have this member's own
+      // outbox row silently dropped as a no-op (enqueueUpsert is a no-op
+      // while sync isn't active yet) — currently masked by the initial
+      // reconciliation pass re-discovering the row via allLocalIds, but
+      // not a durable guarantee if that pass's gating ever changes.
+      if (linkedUid != null && joinFamilyId != null) {
+        await ref
+            .read(familyProfileRepositoryProvider)
+            .recordJoin(familyId: joinFamilyId, uid: linkedUid);
+      }
       await repo.addMember(
         id: _memberId,
         name: name,
@@ -129,13 +178,13 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
         grade: grade.isEmpty ? null : grade,
         school: school.isEmpty ? null : school,
         notes: notes.isEmpty ? null : notes,
-        linkedUid: ownerUid,
+        linkedUid: linkedUid,
         actingRole: actingRole,
       );
-      if (ownerUid != null) {
+      if (linkedUid != null && joinFamilyId == null) {
         await ref
             .read(familyProfileRepositoryProvider)
-            .recordLink(uid: ownerUid, isOwner: true);
+            .recordLink(uid: linkedUid, isOwner: true);
       }
     } else {
       await repo.updateMember(
@@ -167,10 +216,14 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
           child: const Text('Cancel'),
         ),
         leadingWidth: 80,
-        title: Text(isEditing ? 'Edit member' : 'Add member'),
+        title: Text(isEditing
+            ? 'Edit member'
+            : widget.joinFamilyId != null
+                ? 'Set up your profile'
+                : 'Add member'),
         actions: [
           TextButton(
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
             child: const Text('Save'),
           ),
         ],
@@ -372,7 +425,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
           ),
           const SizedBox(height: 32),
           FilledButton(
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
             ),

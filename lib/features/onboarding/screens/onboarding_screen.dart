@@ -6,6 +6,7 @@ import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/screens/join_family_screen.dart';
 import '../../auth/screens/sign_in_screen.dart';
 import '../../family/screens/add_member_screen.dart';
 
@@ -86,6 +87,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// The alternative to [_addYourself] for a second real adult whose
+  /// family already exists in the cloud — see docs/architecture.md
+  /// "Family invitations". Not platform-gated the way [_addYourself]'s
+  /// sign-in step is: joining is meaningless without Firebase at all, so
+  /// this button only appears when `isFirebaseAuthSupportedPlatform`
+  /// (see `_SetupPage` below).
+  void _joinFamily() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const JoinFamilyScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -105,7 +118,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   assetPath: 'assets/onboarding/$lang/page$i.png',
                   onTap: _next,
                 ),
-              _SetupPage(l10n: l10n, onAddYourself: _addYourself),
+              _SetupPage(l10n: l10n, onAddYourself: _addYourself, onJoinFamily: _joinFamily),
             ],
           ),
           if (!isLastPage)
@@ -162,10 +175,15 @@ class _OnboardingImagePage extends StatelessWidget {
 /// The one page that isn't supplied artwork — it has to actually add the
 /// first family member, so it's built natively.
 class _SetupPage extends StatelessWidget {
-  const _SetupPage({required this.l10n, required this.onAddYourself});
+  const _SetupPage({
+    required this.l10n,
+    required this.onAddYourself,
+    required this.onJoinFamily,
+  });
 
   final AppLocalizations l10n;
   final VoidCallback onAddYourself;
+  final VoidCallback onJoinFamily;
 
   @override
   Widget build(BuildContext context) {
@@ -218,10 +236,23 @@ class _SetupPage extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: FilledButton(
-              onPressed: onAddYourself,
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              child: Text(l10n.onboardingAddYourself),
+            child: Column(
+              children: [
+                FilledButton(
+                  onPressed: onAddYourself,
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  child: Text(l10n.onboardingAddYourself),
+                ),
+                // Only meaningful once there's a cloud family to join at
+                // all — desktop never initializes Firebase, so there's
+                // nothing for this to join. See docs/architecture.md
+                // "Family invitations".
+                if (isFirebaseAuthSupportedPlatform)
+                  TextButton(
+                    onPressed: onJoinFamily,
+                    child: const Text('Join an existing family instead'),
+                  ),
+              ],
             ),
           ),
         ],

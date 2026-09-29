@@ -1,7 +1,7 @@
 rules_version = '2';
 
-// See docs/architecture.md "Firestore sync" for the design this
-// implements. Deploy with: firebase deploy --only firestore:rules
+// See docs/architecture.md "Firestore sync" and "Family invitations" for
+// the design this implements. Deploy with: firebase deploy --only firestore:rules
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -13,20 +13,91 @@ service cloud.firestore {
     // resource.data directly, so they fetch it explicitly. The family
     // doc's own rules read resource.data/request.resource.data directly
     // instead (cheaper — no extra read).
+    //
+    // Membership is proven two ways: the original owner/adult(s) recorded
+    // directly on the family doc's `memberUids` (unchanged by invitations
+    // — see below for why), or a `joinedUids/{uid}` doc, which is what an
+    // invitation grants. `||` short-circuits, so the common single-owner
+    // case still costs exactly one extra read, same as before.
     function isFamilyMember(familyId) {
-      return isSignedIn() &&
+      return isSignedIn() && (
         request.auth.uid in
-          get(/databases/$(database)/documents/families/$(familyId)).data.memberUids;
+          get(/databases/$(database)/documents/families/$(familyId)).data.memberUids
+        || exists(/databases/$(database)/documents/families/$(familyId)/joinedUids/$(request.auth.uid))
+      );
+    }
+
+    // Same two-way membership check as isFamilyMember, but for a rule that
+    // already has the family doc's own data in hand (resource.data or
+    // request.resource.data) and would otherwise pay for a redundant get()
+    // of the very document it's evaluating — used only by the family doc's
+    // own read/update rules below, which is why it takes memberUids
+    // directly instead of looking the doc up itself.
+    function isDirectOrJoinedMember(memberUids, familyId) {
+      return isSignedIn() && (
+        request.auth.uid in memberUids
+        || exists(/databases/$(database)/documents/families/$(familyId)/joinedUids/$(request.auth.uid))
+      );
+    }
+
+    // Family invitations: a short-lived, single-use code an existing
+    // member generates so a second real adult, on their own device with
+    // their own Firebase account, can join this family's cloud data — see
+    // docs/architecture.md "Family invitations". Top-level (not nested
+    // under /families/{familyId}) because a joining device has no local
+    // familyId at all yet — it only has the code, which itself carries the
+    // familyId as a field once looked up.
+    match /invites/{code} {
+      // Presenting the exact code is the credential (like a password-reset
+      // link) — the joining user isn't a member yet, so this can't require
+      // isFamilyMember. Never listable, so a code can't be discovered by
+      // enumeration.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      // expiresAt is bounded server-side, not just trusted from the
+      // client's "7 days from now" default — otherwise any member could
+      // bypass the app and mint a `setDoc` with an arbitrarily far-future
+      // expiresAt, and the claim rule below (which only checks
+      // `request.time < resource.data.expiresAt`) would treat it as valid
+      // forever, defeating the whole "short-lived" guarantee. 30 days is
+      // deliberately looser than the app's own 7-day default — enough
+      // slack that a future client-side change to the default doesn't
+      // need a matching rules deploy, while still ruling out "forever".
+      allow create: if isSignedIn()
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.usedByUid == null
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt < request.time + duration.value(30, 'd')
+        && isFamilyMember(request.resource.data.familyId);
+
+      // Single-use: only an unclaimed invite (resource.data.usedByUid ==
+      // null) can be claimed, and only by stamping *this* uid as the
+      // claimant — the very act of claiming makes every later claim
+      // attempt (by anyone, including a retry by the same uid) fail this
+      // same check, since resource.data.usedByUid is no longer null.
+      // Every other field is pinned to its existing value so a claim can't
+      // also rewrite who created it or when it expires.
+      allow update: if isSignedIn()
+        && resource.data.usedByUid == null
+        && request.resource.data.usedByUid == request.auth.uid
+        && request.resource.data.familyId == resource.data.familyId
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.expiresAt == resource.data.expiresAt
+        && request.time < resource.data.expiresAt;
+
+      // Lets the inviter revoke an unused code early.
+      allow delete: if isSignedIn() && resource.data.createdByUid == request.auth.uid;
     }
 
     match /families/{familyId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.memberUids;
+      allow read: if isDirectOrJoinedMember(resource.data.memberUids, familyId);
 
       // Only the linking Owner may create the family doc, and only with
-      // themselves as the sole initial member — no self-service join in
-      // this pass (see the Firestore sync plan's "Security rules"
-      // section). Knowing a familyId is not proof of belonging to it;
-      // real second-adult onboarding is the invitations pass's job.
+      // themselves as the sole initial member — real second-adult
+      // onboarding goes through the invites/joinedUids flow below instead
+      // of ever mutating memberUids.
       allow create: if isSignedIn()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.memberUids.size() == 1
@@ -34,13 +105,32 @@ service cloud.firestore {
 
       // ownerUid/memberUids are authorization metadata, immutable after
       // creation by anyone, including the owner — any other field a
-      // member adds later (there are none yet) may change freely.
-      allow update: if isSignedIn()
-        && request.auth.uid in resource.data.memberUids
+      // member adds later (there are none yet) may change freely. A
+      // joined-via-invite adult's access is proven by their own
+      // joinedUids doc below, never by appending to this array, so this
+      // stays untouched by invitations.
+      allow update: if isDirectOrJoinedMember(resource.data.memberUids, familyId)
         && request.resource.data.ownerUid == resource.data.ownerUid
         && request.resource.data.memberUids == resource.data.memberUids;
 
       allow delete: if false;
+
+      // Grants a joined-via-invite adult standing access to this family's
+      // cloud data. Doc id is the uid itself, so isFamilyMember's check
+      // above is a plain exists(), no query. Deliberately a second write,
+      // not atomic with claiming the invite above (a client does both
+      // sequentially, not in one transaction) — see docs/architecture.md
+      // "Family invitations" for why a claimed-but-ungranted invite is an
+      // acceptable degraded case (a wasted code, recoverable by generating
+      // a new one) rather than a security gap.
+      match /joinedUids/{uid} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if isSignedIn()
+          && request.auth.uid == uid
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.usedByUid == request.auth.uid
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.familyId == familyId;
+        allow update, delete: if false;
+      }
 
       match /members/{memberId} {
         allow read, write: if isFamilyMember(familyId);

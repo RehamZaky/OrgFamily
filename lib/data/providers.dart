@@ -9,6 +9,7 @@ import 'local/tables/sync_outbox_table.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/budget_repository.dart';
 import 'repositories/event_repository.dart';
+import 'repositories/family_invite_repository.dart';
 import 'repositories/family_profile_repository.dart';
 import 'repositories/family_repository.dart';
 import 'repositories/note_repository.dart';
@@ -77,16 +78,36 @@ final familyProfileStreamProvider = StreamProvider<FamilyProfileData?>((ref) {
 
 /// The familyId [syncEngineProvider] should be syncing against right now,
 /// or null if it shouldn't be syncing at all — signed out, or linked but
-/// not yet Owner-confirmed (see `FamilyProfileSyncAdapter`'s doc comment
-/// on why "has an ownerUid", not just "has a familyId", is the bar).
-/// `RootScaffold` listens to this and calls `SyncEngine.start`/`stop`
-/// accordingly — see docs/architecture.md "Firestore sync".
+/// not yet confirmed. Confirmation is either an `ownerUid` (see
+/// `FamilyProfileSyncAdapter`'s doc comment on why "has an ownerUid", not
+/// just "has a familyId", is the bar for the real Owner) or, for a
+/// second adult who joined via `FamilyInviteRepository` (see
+/// docs/architecture.md "Family invitations"), having actually linked a
+/// local member to this signed-in uid themselves — a joiner's local
+/// `ownerUid` only ever arrives *through* this same sync starting (it's
+/// pulled down from the family doc), so gating on it here would be a
+/// deadlock: sync could never start for them at all. `RootScaffold`
+/// listens to this and calls `SyncEngine.start`/`stop` accordingly.
+/// Not exposed outside this file — `features/family/providers/family_providers.dart`
+/// has its own public `familyMembersProvider` for screens to watch, but it
+/// imports this file already (for `familyRepositoryProvider`), so this file
+/// can't import it back without a cycle. A second stream subscription to
+/// the same underlying Drift query is cheap, so duplicating it here rather
+/// than restructuring that layering is the simpler trade.
+final _localMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
+  return ref.watch(familyRepositoryProvider).watchMembers();
+});
+
 final activeSyncFamilyIdProvider = Provider<String?>((ref) {
   final user = ref.watch(authStateProvider).valueOrNull;
   if (user == null) return null;
   final profile = ref.watch(familyProfileStreamProvider).valueOrNull;
-  if (profile?.ownerUid == null) return null;
-  return profile?.familyId;
+  final familyId = profile?.familyId;
+  if (familyId == null) return null;
+  if (profile?.ownerUid != null) return familyId;
+  final members = ref.watch(_localMembersProvider).valueOrNull ?? [];
+  final joinedAsSelf = members.any((m) => m.linkedUid == user.uid);
+  return joinedAsSelf ? familyId : null;
 });
 
 final isCloudSyncActiveProvider = Provider<bool>((ref) {
@@ -118,6 +139,16 @@ final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
   return FamilyRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
+});
+
+/// Always constructible (unlike [syncEngineProvider], no inert variant
+/// needed) — invitations are pure Firestore control-plane calls with no
+/// local Drift table, so nothing here touches the database at all. Not
+/// meaningfully callable on a platform that never initializes Firebase
+/// (see `isFirebaseAuthSupportedPlatform`); screens that reach it are only
+/// ever shown after a real sign-in, which already requires that platform.
+final familyInviteRepositoryProvider = Provider<FamilyInviteRepository>((ref) {
+  return FamilyInviteRepository(ref.watch(firestoreProvider));
 });
 
 final familyProfileRepositoryProvider = Provider<FamilyProfileRepository>((ref) {
