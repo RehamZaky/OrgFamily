@@ -1246,4 +1246,129 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightNoChange => 'About the same as last month.';
+
+  @override
+  String get inviteTitle => 'Invite family member';
+
+  @override
+  String get inviteSubtitle => 'Bring someone into your family space';
+
+  @override
+  String get inviteYourCode => 'Your invite code';
+
+  @override
+  String get inviteCopyCode => 'Copy code';
+
+  @override
+  String get inviteShare => 'Share invite';
+
+  @override
+  String get inviteCodeCopied => 'Code copied';
+
+  @override
+  String inviteExpiresInDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days',
+      one: 'day',
+    );
+    return 'Expires in $count $_temp0';
+  }
+
+  @override
+  String inviteShareMessage(Object code) {
+    return 'Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: $code';
+  }
+
+  @override
+  String get inviteShareSubject => 'OrgFamily invite code';
+
+  @override
+  String get inviteCreateFailed =>
+      'Couldn\'t create an invite. Please check your connection and try again.';
+
+  @override
+  String get retry => 'Try again';
+
+  @override
+  String get manageInvites => 'Manage invites';
+
+  @override
+  String get manageInvitesEmpty => 'You haven\'t created any invites yet.';
+
+  @override
+  String get manageInvitesLoadFailed =>
+      'Couldn\'t load your invites. Please check your connection and try again.';
+
+  @override
+  String get inviteStatusUsed => 'Used';
+
+  @override
+  String get inviteStatusExpired => 'Expired';
+
+  @override
+  String get inviteRevoke => 'Revoke';
+
+  @override
+  String get inviteRevokeTitle => 'Revoke this invite?';
+
+  @override
+  String inviteRevokeBody(Object code) {
+    return 'The code $code will stop working right away.';
+  }
+
+  @override
+  String get inviteRevokeFailed =>
+      'Couldn\'t revoke the invite. Please try again.';
+
+  @override
+  String get joinFamilyTitle => 'Join a family';
+
+  @override
+  String get joinEnterCode => 'Enter invitation code';
+
+  @override
+  String get joinCodeHelper => 'Ask a family member for their code.';
+
+  @override
+  String get joinContinue => 'Continue';
+
+  @override
+  String get joinErrorNotFound =>
+      'That code doesn\'t match any invite. Double-check it and try again.';
+
+  @override
+  String get joinErrorUsed =>
+      'This invite has already been used. Ask for a new one.';
+
+  @override
+  String get joinErrorExpired => 'This invite has expired. Ask for a new one.';
+
+  @override
+  String get joinErrorGeneric =>
+      'Something went wrong. Please check your connection and try again.';
+
+  @override
+  String joinConfirmTitleNamed(Object name) {
+    return 'Join $name\'s family?';
+  }
+
+  @override
+  String get joinConfirmTitle => 'Join this family?';
+
+  @override
+  String joinFamilyNamed(Object name) {
+    return '$name\'s family';
+  }
+
+  @override
+  String get joinFamilyUnnamed => 'Your new family';
+
+  @override
+  String get joinConfirmBody =>
+      'Tasks, events and shopping lists will be shared with you.';
+
+  @override
+  String get joinFamilyButton => 'Join family';
 }

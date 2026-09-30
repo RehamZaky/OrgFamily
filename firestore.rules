@@ -50,26 +50,43 @@ service cloud.firestore {
     match /invites/{code} {
       // Presenting the exact code is the credential (like a password-reset
       // link) — the joining user isn't a member yet, so this can't require
-      // isFamilyMember. Never listable, so a code can't be discovered by
-      // enumeration.
+      // isFamilyMember. Never listable by anyone but the invite's own
+      // creator (Settings → "Manage invites" queries
+      // `where createdByUid == <own uid>`), so a code can't be discovered
+      // by enumeration: an unfiltered or someone-else's-uid query fails
+      // this rule as a whole rather than returning a filtered subset.
       allow get: if isSignedIn();
-      allow list: if false;
+      allow list: if isSignedIn() && resource.data.createdByUid == request.auth.uid;
 
       // expiresAt is bounded server-side, not just trusted from the
-      // client's "7 days from now" default — otherwise any member could
-      // bypass the app and mint a `setDoc` with an arbitrarily far-future
-      // expiresAt, and the claim rule below (which only checks
+      // client's "7 days from now" — otherwise any member could bypass the
+      // app and mint a `setDoc` with an arbitrarily far-future expiresAt,
+      // and the claim rule below (which only checks
       // `request.time < resource.data.expiresAt`) would treat it as valid
-      // forever, defeating the whole "short-lived" guarantee. 30 days is
-      // deliberately looser than the app's own 7-day default — enough
-      // slack that a future client-side change to the default doesn't
-      // need a matching rules deploy, while still ruling out "forever".
+      // for however long it said. The cap is the app's own 7-day validity
+      // (FamilyInviteRepository._validity) plus one hour: expiresAt is
+      // computed from the *device* clock, so without that slack a phone
+      // running a few minutes fast would have every invite rejected. The
+      // two must change together — see docs/architecture.md "Family
+      // invitations".
+      //
+      // inviterName is optional display text for the joiner's "Join
+      // <name>'s family?" confirmation (the joiner can't read the family
+      // doc or its members until after joining) — bounded so it can't be
+      // used to stash arbitrary data on a world-readable-by-code doc, and
+      // keys().hasOnly stops any other field riding along for the same
+      // reason.
       allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(
+             ['familyId', 'createdByUid', 'expiresAt', 'usedByUid', 'usedAt', 'inviterName'])
         && request.resource.data.createdByUid == request.auth.uid
         && request.resource.data.usedByUid == null
         && request.resource.data.expiresAt is timestamp
         && request.resource.data.expiresAt > request.time
-        && request.resource.data.expiresAt < request.time + duration.value(30, 'd')
+        && request.resource.data.expiresAt <= request.time + duration.value(169, 'h')
+        && (!('inviterName' in request.resource.data)
+            || (request.resource.data.inviterName is string
+                && request.resource.data.inviterName.size() <= 80))
         && isFamilyMember(request.resource.data.familyId);
 
       // Single-use: only an unclaimed invite (resource.data.usedByUid ==
@@ -77,14 +94,13 @@ service cloud.firestore {
       // claimant — the very act of claiming makes every later claim
       // attempt (by anyone, including a retry by the same uid) fail this
       // same check, since resource.data.usedByUid is no longer null.
-      // Every other field is pinned to its existing value so a claim can't
-      // also rewrite who created it or when it expires.
+      // A claim may touch usedByUid/usedAt and nothing else, so it can't
+      // also rewrite who created it, which family it's for, when it
+      // expires, or the inviter name the next joiner would be shown.
       allow update: if isSignedIn()
         && resource.data.usedByUid == null
         && request.resource.data.usedByUid == request.auth.uid
-        && request.resource.data.familyId == resource.data.familyId
-        && request.resource.data.createdByUid == resource.data.createdByUid
-        && request.resource.data.expiresAt == resource.data.expiresAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedByUid', 'usedAt'])
         && request.time < resource.data.expiresAt;
 
       // Lets the inviter revoke an unused code early.

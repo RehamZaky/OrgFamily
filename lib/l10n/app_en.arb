@@ -580,5 +580,65 @@
       "percent": {}
     }
   },
-  "insightNoChange": "About the same as last month."
+  "insightNoChange": "About the same as last month.",
+
+  "inviteTitle": "Invite family member",
+  "inviteSubtitle": "Bring someone into your family space",
+  "inviteYourCode": "Your invite code",
+  "inviteCopyCode": "Copy code",
+  "inviteShare": "Share invite",
+  "inviteCodeCopied": "Code copied",
+  "inviteExpiresInDays": "Expires in {count} {count, plural, one{day} other{days}}",
+  "@inviteExpiresInDays": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "inviteShareMessage": "Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: {code}",
+  "@inviteShareMessage": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "inviteShareSubject": "OrgFamily invite code",
+  "inviteCreateFailed": "Couldn't create an invite. Please check your connection and try again.",
+  "retry": "Try again",
+  "manageInvites": "Manage invites",
+  "manageInvitesEmpty": "You haven't created any invites yet.",
+  "manageInvitesLoadFailed": "Couldn't load your invites. Please check your connection and try again.",
+  "inviteStatusUsed": "Used",
+  "inviteStatusExpired": "Expired",
+  "inviteRevoke": "Revoke",
+  "inviteRevokeTitle": "Revoke this invite?",
+  "inviteRevokeBody": "The code {code} will stop working right away.",
+  "@inviteRevokeBody": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "inviteRevokeFailed": "Couldn't revoke the invite. Please try again.",
+  "joinFamilyTitle": "Join a family",
+  "joinEnterCode": "Enter invitation code",
+  "joinCodeHelper": "Ask a family member for their code.",
+  "joinContinue": "Continue",
+  "joinErrorNotFound": "That code doesn't match any invite. Double-check it and try again.",
+  "joinErrorUsed": "This invite has already been used. Ask for a new one.",
+  "joinErrorExpired": "This invite has expired. Ask for a new one.",
+  "joinErrorGeneric": "Something went wrong. Please check your connection and try again.",
+  "joinConfirmTitleNamed": "Join {name}'s family?",
+  "@joinConfirmTitleNamed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "joinConfirmTitle": "Join this family?",
+  "joinFamilyNamed": "{name}'s family",
+  "@joinFamilyNamed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "joinFamilyUnnamed": "Your new family",
+  "joinConfirmBody": "Tasks, events and shopping lists will be shared with you.",
+  "joinFamilyButton": "Join family"
 }

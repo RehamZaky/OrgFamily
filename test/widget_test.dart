@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fakes/fake_auth_repository.dart';
 import 'fakes/fake_notification_service.dart';
 
 void main() {
@@ -20,6 +21,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
         notificationServiceProvider.overrideWithValue(FakeNotificationService()),
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
       ],
     );
 
@@ -71,5 +73,10 @@ void main() {
     // fails the test's "no pending timers" invariant.
     container.dispose();
     await tester.pump(Duration.zero);
-  });
+  },
+      // flutter_test reports Android by default, where "Add yourself"
+      // routes through SignInScreen first (isFirebaseAuthSupportedPlatform)
+      // — this test covers the no-sign-in desktop path straight into
+      // AddMemberScreen, which needs no real Firebase at all.
+      variant: TargetPlatformVariant.only(TargetPlatform.windows));
 }

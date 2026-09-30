@@ -94,12 +94,17 @@ tests actually connect to.
   via `joinedUids`, denied for a stranger.
 - `invites/{code}` — create only by an existing member, `createdByUid`
   can't be forged, single-use claiming, expiry, tamper-proofing the
-  claim (can't sneak in a `familyId`/`createdByUid`/`expiresAt` change
-  alongside it), revocation only by the creator, `list` always denied.
-  Also: `expiresAt` itself is bounded server-side at creation (must be a
-  real future timestamp, capped at 30 days) — added after review found
-  the rules originally trusted the client's "7 days" entirely, so a
-  request bypassing the app could mint a functionally-forever invite.
+  claim (can't sneak in a `familyId`/`createdByUid`/`expiresAt`/
+  `inviterName` change alongside it), revocation only by the
+  creator, `list` denied except a query filtered to the caller's own
+  `createdByUid`. Also: `expiresAt` itself is bounded server-side at
+  creation (must be a real future timestamp, at most the app's 7 days
+  plus a one-hour clock-skew allowance) — added after review found the
+  rules originally trusted the client's "7 days" entirely, so a request
+  bypassing the app could mint a functionally-forever invite, then
+  tightened from an initial looser 30-day cap to match the app. And the
+  optional `inviterName` (string, ≤80 chars) is the only field allowed
+  beyond the known invite shape.
 - `families/{familyId}/joinedUids/{uid}` — create only when backed by an
   invite claimed by that exact uid for that exact family, immutable once
   created, uid in the path must match the caller.

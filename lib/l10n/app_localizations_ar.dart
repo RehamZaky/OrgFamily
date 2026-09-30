@@ -1293,4 +1293,131 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insightNoChange => 'تقريبًا نفس الشهر الماضي.';
+
+  @override
+  String get inviteTitle => 'دعوة فرد من العائلة';
+
+  @override
+  String get inviteSubtitle => 'أضف شخصًا إلى مساحة عائلتك';
+
+  @override
+  String get inviteYourCode => 'رمز الدعوة الخاص بك';
+
+  @override
+  String get inviteCopyCode => 'نسخ الرمز';
+
+  @override
+  String get inviteShare => 'مشاركة الدعوة';
+
+  @override
+  String get inviteCodeCopied => 'تم نسخ الرمز';
+
+  @override
+  String inviteExpiresInDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتهي خلال $count يوم',
+      many: 'تنتهي خلال $count يومًا',
+      few: 'تنتهي خلال $count أيام',
+      two: 'تنتهي خلال يومين',
+      one: 'تنتهي خلال يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteShareMessage(Object code) {
+    return 'انضم إلى عائلتنا على OrgFamily! افتح التطبيق، واختر الانضمام إلى عائلة موجودة، ثم أدخل هذا الرمز: $code';
+  }
+
+  @override
+  String get inviteShareSubject => 'رمز دعوة OrgFamily';
+
+  @override
+  String get inviteCreateFailed =>
+      'تعذّر إنشاء الدعوة. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String get retry => 'حاول مرة أخرى';
+
+  @override
+  String get manageInvites => 'إدارة الدعوات';
+
+  @override
+  String get manageInvitesEmpty => 'لم تنشئ أي دعوات بعد.';
+
+  @override
+  String get manageInvitesLoadFailed =>
+      'تعذّر تحميل دعواتك. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String get inviteStatusUsed => 'مستخدمة';
+
+  @override
+  String get inviteStatusExpired => 'منتهية';
+
+  @override
+  String get inviteRevoke => 'إبطال';
+
+  @override
+  String get inviteRevokeTitle => 'إبطال هذه الدعوة؟';
+
+  @override
+  String inviteRevokeBody(Object code) {
+    return 'سيتوقف الرمز $code عن العمل فورًا.';
+  }
+
+  @override
+  String get inviteRevokeFailed =>
+      'تعذّر إبطال الدعوة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get joinFamilyTitle => 'الانضمام إلى عائلة';
+
+  @override
+  String get joinEnterCode => 'أدخل رمز الدعوة';
+
+  @override
+  String get joinCodeHelper => 'اطلب الرمز من أحد أفراد العائلة.';
+
+  @override
+  String get joinContinue => 'متابعة';
+
+  @override
+  String get joinErrorNotFound =>
+      'هذا الرمز لا يطابق أي دعوة. تحقق منه وحاول مرة أخرى.';
+
+  @override
+  String get joinErrorUsed => 'تم استخدام هذه الدعوة بالفعل. اطلب دعوة جديدة.';
+
+  @override
+  String get joinErrorExpired => 'انتهت صلاحية هذه الدعوة. اطلب دعوة جديدة.';
+
+  @override
+  String get joinErrorGeneric =>
+      'حدث خطأ ما. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String joinConfirmTitleNamed(Object name) {
+    return 'الانضمام إلى عائلة $name؟';
+  }
+
+  @override
+  String get joinConfirmTitle => 'الانضمام إلى هذه العائلة؟';
+
+  @override
+  String joinFamilyNamed(Object name) {
+    return 'عائلة $name';
+  }
+
+  @override
+  String get joinFamilyUnnamed => 'عائلتك الجديدة';
+
+  @override
+  String get joinConfirmBody =>
+      'ستتم مشاركة المهام والأحداث وقوائم التسوق معك.';
+
+  @override
+  String get joinFamilyButton => 'انضمام إلى العائلة';
 }

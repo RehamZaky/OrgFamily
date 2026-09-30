@@ -6,9 +6,11 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   setDoc,
   Timestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { createTestEnv, familyDoc, futureTimestamp, pastTimestamp } from './helpers.mjs';
 
@@ -113,17 +115,72 @@ describe('invites/{code}', () => {
       );
     });
 
-    test('expiresAt far beyond the 30-day cap is rejected, even though it is in the future',
+    test('expiresAt far in the future is rejected, even though it is in the future', async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      const owner = testEnv.authenticatedContext('owner-uid');
+      await assertFails(
+        setDoc(
+          doc(owner.firestore(), 'invites/CODE-FAR'),
+          validInvite({ expiresAt: Timestamp.fromDate(futureTimestamp(365)) }),
+        ),
+      );
+    });
+
+    // The cap is the app's own 7 days, not a looser server-side ceiling —
+    // anything past 7 days + the 1-hour clock-skew allowance is rejected.
+    test("expiresAt 8 days out is rejected — the cap is the app's 7-day validity", async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      const owner = testEnv.authenticatedContext('owner-uid');
+      await assertFails(
+        setDoc(
+          doc(owner.firestore(), 'invites/CODE-8D'),
+          validInvite({ expiresAt: Timestamp.fromDate(futureTimestamp(8)) }),
+        ),
+      );
+    });
+
+    test('expiresAt a few minutes past 7 days (a device clock running fast) is still accepted',
       async () => {
         await seedFamily('fam-1', 'owner-uid');
         const owner = testEnv.authenticatedContext('owner-uid');
-        await assertFails(
+        const sevenDaysAndHalfAnHour = futureTimestamp(7 + 0.5 / 24);
+        await assertSucceeds(
           setDoc(
-            doc(owner.firestore(), 'invites/CODE-FAR'),
-            validInvite({ expiresAt: Timestamp.fromDate(futureTimestamp(365)) }),
+            doc(owner.firestore(), 'invites/CODE-SKEW'),
+            validInvite({ expiresAt: Timestamp.fromDate(sevenDaysAndHalfAnHour) }),
           ),
         );
       });
+
+    test("an inviterName for the joiner's confirmation screen is accepted", async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      const owner = testEnv.authenticatedContext('owner-uid');
+      await assertSucceeds(
+        setDoc(doc(owner.firestore(), 'invites/CODE-NAME'), validInvite({ inviterName: 'Reem' })),
+      );
+    });
+
+    test('inviterName must be a string of at most 80 characters', async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      const owner = testEnv.authenticatedContext('owner-uid');
+      await assertFails(
+        setDoc(
+          doc(owner.firestore(), 'invites/CODE-LONG'),
+          validInvite({ inviterName: 'x'.repeat(81) }),
+        ),
+      );
+      await assertFails(
+        setDoc(doc(owner.firestore(), 'invites/CODE-NUM'), validInvite({ inviterName: 42 })),
+      );
+    });
+
+    test('any field beyond the known invite shape is rejected', async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      const owner = testEnv.authenticatedContext('owner-uid');
+      await assertFails(
+        setDoc(doc(owner.firestore(), 'invites/CODE-EXTRA'), validInvite({ payload: 'anything' })),
+      );
+    });
 
     test('expiresAt missing entirely is rejected, not treated as "never expires"', async () => {
       await seedFamily('fam-1', 'owner-uid');
@@ -158,7 +215,7 @@ describe('invites/{code}', () => {
       await assertFails(getDoc(doc(anon.firestore(), 'invites/CODE8')));
     });
 
-    test('listing the invites collection is always denied, even for the family that owns one',
+    test('an unfiltered list of the invites collection is denied, even for the family that owns one',
       async () => {
         await seedFamily('fam-1', 'owner-uid');
         await testEnv.withSecurityRulesDisabled(async (ctx) => {
@@ -167,6 +224,32 @@ describe('invites/{code}', () => {
         const owner = testEnv.authenticatedContext('owner-uid');
         await assertFails(getDocs(collection(owner.firestore(), 'invites')));
       });
+
+    test('the creator can list exactly their own invites (Manage invites)', async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), 'invites/CODE9A'), validInvite());
+      });
+      const owner = testEnv.authenticatedContext('owner-uid');
+      const own = query(
+        collection(owner.firestore(), 'invites'),
+        where('createdByUid', '==', 'owner-uid'),
+      );
+      await assertSucceeds(getDocs(own));
+    });
+
+    test("nobody can list another uid's invites, even by filtering on that uid", async () => {
+      await seedFamily('fam-1', 'owner-uid');
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), 'invites/CODE9B'), validInvite());
+      });
+      const stranger = testEnv.authenticatedContext('stranger-uid');
+      const theirs = query(
+        collection(stranger.firestore(), 'invites'),
+        where('createdByUid', '==', 'owner-uid'),
+      );
+      await assertFails(getDocs(theirs));
+    });
   });
 
   describe('update (claiming)', () => {
@@ -226,7 +309,7 @@ describe('invites/{code}', () => {
       );
     });
 
-    test('a claim cannot also tamper with familyId, createdByUid, or expiresAt', async () => {
+    test('a claim cannot also tamper with familyId, createdByUid, expiresAt, or inviterName', async () => {
       await seedFamily('fam-1', 'owner-uid');
       await seedFamily('fam-hijack', 'owner-uid');
       await testEnv.withSecurityRulesDisabled(async (ctx) => {
@@ -253,6 +336,13 @@ describe('invites/{code}', () => {
           usedByUid: 'joiner-uid',
           usedAt: Timestamp.now(),
           expiresAt: Timestamp.fromDate(futureTimestamp(365)),
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(joiner.firestore(), 'invites/CODE13'), {
+          usedByUid: 'joiner-uid',
+          usedAt: Timestamp.now(),
+          inviterName: 'Someone else',
         }),
       );
     });

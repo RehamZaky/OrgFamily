@@ -2359,6 +2359,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About the same as last month.'**
   String get insightNoChange;
+
+  /// No description provided for @inviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite family member'**
+  String get inviteTitle;
+
+  /// No description provided for @inviteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring someone into your family space'**
+  String get inviteSubtitle;
+
+  /// No description provided for @inviteYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get inviteYourCode;
+
+  /// No description provided for @inviteCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get inviteCopyCode;
+
+  /// No description provided for @inviteShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invite'**
+  String get inviteShare;
+
+  /// No description provided for @inviteCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get inviteCodeCopied;
+
+  /// No description provided for @inviteExpiresInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {count} {count, plural, one{day} other{days}}'**
+  String inviteExpiresInDays(num count);
+
+  /// No description provided for @inviteShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: {code}'**
+  String inviteShareMessage(Object code);
+
+  /// No description provided for @inviteShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'OrgFamily invite code'**
+  String get inviteShareSubject;
+
+  /// No description provided for @inviteCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create an invite. Please check your connection and try again.'**
+  String get inviteCreateFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
+  /// No description provided for @manageInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage invites'**
+  String get manageInvites;
+
+  /// No description provided for @manageInvitesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t created any invites yet.'**
+  String get manageInvitesEmpty;
+
+  /// No description provided for @manageInvitesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your invites. Please check your connection and try again.'**
+  String get manageInvitesLoadFailed;
+
+  /// No description provided for @inviteStatusUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get inviteStatusUsed;
+
+  /// No description provided for @inviteStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get inviteStatusExpired;
+
+  /// No description provided for @inviteRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get inviteRevoke;
+
+  /// No description provided for @inviteRevokeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke this invite?'**
+  String get inviteRevokeTitle;
+
+  /// No description provided for @inviteRevokeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The code {code} will stop working right away.'**
+  String inviteRevokeBody(Object code);
+
+  /// No description provided for @inviteRevokeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke the invite. Please try again.'**
+  String get inviteRevokeFailed;
+
+  /// No description provided for @joinFamilyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a family'**
+  String get joinFamilyTitle;
+
+  /// No description provided for @joinEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter invitation code'**
+  String get joinEnterCode;
+
+  /// No description provided for @joinCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a family member for their code.'**
+  String get joinCodeHelper;
+
+  /// No description provided for @joinContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get joinContinue;
+
+  /// No description provided for @joinErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'That code doesn\'t match any invite. Double-check it and try again.'**
+  String get joinErrorNotFound;
+
+  /// No description provided for @joinErrorUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has already been used. Ask for a new one.'**
+  String get joinErrorUsed;
+
+  /// No description provided for @joinErrorExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has expired. Ask for a new one.'**
+  String get joinErrorExpired;
+
+  /// No description provided for @joinErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please check your connection and try again.'**
+  String get joinErrorGeneric;
+
+  /// No description provided for @joinConfirmTitleNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {name}\'s family?'**
+  String joinConfirmTitleNamed(Object name);
+
+  /// No description provided for @joinConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join this family?'**
+  String get joinConfirmTitle;
+
+  /// No description provided for @joinFamilyNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s family'**
+  String joinFamilyNamed(Object name);
+
+  /// No description provided for @joinFamilyUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new family'**
+  String get joinFamilyUnnamed;
+
+  /// No description provided for @joinConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks, events and shopping lists will be shared with you.'**
+  String get joinConfirmBody;
+
+  /// No description provided for @joinFamilyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Join family'**
+  String get joinFamilyButton;
 }
 
 class _AppLocalizationsDelegate

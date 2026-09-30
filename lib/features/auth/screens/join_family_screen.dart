@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_config.dart';
+import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/boxed_field.dart';
 import '../../../data/providers.dart';
 import '../../../data/repositories/family_invite_repository.dart';
-import '../../family/screens/add_member_screen.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../family/widgets/family_illustration.dart';
+import '../widgets/join_flow_button.dart';
+import 'join_family_confirm_screen.dart';
 import 'sign_in_screen.dart';
 
 /// "Enter the code someone in your family sent you" — the entry point for
 /// a second real adult, on their own fresh device, to join an existing
 /// family's cloud data instead of starting a brand-new one. See
 /// docs/architecture.md "Family invitations" for the full design: this
-/// screen only looks up and claims the code (via
-/// [FamilyInviteRepository]); the actual local join (creating this
-/// device's own [FamilyMember] row and calling
-/// `FamilyProfileRepository.recordJoin`) happens right after, in
-/// [AddMemberScreen] with `joinFamilyId` set.
+/// screen only looks the code up (via [FamilyInviteRepository]) and
+/// rejects unusable ones; claiming it happens only once the joiner
+/// confirms on [JoinFamilyConfirmScreen].
 class JoinFamilyScreen extends ConsumerStatefulWidget {
   const JoinFamilyScreen({super.key});
 
@@ -27,8 +28,16 @@ class JoinFamilyScreen extends ConsumerStatefulWidget {
 
 class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
   final _codeController = TextEditingController();
-  bool _joining = false;
+  bool _checking = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController.addListener(() {
+      if (_error != null) setState(() => _error = null);
+    });
+  }
 
   @override
   void dispose() {
@@ -36,69 +45,60 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
     super.dispose();
   }
 
-  Future<void> _join() async {
-    final code = _codeController.text.trim();
-    if (code.isEmpty) return;
+  Future<void> _continue() async {
+    final l10n = AppLocalizations.of(context)!;
+    final code = _codeController.text;
+    if (FamilyInviteRepository.normalizeCode(code).isEmpty) return;
     setState(() {
-      _joining = true;
+      _checking = true;
       _error = null;
     });
     try {
       // Joining needs a real account of its own — a fresh device has none
       // yet, so ask for one first, same as OnboardingScreen's own
-      // "add yourself" path does for a brand-new Owner.
+      // "add yourself" path does for a brand-new Owner. Looking a code up
+      // needs one too (`firestore.rules` denies an anonymous get).
       if (isFirebaseAuthSupportedPlatform &&
           ref.read(authRepositoryProvider).currentUser == null) {
-        await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SignInScreen()),
-        );
+        await Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const SignInScreen()));
       }
       final uid = ref.read(authRepositoryProvider).currentUser?.uid;
       if (!mounted) return;
       if (uid == null) {
-        setState(() => _joining = false);
+        setState(() => _checking = false);
         return;
       }
-      final invites = ref.read(familyInviteRepositoryProvider);
-      final invite = await invites.lookupInvite(code);
-      if (invite == null) {
-        setState(() {
-          _error = "That code doesn't match any invite. Double-check it and try again.";
-          _joining = false;
-        });
-        return;
-      }
-      if (invite.isUsed) {
-        setState(() {
-          _error = 'This invite has already been used. Ask them to send you a new one.';
-          _joining = false;
-        });
-        return;
-      }
-      if (invite.isExpired) {
-        setState(() {
-          _error = 'This invite has expired. Ask them to send you a new one.';
-          _joining = false;
-        });
-        return;
-      }
-      await invites.claimInvite(invite, uid);
+      final invite = await ref
+          .read(familyInviteRepositoryProvider)
+          .lookupInvite(code);
       if (!mounted) return;
-      // Must be push, not pushReplacement — this screen isn't its own
-      // route underneath OnboardingScreen either, so replacing it would
-      // leave AddMemberScreen's Navigator.pop(), after saving, with
-      // nothing left to pop back to. See OnboardingScreen._addYourself's
-      // identical note.
+      // Already claimed by this same account means an earlier attempt got
+      // partway (backed out of profile setup, or the grant write failed)
+      // — let it through so JoinFamilyConfirmScreen can finish the job.
+      final error = invite == null
+          ? l10n.joinErrorNotFound
+          : invite.isUsed && invite.usedByUid != uid
+          ? l10n.joinErrorUsed
+          : invite.isExpired
+          ? l10n.joinErrorExpired
+          : null;
+      setState(() {
+        _error = error;
+        _checking = false;
+      });
+      if (error != null) return;
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => AddMemberScreen(isFirstMember: true, joinFamilyId: invite.familyId),
+          builder: (_) => JoinFamilyConfirmScreen(invite: invite!),
         ),
       );
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Something went wrong. Please check your connection and try again.';
-          _joining = false;
+          _error = l10n.joinErrorGeneric;
+          _checking = false;
         });
       }
     }
@@ -106,47 +106,96 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = context.colors;
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: color, width: width),
+        );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Join a family')),
+      backgroundColor: colors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
+        top: false,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           children: [
-            const Text(
-              "Enter the invite code another adult in your family sent you. "
-              "You'll join their existing tasks, events, and shopping lists.",
-            ),
-            const SizedBox(height: 16),
-            BoxedField(
-              label: 'Invite code',
-              child: TextField(
-                controller: _codeController,
-                enabled: !_joining,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                  hintText: 'e.g. 7K9XQPRT',
-                ),
-                style: const TextStyle(letterSpacing: 2, fontWeight: FontWeight.w600),
+            const FamilyIllustration(size: 180),
+            const SizedBox(height: 28),
+            Text(
+              l10n.joinFamilyTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: AppColors.priorityUrgent)),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _joining ? null : _join,
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              child: _joining
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Join family'),
+            const SizedBox(height: 32),
+            Text(
+              l10n.joinEnterCode,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _codeController,
+              enabled: !_checking,
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.characters,
+              textInputAction: TextInputAction.go,
+              onSubmitted: (_) => _continue(),
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2,
+              ),
+              decoration: InputDecoration(
+                hintText: 'ABCD-2345',
+                hintStyle: TextStyle(
+                  color: colors.textSecondary.withValues(alpha: 0.5),
+                  letterSpacing: 2,
+                ),
+                filled: true,
+                fillColor: AppColors.primary.withValues(alpha: 0.06),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
+                enabledBorder: border(
+                  AppColors.primary.withValues(alpha: 0.45),
+                ),
+                disabledBorder: border(
+                  AppColors.primary.withValues(alpha: 0.25),
+                ),
+                focusedBorder: border(AppColors.primary, 1.8),
+                errorBorder: border(AppColors.priorityUrgent),
+                focusedErrorBorder: border(AppColors.priorityUrgent, 1.8),
+                errorText: _error,
+                errorMaxLines: 3,
+                helperText: l10n.joinCodeHelper,
+                helperStyle: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            JoinFlowButton(
+              label: l10n.joinContinue,
+              busy: _checking,
+              onPressed: _continue,
             ),
           ],
         ),

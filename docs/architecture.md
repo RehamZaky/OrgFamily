@@ -205,33 +205,53 @@ Firestore control-plane, no local Drift table, no `SyncAdapter`:
   has the code, which carries `familyId` as a field once looked up.
   Fields: `familyId`, `createdByUid`, `expiresAt` (7 days, computed
   client-side — fine here even though `updatedAt`/last-write-wins
-  elsewhere deliberately avoids client clocks, since a multi-day expiry
-  window swallows any realistic clock skew), `usedByUid`/`usedAt` (both
-  null until claimed). `expiresAt` is also bounded server-side (must be a
-  real future timestamp, capped at 30 days — `firestore.rules`) — the
-  7-day figure is only the app's own default, not itself enforced by the
-  rules, so a client bypassing the app entirely can't mint a
-  functionally-forever invite by sending an arbitrary `expiresAt`. The 7
-  vs. 30 gap is deliberate slack, not a mismatch: `Settings`' invite
-  dialog always displays the *actual* `expiresAt` an invite was created
-  with (`FamilyInviteRepository.createInvite` returns it alongside the
-  code), never a hardcoded "7 days", specifically so the two limits are
-  free to diverge without the UI silently lying.
+  elsewhere deliberately avoids client clocks, since the rules allow for
+  skew, below), `usedByUid`/`usedAt` (both null until claimed), and an
+  optional `inviterName` (the inviter's own member name, ≤80 chars) —
+  the joiner can't read the family doc or its members before joining, so
+  this is the only way the confirm step can say "Join Reem's family?".
+  `keys().hasOnly` rejects any other field. **7 days is enforced
+  server-side, not just the app's default**: `firestore.rules` requires
+  `expiresAt` to be in the future and at most 7 days + 1 hour past
+  `request.time` — the hour is clock-skew slack for a device running
+  fast, not extra validity. `FamilyInviteRepository._validity` and that
+  cap must change together. (The cap was originally a looser 30 days,
+  which let a client bypassing the app mint month-long invites while the
+  app said 7; tightened to match.) The invite screen still displays the
+  `expiresAt` the invite was actually created with, never a hardcoded
+  "7 days".
+  Codes are 8 characters from a 32-symbol alphabet, displayed as
+  `XXXX-XXXX`; `FamilyInviteRepository.normalizeCode` strips the dash
+  (and case, spaces, anything non-alphanumeric) on the way back in.
+  `list` is allowed only for a query filtered to
+  `createdByUid == <caller>` — Settings → Invite → "Manage invites" shows
+  (and can revoke) the caller's own invites; nobody can enumerate anyone
+  else's.
 - `families/{familyId}/joinedUids/{uid}` — what actually grants access;
   doc id is the uid itself, so membership is a plain `exists()` check,
   not a query. `isFamilyMember(familyId)` (`firestore.rules`) now checks
   `uid in memberUids OR joinedUids/{uid} exists`, short-circuited so the
   common single-owner case still costs exactly one read.
 
-**Flow**: generating an invite (Settings → "Invite a family member") is
-one write. Claiming one (`JoinFamilyScreen` →
-`FamilyInviteRepository.claimInvite`) is deliberately **two sequential
+**Flow**: generating an invite (Settings → "Invite a family member" →
+`InviteFamilyMemberScreen`) is one write. Joining is two screens:
+`JoinFamilyScreen` only *looks the code up* and rejects unknown, used,
+or expired ones; `JoinFamilyConfirmScreen` shows who invited you and
+claims only when the joiner taps "Join family" — so a valid code for the
+wrong family can still be backed out of before the irreversible,
+single-use claim. Claiming (`FamilyInviteRepository.claimInvite`) is
+deliberately **two sequential
 writes, not one atomic transaction**: first mark the invite used, then
 create the `joinedUids` doc. A failure between them leaves a
 claimed-but-ungranted invite — a wasted code, recoverable by generating a
 new one — rather than a security gap, which is why that was chosen over
 the complexity (and rules-`get()`-ordering assumptions) of making the two
-writes atomic. That assumption — and the rest of this rules surface — is
+writes atomic. `claimInvite` is also safe to re-run for an invite the
+same uid already claimed (backing out of profile setup, or retrying
+after the second write failed): it skips the claim and writes the grant
+only if it's missing, and `JoinFamilyScreen` lets a code through when
+it's "used" by the caller themselves for exactly this reason. That
+assumption — and the rest of this rules surface — is
 now verified against the real Firestore Local Emulator Suite, not just
 argued for in this doc comment: see "Testing" below.
 
