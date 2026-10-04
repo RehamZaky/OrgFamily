@@ -2579,8 +2579,74 @@ abstract class AppLocalizations {
   /// No description provided for @syncReviewSheetBody.
   ///
   /// In en, this message translates to:
-  /// **'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Upload them as your changes, or keep them on this phone only.'**
+  /// **'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Each one has been compared with the family\'s cloud copy — choose what to do with it.'**
   String get syncReviewSheetBody;
+
+  /// No description provided for @syncReviewChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing with the cloud…'**
+  String get syncReviewChecking;
+
+  /// No description provided for @syncReviewCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the cloud to compare versions. Try again when you\'re online, or keep these changes on this phone.'**
+  String get syncReviewCheckFailed;
+
+  /// No description provided for @syncReviewConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{has} other{have}} a newer version in the cloud — set to use the cloud version.'**
+  String syncReviewConflicts(int count);
+
+  /// No description provided for @syncReviewStateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the cloud yet'**
+  String get syncReviewStateNew;
+
+  /// No description provided for @syncReviewStatePhoneNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed here after the cloud version'**
+  String get syncReviewStatePhoneNewer;
+
+  /// No description provided for @syncReviewStateCloudNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud has a newer version'**
+  String get syncReviewStateCloudNewer;
+
+  /// No description provided for @syncReviewStateInSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Already matches the cloud'**
+  String get syncReviewStateInSync;
+
+  /// No description provided for @syncReviewChoiceUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get syncReviewChoiceUpload;
+
+  /// No description provided for @syncReviewChoiceUseCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Use cloud'**
+  String get syncReviewChoiceUseCloud;
+
+  /// No description provided for @syncReviewChoicePhoneOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone only'**
+  String get syncReviewChoicePhoneOnly;
+
+  /// No description provided for @syncReviewApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get syncReviewApply;
 
   /// No description provided for @syncReviewUpload.
   ///

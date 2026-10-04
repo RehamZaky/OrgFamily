@@ -1388,7 +1388,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncReviewSheetBody =>
-      'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Upload them as your changes, or keep them on this phone only.';
+      'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Each one has been compared with the family\'s cloud copy — choose what to do with it.';
+
+  @override
+  String get syncReviewChecking => 'Comparing with the cloud…';
+
+  @override
+  String get syncReviewCheckFailed =>
+      'Couldn\'t reach the cloud to compare versions. Try again when you\'re online, or keep these changes on this phone.';
+
+  @override
+  String syncReviewConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'have',
+      one: 'has',
+    );
+    return '$count $_temp0 a newer version in the cloud — set to use the cloud version.';
+  }
+
+  @override
+  String get syncReviewStateNew => 'Not in the cloud yet';
+
+  @override
+  String get syncReviewStatePhoneNewer =>
+      'Changed here after the cloud version';
+
+  @override
+  String get syncReviewStateCloudNewer => 'The cloud has a newer version';
+
+  @override
+  String get syncReviewStateInSync => 'Already matches the cloud';
+
+  @override
+  String get syncReviewChoiceUpload => 'Upload';
+
+  @override
+  String get syncReviewChoiceUseCloud => 'Use cloud';
+
+  @override
+  String get syncReviewChoicePhoneOnly => 'Phone only';
+
+  @override
+  String get syncReviewApply => 'Apply';
 
   @override
   String get syncReviewUpload => 'Upload';

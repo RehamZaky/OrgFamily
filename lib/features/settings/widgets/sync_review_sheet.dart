@@ -1,50 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/sync_outbox_table.dart';
 import '../../../data/providers.dart';
+import '../../../data/sync/sync_engine.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Lets the syncing member decide what happens to changes that only upload
-/// on request — made while this phone wasn't syncing as them, or by
-/// another account (see `SyncEngine.uploadHeld`/`discardHeld`). Lists each
-/// change by name so the decision is an informed one, not a blind
-/// "upload everything".
-Future<void> showSyncReviewSheet(BuildContext context, List<SyncOutboxData> rows) {
+/// Lets the syncing member decide, change by change, what happens to
+/// changes that only upload on request — made while this phone wasn't
+/// syncing as them, or by another account. Each one is first compared with
+/// its live cloud version ([SyncEngine.inspectReview]): an upload
+/// overwrites the cloud copy, so anything the cloud has a newer version of
+/// defaults to the cloud version, and only changes that can't overwrite
+/// newer information default to uploading.
+Future<void> showSyncReviewSheet(BuildContext context) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (_) => _SyncReviewSheet(rows: rows),
+    builder: (_) => const _SyncReviewSheet(),
   );
 }
 
-class _SyncReviewSheet extends ConsumerStatefulWidget {
-  const _SyncReviewSheet({required this.rows});
+class _Entry {
+  _Entry(this.item, this.name) : choice = item.defaultChoice;
 
-  final List<SyncOutboxData> rows;
+  final ReviewItem item;
+
+  /// Null when the entity is gone from this phone; empty for the family
+  /// settings singleton, which has no name of its own.
+  final String? name;
+  ReviewChoice choice;
+}
+
+class _SyncReviewSheet extends ConsumerStatefulWidget {
+  const _SyncReviewSheet();
 
   @override
   ConsumerState<_SyncReviewSheet> createState() => _SyncReviewSheetState();
 }
 
 class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
-  late final Future<List<(SyncEntityType, String?)>> _items = _describe();
+  late Future<List<_Entry>> _entries = _load();
   bool _busy = false;
 
-  /// One entry per changed entity (an entity edited several times is queued
-  /// several times, but is one change to the person reviewing).
-  Future<List<(SyncEntityType, String?)>> _describe() async {
+  Future<List<_Entry>> _load() async {
     final db = ref.read(databaseProvider);
-    final seen = <(SyncEntityType, String)>{};
-    final items = <(SyncEntityType, String?)>[];
-    for (final row in widget.rows) {
-      if (!seen.add((row.entityType, row.entityId))) continue;
-      items.add((row.entityType, await _nameOf(db, row.entityType, row.entityId)));
-    }
-    return items;
+    final items = await ref.read(syncEngineProvider).inspectReview();
+    return [
+      for (final item in items) _Entry(item, await _nameOf(db, item.type, item.entityId)),
+    ];
   }
 
   Future<String?> _nameOf(AppDatabase db, SyncEntityType type, String id) async {
@@ -77,79 +86,159 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
         SyncEntityType.familyProfile => l10n.syncReviewFamily,
       };
 
+  String _stateLabel(AppLocalizations l10n, ReviewItem item, String locale) {
+    final cloudTime = item.remoteUpdatedAt == null
+        ? ''
+        : ' · ${DateFormat.MMMd(locale).add_jm().format(item.remoteUpdatedAt!.toLocal())}';
+    return switch (item.state) {
+      ReviewState.newOnPhone => l10n.syncReviewStateNew,
+      ReviewState.phoneNewer => l10n.syncReviewStatePhoneNewer,
+      ReviewState.cloudNewer => '${l10n.syncReviewStateCloudNewer}$cloudTime',
+      ReviewState.inSync => l10n.syncReviewStateInSync,
+      ReviewState.goneLocally => l10n.syncReviewDeleted,
+    };
+  }
+
+  /// "Use cloud" needs a cloud version; "Upload" needs something on this
+  /// phone to send.
+  List<ReviewChoice> _choicesFor(ReviewItem item) => [
+        if (item.state != ReviewState.goneLocally) ReviewChoice.upload,
+        if (item.remoteUpdatedAt != null) ReviewChoice.useCloud,
+        ReviewChoice.phoneOnly,
+      ];
+
+  String _choiceLabel(AppLocalizations l10n, ReviewChoice choice) => switch (choice) {
+        ReviewChoice.upload => l10n.syncReviewChoiceUpload,
+        ReviewChoice.useCloud => l10n.syncReviewChoiceUseCloud,
+        ReviewChoice.phoneOnly => l10n.syncReviewChoicePhoneOnly,
+      };
+
   Future<void> _run(Future<void> Function() action) async {
     setState(() => _busy = true);
-    await action();
-    if (mounted) Navigator.of(context).pop();
+    try {
+      await action();
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      // Most likely went offline mid-apply; whatever wasn't resolved stays
+      // awaiting review, so reload to show what's left.
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _entries = _load();
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final sync = ref.read(syncEngineProvider);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.syncReviewTitle(
-                widget.rows.map((r) => (r.entityType, r.entityId)).toSet().length,
-              ),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(l10n.syncReviewSheetBody,
-                style: TextStyle(color: context.colors.textSecondary)),
-            const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.4),
-              child: FutureBuilder(
-                future: _items,
-                builder: (context, snapshot) {
-                  final items = snapshot.data;
-                  if (items == null) {
-                    return const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  return ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final (type, name) in items)
-                        ListTile(
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            name == null
-                                ? l10n.syncReviewDeleted
-                                : name.isEmpty
-                                    ? _typeLabel(l10n, type)
-                                    : name,
+        child: FutureBuilder<List<_Entry>>(
+          future: _entries,
+          builder: (context, snapshot) {
+            final entries = snapshot.data;
+            final failed = snapshot.hasError;
+            final conflicts =
+                entries?.where((e) => e.item.state == ReviewState.cloudNewer).length ?? 0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (entries != null)
+                  Text(
+                    l10n.syncReviewTitle(entries.length),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                const SizedBox(height: 8),
+                Text(l10n.syncReviewSheetBody,
+                    style: TextStyle(color: context.colors.textSecondary)),
+                if (conflicts > 0) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.syncReviewConflicts(conflicts),
+                      style: TextStyle(
+                          color: AppColors.priorityNormal, fontWeight: FontWeight.w600)),
+                ],
+                const SizedBox(height: 12),
+                if (failed) ...[
+                  Text(l10n.syncReviewCheckFailed,
+                      style: TextStyle(color: AppColors.priorityUrgent)),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      onPressed: () => setState(() => _entries = _load()),
+                      child: Text(l10n.restoreFamilyRetry),
+                    ),
+                  ),
+                ] else if (entries == null)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 12),
+                        Text(l10n.syncReviewChecking),
+                      ],
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints:
+                        BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.45),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final entry in entries)
+                          ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              entry.name == null || entry.name!.isEmpty
+                                  ? _typeLabel(l10n, entry.item.type)
+                                  : '${entry.name} · ${_typeLabel(l10n, entry.item.type)}',
+                            ),
+                            subtitle: Text(
+                              _stateLabel(l10n, entry.item, locale),
+                              style: entry.item.state == ReviewState.cloudNewer
+                                  ? TextStyle(color: AppColors.priorityNormal)
+                                  : null,
+                            ),
+                            trailing: DropdownButton<ReviewChoice>(
+                              value: entry.choice,
+                              underline: const SizedBox.shrink(),
+                              onChanged: _busy
+                                  ? null
+                                  : (c) => setState(() => entry.choice = c ?? entry.choice),
+                              items: [
+                                for (final c in _choicesFor(entry.item))
+                                  DropdownMenuItem(value: c, child: Text(_choiceLabel(l10n, c))),
+                              ],
+                            ),
                           ),
-                          subtitle: name == null || name.isEmpty
-                              ? null
-                              : Text(_typeLabel(l10n, type)),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: _busy ? null : () => _run(sync.uploadHeld),
-              child: Text(l10n.syncReviewUpload),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: _busy ? null : () => _run(sync.discardHeld),
-              child: Text(l10n.syncReviewKeepLocal),
-            ),
-          ],
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: _busy || entries == null
+                      ? null
+                      : () => _run(() => sync.resolveReview({
+                            for (final e in entries) (e.item.type, e.item.entityId): e.choice,
+                          })),
+                  child: Text(l10n.syncReviewApply),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: _busy ? null : () => _run(sync.discardHeld),
+                  child: Text(l10n.syncReviewKeepLocal),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

@@ -244,7 +244,7 @@ class SettingsScreen extends ConsumerWidget {
                             title: Text(l10n.syncReviewTitle(summary.reviewCount)),
                             subtitle: Text(l10n.syncReviewBody),
                             trailing: TextButton(
-                              onPressed: () => showSyncReviewSheet(context, summary.review),
+                              onPressed: () => showSyncReviewSheet(context),
                               child: Text(l10n.syncReviewAction),
                             ),
                           ),

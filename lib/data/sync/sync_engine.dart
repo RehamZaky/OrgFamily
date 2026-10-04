@@ -449,25 +449,95 @@ class SyncEngine {
           o.originUid.isNull() |
           o.originUid.equals(uid).not());
 
-  /// "Upload": the syncing member takes the reviewed changes on as their
-  /// own and they drain like any other.
-  Future<void> uploadHeld() async {
+  /// Compares each entity awaiting review with its live Firestore version,
+  /// so the member decides with the conflicts in view. Needed because an
+  /// upload is a plain `.set()` — it would overwrite a newer cloud version,
+  /// and a held change can be days old. Reads from the server, never the
+  /// cache: throws if Firestore can't be reached, so a stale answer is
+  /// never presented as "safe to upload".
+  Future<List<ReviewItem>> inspectReview() async {
+    final familyId = _activeFamilyId;
+    final uid = _activeUid;
+    if (familyId == null || uid == null) return const [];
+    final rows = await (_db.select(_db.syncOutbox)
+          ..where((o) => _needsReview(o, familyId, uid))
+          ..orderBy([(o) => OrderingTerm.asc(o.createdAt)]))
+        .get();
+    final seen = <(SyncEntityType, String)>{};
+    final items = <ReviewItem>[];
+    for (final row in rows) {
+      if (!seen.add((row.entityType, row.entityId))) continue;
+      final adapter = _adapters[row.entityType];
+      if (adapter == null) continue;
+      final local = await adapter.getLocalById(row.entityId);
+      final remote = await _firestore!
+          .collection(adapter.collectionPath(familyId))
+          .doc(row.entityId)
+          .get(const GetOptions(source: Source.server));
+      final remoteUpdatedAt = (remote.data()?['updatedAt'] as Timestamp?)?.toDate();
+      final localUpdatedAt = local == null ? null : adapter.updatedAtOf(local);
+      items.add(ReviewItem(
+        type: row.entityType,
+        entityId: row.entityId,
+        localUpdatedAt: localUpdatedAt,
+        remoteUpdatedAt: remoteUpdatedAt,
+        state: compareForReview(localUpdatedAt: localUpdatedAt, remoteUpdatedAt: remoteUpdatedAt),
+      ));
+    }
+    return items;
+  }
+
+  /// Applies the member's per-entity decisions from [inspectReview]:
+  /// - [ReviewChoice.upload]: the member takes the change on as their own;
+  ///   it drains like any other (overwriting the cloud version).
+  /// - [ReviewChoice.useCloud]: the cloud version replaces this phone's
+  ///   copy, and the change is dropped.
+  /// - [ReviewChoice.phoneOnly]: the change is dropped from the queue; the
+  ///   edit stays on this phone but never uploads.
+  ///
+  /// Entities not in [choices] are left awaiting review.
+  Future<void> resolveReview(Map<(SyncEntityType, String), ReviewChoice> choices) async {
     final familyId = _activeFamilyId;
     final uid = _activeUid;
     if (familyId == null || uid == null) return;
-    await (_db.update(_db.syncOutbox)..where((o) => _needsReview(o, familyId, uid))).write(
-      SyncOutboxCompanion(
-        status: const Value(SyncOutboxStatus.pending),
-        originUid: Value(uid),
-        attemptCount: const Value(0),
-        nextRetryAt: const Value(null),
-      ),
-    );
+    for (final MapEntry(key: (type, entityId), value: choice) in choices.entries) {
+      Expression<bool> rowsOf($SyncOutboxTable o) =>
+          _needsReview(o, familyId, uid) &
+          o.entityType.equalsValue(type) &
+          o.entityId.equals(entityId);
+      switch (choice) {
+        case ReviewChoice.upload:
+          await (_db.update(_db.syncOutbox)..where(rowsOf)).write(
+            SyncOutboxCompanion(
+              status: const Value(SyncOutboxStatus.pending),
+              originUid: Value(uid),
+              attemptCount: const Value(0),
+              nextRetryAt: const Value(null),
+            ),
+          );
+        case ReviewChoice.useCloud:
+          final adapter = _adapters[type];
+          if (adapter == null) break;
+          final remote = await _firestore!
+              .collection(adapter.collectionPath(familyId))
+              .doc(entityId)
+              .get(const GetOptions(source: Source.server));
+          final data = remote.data();
+          final remoteUpdatedAt = (data?['updatedAt'] as Timestamp?)?.toDate();
+          if (data != null && remoteUpdatedAt != null) {
+            await adapter.applyRemoteUpsert(entityId, data, remoteUpdatedAt);
+          }
+          await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
+        case ReviewChoice.phoneOnly:
+          await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
+      }
+    }
     await drainNow();
   }
 
-  /// "Keep on this device": drops the reviewed changes from the queue. The
-  /// edits themselves stay in the local database; they just won't upload.
+  /// "Keep all on this phone": drops every change awaiting review from the
+  /// queue. The edits stay in the local database; they just won't upload.
+  /// Needs no cloud check, so it works offline too.
   Future<void> discardHeld() async {
     final familyId = _activeFamilyId;
     final uid = _activeUid;
@@ -630,4 +700,60 @@ class SyncEngine {
 Duration listenerRetryDelay(int attempt) {
   const stepsSeconds = [5, 15, 60, 300];
   return Duration(seconds: stepsSeconds[attempt.clamp(0, stepsSeconds.length - 1)]);
+}
+
+/// How a change awaiting review compares with its Firestore version.
+enum ReviewState {
+  /// Not in the cloud at all — uploading only adds it.
+  newOnPhone,
+
+  /// This phone's copy changed after the cloud version did.
+  phoneNewer,
+
+  /// The cloud changed after this phone's copy — uploading would overwrite
+  /// newer information.
+  cloudNewer,
+
+  /// Same version on both sides — nothing to upload.
+  inSync,
+
+  /// The entity no longer exists on this phone.
+  goneLocally,
+}
+
+enum ReviewChoice { upload, useCloud, phoneOnly }
+
+class ReviewItem {
+  const ReviewItem({
+    required this.type,
+    required this.entityId,
+    required this.state,
+    this.localUpdatedAt,
+    this.remoteUpdatedAt,
+  });
+
+  final SyncEntityType type;
+  final String entityId;
+  final ReviewState state;
+  final DateTime? localUpdatedAt;
+  final DateTime? remoteUpdatedAt;
+
+  /// The safe default: upload only what can't overwrite newer cloud data.
+  ReviewChoice get defaultChoice => switch (state) {
+        ReviewState.newOnPhone || ReviewState.phoneNewer => ReviewChoice.upload,
+        ReviewState.cloudNewer || ReviewState.inSync => ReviewChoice.useCloud,
+        ReviewState.goneLocally => ReviewChoice.phoneOnly,
+      };
+}
+
+/// Last-write-wins comparison for [SyncEngine.inspectReview]. Local
+/// `updatedAt` is this phone's clock at edit time and the remote one is
+/// Firestore's server time, so a tie within a second counts as in sync
+/// rather than letting clock skew decide.
+ReviewState compareForReview({DateTime? localUpdatedAt, DateTime? remoteUpdatedAt}) {
+  if (localUpdatedAt == null) return ReviewState.goneLocally;
+  if (remoteUpdatedAt == null) return ReviewState.newOnPhone;
+  final diff = localUpdatedAt.difference(remoteUpdatedAt);
+  if (diff.abs() < const Duration(seconds: 1)) return ReviewState.inSync;
+  return diff.isNegative ? ReviewState.cloudNewer : ReviewState.phoneNewer;
 }

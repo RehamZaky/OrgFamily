@@ -327,11 +327,24 @@ queues every change — as `SyncOutboxStatus.held`, tagged with whoever
 was signed in (`originUid`, null if nobody). Held rows never drain on
 their own. Nor does a row queued under a different account than the one
 syncing now: signing in never makes someone else's changes upload under
-your account. Both kinds show in Settings as "N changes to review"; the
-member can **Upload** them (taking them on as their own — they're
-re-tagged and drain normally) or **Keep on this phone** (the outbox rows
-are dropped; the edits stay in the local database). Until then the rows
-also keep incoming remote updates from overwriting those local edits.
+your account. Both kinds show in Settings as "N changes to review".
+
+Reviewing never uploads blindly. A push is a plain `.set()`, so
+uploading a days-old held change would overwrite whatever newer
+information the family has stored since. `SyncEngine.inspectReview`
+first reads each entity's live cloud version (from the server, never the
+cache — offline, the review can't proceed) and classifies it: not in the
+cloud yet, changed here after the cloud version, **the cloud has a newer
+version**, already in sync, or gone from this phone (a sub-second
+difference counts as in sync, so device clock skew doesn't decide). Per
+entity, the member picks **Upload** (take it on as their own; it drains
+normally), **Use cloud** (the cloud version replaces this phone's copy),
+or **Phone only** (dropped from the queue; the edit stays in the local
+database). The defaults only upload what can't overwrite newer
+information — anything the cloud has a newer version of defaults to the
+cloud version. "Keep all on this phone" needs no cloud check, so it works
+offline. Until resolved, the rows also keep incoming remote updates from
+overwriting those local edits.
 Rows queued before origins were recorded (schema v16) have no
 attributable origin, so the migration holds all of them for review.
 

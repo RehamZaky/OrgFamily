@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -12,7 +13,7 @@ Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 50))
 /// Changes are queued whoever makes them, but only the account syncing now
 /// uploads its own automatically — anything made while not syncing, or by
 /// another account, waits for a member to choose (see
-/// `SyncEngine.enqueueUpsert`/`uploadHeld`/`discardHeld`).
+/// `SyncEngine.enqueueUpsert`/`inspectReview`/`resolveReview`).
 void main() {
   late AppDatabase db;
   late FakeFirebaseFirestore firestore;
@@ -119,22 +120,88 @@ void main() {
     expect(await outbox(), hasLength(1));
   });
 
-  test('uploadHeld: the member takes the reviewed changes on and they upload', () async {
-    await linkedFamily();
-    engine.setSignedInUid('reem');
-    await editMember('held-1');
-    await editMember('held-2');
+  /// A cloud copy of member [id] last written at [at] (server time).
+  Future<void> cloudMember(String id, {required DateTime at, String name = 'Cloud'}) {
+    return firestore.doc('families/$familyId/members/$id').set({
+      'name': name,
+      'avatarEmoji': '👨',
+      'colorValue': 0,
+      'role': 'adult',
+      'birthday': null,
+      'grade': null,
+      'school': null,
+      'notes': null,
+      'linkedUid': null,
+      'createdAt': Timestamp.fromDate(at),
+      'deletedAt': null,
+      'updatedAt': Timestamp.fromDate(at),
+    });
+  }
 
-    engine.start(familyId, 'reem');
-    await _settle();
-    expect(await uploaded('held-1'), isFalse);
+  Future<String?> cloudName(String id) async =>
+      (await firestore.doc('families/$familyId/members/$id').get()).data()?['name'] as String?;
 
-    await engine.uploadHeld();
-    await _settle();
+  Future<String?> localName(String id) async =>
+      (await (db.select(db.familyMembers)..where((m) => m.id.equals(id))).getSingleOrNull())
+          ?.name;
 
-    expect(await uploaded('held-1'), isTrue);
-    expect(await uploaded('held-2'), isTrue);
-    expect(await outbox(), isEmpty);
+  group('reviewing held changes against the cloud', () {
+    // editMember stamps local updatedAt = 2025-01-01.
+    setUp(() async {
+      await linkedFamily();
+      await editMember('new-here'); // no cloud copy
+      await editMember('stale'); // cloud changed later
+      await editMember('fresher'); // changed here after the cloud
+      await cloudMember('stale', at: DateTime(2025, 6, 1));
+      await cloudMember('fresher', at: DateTime(2024, 6, 1));
+      engine.start(familyId, 'kareem');
+      await _settle();
+    });
+
+    test('each change is classified, and only safe ones default to upload', () async {
+      final items = {for (final i in await engine.inspectReview()) i.entityId: i};
+      expect(items['new-here']!.state, ReviewState.newOnPhone);
+      expect(items['stale']!.state, ReviewState.cloudNewer);
+      expect(items['fresher']!.state, ReviewState.phoneNewer);
+      expect(items['new-here']!.defaultChoice, ReviewChoice.upload);
+      expect(items['fresher']!.defaultChoice, ReviewChoice.upload);
+      expect(items['stale']!.defaultChoice, ReviewChoice.useCloud);
+    });
+
+    test('applying the defaults never overwrites a newer cloud version', () async {
+      final items = await engine.inspectReview();
+      await engine.resolveReview({for (final i in items) (i.type, i.entityId): i.defaultChoice});
+      await _settle();
+
+      expect(await cloudName('stale'), 'Cloud'); // untouched...
+      expect(await localName('stale'), 'Cloud'); // ...and this phone took it
+      expect(await cloudName('fresher'), 'Member fresher');
+      expect(await cloudName('new-here'), 'Member new-here');
+      expect(await outbox(), isEmpty);
+    });
+
+    test('the member can still choose to overwrite, or keep a change on the phone', () async {
+      await engine.resolveReview({
+        (SyncEntityType.familyMember, 'stale'): ReviewChoice.upload,
+        (SyncEntityType.familyMember, 'fresher'): ReviewChoice.phoneOnly,
+      });
+      await _settle();
+
+      expect(await cloudName('stale'), 'Member stale');
+      expect(await cloudName('fresher'), 'Cloud');
+      expect(await localName('fresher'), 'Member fresher');
+      // Undecided entities stay awaiting review.
+      expect((await outbox()).map((r) => r.entityId), ['new-here']);
+    });
+  });
+
+  test('clock-skew tolerance when comparing versions', () {
+    final t = DateTime(2025, 1, 1, 12);
+    expect(compareForReview(localUpdatedAt: t, remoteUpdatedAt: t.add(const Duration(milliseconds: 400))),
+        ReviewState.inSync);
+    expect(compareForReview(localUpdatedAt: t, remoteUpdatedAt: t.add(const Duration(minutes: 1))),
+        ReviewState.cloudNewer);
+    expect(compareForReview(localUpdatedAt: null, remoteUpdatedAt: t), ReviewState.goneLocally);
   });
 
   test('discardHeld: the edits stay on this device but never upload', () async {

@@ -638,7 +638,23 @@
   },
   "syncReviewBody": "Made while not syncing, or by another account. They won't upload until you choose.",
   "syncReviewAction": "Review",
-  "syncReviewSheetBody": "These changes were made on this phone while it wasn't syncing as you, so they haven't been shared with the family. Upload them as your changes, or keep them on this phone only.",
+  "syncReviewSheetBody": "These changes were made on this phone while it wasn't syncing as you, so they haven't been shared with the family. Each one has been compared with the family's cloud copy — choose what to do with it.",
+  "syncReviewChecking": "Comparing with the cloud…",
+  "syncReviewCheckFailed": "Couldn't reach the cloud to compare versions. Try again when you're online, or keep these changes on this phone.",
+  "syncReviewConflicts": "{count} {count, plural, one{has} other{have}} a newer version in the cloud — set to use the cloud version.",
+  "@syncReviewConflicts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "syncReviewStateNew": "Not in the cloud yet",
+  "syncReviewStatePhoneNewer": "Changed here after the cloud version",
+  "syncReviewStateCloudNewer": "The cloud has a newer version",
+  "syncReviewStateInSync": "Already matches the cloud",
+  "syncReviewChoiceUpload": "Upload",
+  "syncReviewChoiceUseCloud": "Use cloud",
+  "syncReviewChoicePhoneOnly": "Phone only",
+  "syncReviewApply": "Apply",
   "syncReviewUpload": "Upload",
   "syncReviewKeepLocal": "Keep on this phone",
   "syncReviewTask": "Task",

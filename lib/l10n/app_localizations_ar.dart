@@ -1437,7 +1437,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncReviewSheetBody =>
-      'تمت هذه التغييرات على هذا الهاتف عندما لم يكن يزامن باسمك، لذلك لم تتم مشاركتها مع العائلة. ارفعها كتغييرات خاصة بك، أو احتفظ بها على هذا الهاتف فقط.';
+      'تمت هذه التغييرات على هذا الهاتف عندما لم يكن يزامن باسمك، لذلك لم تتم مشاركتها مع العائلة. تمت مقارنة كل تغيير بنسخة العائلة في السحابة — اختر ما تريد فعله به.';
+
+  @override
+  String get syncReviewChecking => 'جارٍ المقارنة مع السحابة…';
+
+  @override
+  String get syncReviewCheckFailed =>
+      'تعذّر الوصول إلى السحابة لمقارنة النسخ. حاول مرة أخرى عند الاتصال، أو احتفظ بهذه التغييرات على هذا الهاتف.';
+
+  @override
+  String syncReviewConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات لها',
+      one: 'تغيير له',
+    );
+    return '$count $_temp0 نسخة أحدث في السحابة — تم اختيار نسخة السحابة.';
+  }
+
+  @override
+  String get syncReviewStateNew => 'غير موجود في السحابة بعد';
+
+  @override
+  String get syncReviewStatePhoneNewer => 'تم تعديله هنا بعد نسخة السحابة';
+
+  @override
+  String get syncReviewStateCloudNewer => 'السحابة بها نسخة أحدث';
+
+  @override
+  String get syncReviewStateInSync => 'مطابق للسحابة بالفعل';
+
+  @override
+  String get syncReviewChoiceUpload => 'رفع';
+
+  @override
+  String get syncReviewChoiceUseCloud => 'نسخة السحابة';
+
+  @override
+  String get syncReviewChoicePhoneOnly => 'الهاتف فقط';
+
+  @override
+  String get syncReviewApply => 'تطبيق';
 
   @override
   String get syncReviewUpload => 'رفع';
