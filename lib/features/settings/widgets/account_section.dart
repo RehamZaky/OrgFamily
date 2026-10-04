@@ -120,7 +120,7 @@ class AccountSection extends ConsumerWidget {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.zero,
           child: Center(
             child: TextButton.icon(
               onPressed: () => _confirmSignOut(context, ref),
@@ -218,11 +218,11 @@ class _AccountHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final color = status.color(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 22,
+            radius: 20,
             backgroundColor: context.colors.accent.withValues(alpha: 0.15),
             child: Text(
               label.isEmpty ? '?' : label.characters.first.toUpperCase(),
@@ -289,7 +289,7 @@ class _SignedOutHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

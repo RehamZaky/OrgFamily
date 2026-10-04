@@ -38,7 +38,7 @@ class SettingsSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 24, 4, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 20, 4, 8),
       child: Text(label, style: SettingsText.header(context)),
     );
   }
@@ -59,7 +59,7 @@ class SettingsGroup extends StatelessWidget {
         children: [
           for (var i = 0; i < children.length; i++) ...[
             if (i > 0)
-              Divider(height: 1, indent: 16, endIndent: 16, color: context.colors.border),
+              Divider(height: 1, indent: 14, endIndent: 14, color: context.colors.border),
             children[i],
           ],
         ],
@@ -78,13 +78,13 @@ class SettingsIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 36,
-      height: 36,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(icon, size: 20, color: color),
+      child: Icon(icon, size: 18, color: color),
     );
   }
 }
@@ -120,7 +120,7 @@ class SettingsRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           child: Row(
             children: [
               SettingsIcon(icon, color: color),
@@ -185,7 +185,7 @@ class SettingsControlRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 11),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -196,10 +196,10 @@ class SettingsControlRow extends StatelessWidget {
               Expanded(child: Text(title, style: SettingsText.title(context))),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           SizedBox(width: double.infinity, child: control),
           if (hint != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(hint!, style: SettingsText.subtitle(context)),
           ],
         ],
