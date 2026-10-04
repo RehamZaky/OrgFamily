@@ -194,7 +194,32 @@ The point where Firebase actually earns its place.
 ## V2.1 — Family communication
 
 - [ ] Activity feed backed by a real audit log (replacing the derived
-      "recent completions/additions" heuristic in V1)
+      "recent completions/additions" heuristic in V1) — scoped 2026-10-04,
+      deliberately deferred behind hardening. Planned shape:
+  - **Screen**: a dedicated Family Activity screen — a 7-day timeline
+    grouped Today / Yesterday / Earlier this week, a weekly summary (tasks
+    done, events, list updates), filters by member and activity type, and
+    older activity loaded on demand.
+  - **What's recorded** (meaningful actions only, never screen opens or
+    tab changes): tasks created/assigned/completed; events created/
+    changed/cancelled; shopping items added/purchased/removed; a member
+    joined. No financial amounts in the general feed — money activity
+    would get its own permission-gated history.
+  - **Storage**: a Drift table for offline reading plus
+    `families/{familyId}/activities/{activityId}` (`actorUid`,
+    `actorMemberId`, `type`, `entityType`, `entityId`, `createdAt`,
+    `metadata`). Idempotent creation (deterministic activity ids, so an
+    outbox retry can't duplicate an entry) and server timestamps for
+    ordering.
+  - **Identity**: rules can enforce `actorUid == request.auth.uid`, but
+    `actorMemberId` can't be verified while children have no accounts —
+    on a shared parent device it's whichever profile the drawer has
+    selected. Treat it as "on behalf of" until child devices exist; their
+    actions should then be attributed from the child's own credentials,
+    never from a client-supplied member id.
+  - **Depends on features that don't exist yet**: task approval
+    ("awaiting approval" entries) and child-device pairing ("device
+    connected" entries) — add those activity types when those land.
 - [ ] Comments/reactions on tasks and events
 
 ## V3+ — Everything else from the original concept
