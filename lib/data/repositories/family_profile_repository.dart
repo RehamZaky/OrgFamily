@@ -117,9 +117,22 @@ class FamilyProfileRepository {
           FamilyProfileCompanion.insert(
             id: const Value(_rowId),
             familyId: Value(familyId),
+            joinedUid: Value(uid),
             updatedAt: Value(DateTime.fromMillisecondsSinceEpoch(0)),
           ),
         );
     _sync.start(familyId);
+  }
+
+  /// Records that [uid] holds an invite grant for this device's *existing*
+  /// family — for an adult who claimed an invite on a device that already
+  /// has the family locally (e.g. the Owner's phone), or for a device whose
+  /// join predates the local `joinedUid` marker and was confirmed against
+  /// Firestore's `joinedUids/{uid}` instead. Unlike [recordJoin], touches
+  /// nothing but the marker: familyId is already right and `updatedAt`
+  /// must keep its real value for last-write-wins.
+  Future<void> markJoined(String uid) {
+    return (_db.update(_db.familyProfile)..where((p) => p.id.equals(_rowId)))
+        .write(FamilyProfileCompanion(joinedUid: Value(uid)));
   }
 }

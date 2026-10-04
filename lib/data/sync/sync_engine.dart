@@ -42,7 +42,32 @@ class SyncEngine {
   bool _draining = false;
   bool _drainRequestedAgain = false;
 
+  final _listenerErrorChanges = StreamController<String?>.broadcast();
+  String? _listenerError;
+
   String? get activeFamilyId => _activeFamilyId;
+
+  /// The error code (e.g. `permission-denied`) that stopped a live
+  /// listener for the active family, or null while all are healthy.
+  /// Firestore ends a listener's stream after an error, so this stays set
+  /// until the next [start]/[stop] rather than clearing on its own.
+  String? get listenerError => _listenerError;
+
+  /// Emits whenever [listenerError] changes — for Settings' sync status.
+  Stream<String?> get listenerErrorChanges => _listenerErrorChanges.stream;
+
+  void _setListenerError(String? code) {
+    if (_listenerError == code) return;
+    _listenerError = code;
+    _listenerErrorChanges.add(code);
+  }
+
+  /// A listener's `onError` — without one, every denied or failed
+  /// listener surfaces as an unhandled async exception instead of a sync
+  /// status the user can see.
+  void _onListenerError(Object error) {
+    _setListenerError(error is FirebaseException ? error.code : 'unknown');
+  }
 
   /// Begins syncing against [familyId]: runs the initial reconciliation
   /// pass if needed, drains the outbox, and only then attaches a live
@@ -88,6 +113,7 @@ class SyncEngine {
     }
     _subscriptions.clear();
     _activeFamilyId = null;
+    _setListenerError(null);
   }
 
   void _listen(SyncAdapter adapter, String familyId) {
@@ -108,7 +134,7 @@ class SyncEngine {
           // consistent with the collection branch below rather than
           // crashing the whole listener over one bad merge.
         }
-      });
+      }, onError: _onListenerError);
       _subscriptions.add(sub);
       return;
     }
@@ -133,7 +159,7 @@ class SyncEngine {
           // propagate could lose a legitimate sibling update indefinitely.
         }
       }
-    });
+    }, onError: _onListenerError);
     _subscriptions.add(sub);
   }
 

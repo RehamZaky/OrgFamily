@@ -9,6 +9,7 @@ import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/screens/join_family_screen.dart';
 import '../../auth/screens/sign_in_screen.dart';
 import '../../family/providers/family_providers.dart';
 import '../../family/screens/invite_family_member_screen.dart';
@@ -161,11 +162,34 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   Builder(
                     builder: (context) {
+                      if (ref.watch(cloudAccessProvider) == CloudAccess.notMember) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            child: ListTile(
+                              leading: Icon(Icons.cloud_off_outlined,
+                                  color: AppColors.priorityNormal),
+                              title: Text(l10n.cloudNotMemberTitle),
+                              subtitle: Text(l10n.cloudNotMemberBody),
+                              trailing: TextButton(
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const JoinFamilyScreen(),
+                                  ),
+                                ),
+                                child: Text(l10n.cloudNotMemberAction),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
                       final isActive = ref.watch(isCloudSyncActiveProvider);
                       if (!isActive) return const SizedBox.shrink();
                       final summary = ref.watch(syncOutboxSummaryProvider).valueOrNull;
                       final failed = summary?.failed ?? 0;
                       final pending = summary?.pending ?? 0;
+                      final listenerError = ref.watch(syncListenerErrorProvider).valueOrNull;
                       final upToDate = failed == 0 && pending == 0;
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
@@ -173,18 +197,22 @@ class SettingsScreen extends ConsumerWidget {
                           margin: EdgeInsets.zero,
                           child: ListTile(
                             leading: Icon(
-                              failed > 0
+                              failed > 0 || listenerError != null
                                   ? Icons.cloud_off_outlined
                                   : Icons.cloud_sync_outlined,
-                              color: failed > 0 ? AppColors.priorityUrgent : AppColors.primary,
+                              color: failed > 0 || listenerError != null
+                                  ? AppColors.priorityUrgent
+                                  : AppColors.primary,
                             ),
                             title: const Text('Cloud sync'),
                             subtitle: Text(
                               failed > 0
                                   ? '$failed change${failed == 1 ? '' : 's'} need attention'
-                                  : upToDate
-                                      ? 'Up to date'
-                                      : '$pending change${pending == 1 ? '' : 's'} syncing',
+                                  : listenerError != null
+                                      ? l10n.syncListenerError(listenerError)
+                                      : upToDate
+                                          ? 'Up to date'
+                                          : '$pending change${pending == 1 ? '' : 's'} syncing',
                             ),
                             trailing: (failed > 0 || pending > 0)
                                 ? TextButton(

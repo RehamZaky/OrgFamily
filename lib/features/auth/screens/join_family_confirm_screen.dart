@@ -45,6 +45,23 @@ class _JoinFamilyConfirmScreenState
       _joining = true;
       _error = null;
     });
+    // Joining from Settings' "Not syncing this family" card happens on a
+    // device that already has a family. Only an invite for *that* family
+    // makes sense there — checked before claiming so a wrong code isn't
+    // burned on a join that can't proceed.
+    final localFamilyId = (await ref
+            .read(familyProfileRepositoryProvider)
+            .watchProfile()
+            .first)
+        ?.familyId;
+    if (!mounted) return;
+    if (localFamilyId != null && localFamilyId != _invite.familyId) {
+      setState(() {
+        _error = l10n.joinErrorOtherFamily;
+        _joining = false;
+      });
+      return;
+    }
     try {
       await ref.read(familyInviteRepositoryProvider).claimInvite(_invite, uid);
     } on FirebaseException catch (e) {
@@ -76,6 +93,14 @@ class _JoinFamilyConfirmScreenState
       usedByUid: uid,
       inviterName: _invite.inviterName,
     );
+    if (localFamilyId != null) {
+      // This device already has the family and the account's own member
+      // profile, so there's no profile to set up — just record the grant,
+      // which is what lets sync start for this account.
+      await ref.read(familyProfileRepositoryProvider).markJoined(uid);
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(

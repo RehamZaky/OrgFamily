@@ -625,6 +625,16 @@
   "joinErrorUsed": "This invite has already been used. Ask for a new one.",
   "joinErrorExpired": "This invite has expired. Ask for a new one.",
   "joinErrorGeneric": "Something went wrong. Please check your connection and try again.",
+  "joinErrorOtherFamily": "This device already belongs to a different family, so this invite can't be used here.",
+  "cloudNotMemberTitle": "Not syncing this family",
+  "cloudNotMemberBody": "This account isn't a member of this family's cloud yet. Ask a family member for an invite code.",
+  "cloudNotMemberAction": "Enter code",
+  "syncListenerError": "Can't receive cloud updates ({code})",
+  "@syncListenerError": {
+    "placeholders": {
+      "code": {}
+    }
+  },
   "joinConfirmTitleNamed": "Join {name}'s family?",
   "@joinConfirmTitleNamed": {
     "placeholders": {

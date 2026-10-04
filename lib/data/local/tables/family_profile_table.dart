@@ -16,6 +16,14 @@ class FamilyProfile extends Table {
   // first (an Adult can link before the Owner does). See
   // docs/architecture.md "Family identity and authentication".
   TextColumn get ownerUid => text().nullable()();
+  // The uid that joined this family on *this device* by claiming an
+  // invite (see `FamilyProfileRepository.recordJoin`/`markJoined`). Local
+  // only, never synced. Together with [ownerUid] it decides which signed-in
+  // account may sync: Firestore only admits the owner or an invite-joined
+  // uid, so any other account on this device must not start sync at all.
+  // See `activeSyncFamilyIdProvider` and docs/architecture.md "Family
+  // invitations".
+  TextColumn get joinedUid => text().nullable()();
   /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt` doc
   /// comment. No `deletedAt`: this singleton row is never deleted, only
   /// ever upserted.

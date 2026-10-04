@@ -2528,6 +2528,36 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please check your connection and try again.'**
   String get joinErrorGeneric;
 
+  /// No description provided for @joinErrorOtherFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'This device already belongs to a different family, so this invite can\'t be used here.'**
+  String get joinErrorOtherFamily;
+
+  /// No description provided for @cloudNotMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not syncing this family'**
+  String get cloudNotMemberTitle;
+
+  /// No description provided for @cloudNotMemberBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account isn\'t a member of this family\'s cloud yet. Ask a family member for an invite code.'**
+  String get cloudNotMemberBody;
+
+  /// No description provided for @cloudNotMemberAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get cloudNotMemberAction;
+
+  /// No description provided for @syncListenerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t receive cloud updates ({code})'**
+  String syncListenerError(Object code);
+
   /// No description provided for @joinConfirmTitleNamed.
   ///
   /// In en, this message translates to:

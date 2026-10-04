@@ -76,38 +76,95 @@ final familyProfileStreamProvider = StreamProvider<FamilyProfileData?>((ref) {
   return ref.watch(familyProfileRepositoryProvider).watchProfile();
 });
 
-/// The familyId [syncEngineProvider] should be syncing against right now,
-/// or null if it shouldn't be syncing at all — signed out, or linked but
-/// not yet confirmed. Confirmation is either an `ownerUid` (see
-/// `FamilyProfileSyncAdapter`'s doc comment on why "has an ownerUid", not
-/// just "has a familyId", is the bar for the real Owner) or, for a
-/// second adult who joined via `FamilyInviteRepository` (see
-/// docs/architecture.md "Family invitations"), having actually linked a
-/// local member to this signed-in uid themselves — a joiner's local
-/// `ownerUid` only ever arrives *through* this same sync starting (it's
-/// pulled down from the family doc), so gating on it here would be a
-/// deadlock: sync could never start for them at all. `RootScaffold`
-/// listens to this and calls `SyncEngine.start`/`stop` accordingly.
-/// Not exposed outside this file — `features/family/providers/family_providers.dart`
-/// has its own public `familyMembersProvider` for screens to watch, but it
-/// imports this file already (for `familyRepositoryProvider`), so this file
-/// can't import it back without a cycle. A second stream subscription to
-/// the same underlying Drift query is cheap, so duplicating it here rather
-/// than restructuring that layering is the simpler trade.
-final _localMembersProvider = StreamProvider<List<FamilyMember>>((ref) {
-  return ref.watch(familyRepositoryProvider).watchMembers();
+/// Whether the signed-in account may sync this device's family, and if
+/// not, why — drives both [activeSyncFamilyIdProvider] and Settings' cloud
+/// cards.
+enum CloudAccess {
+  /// Signed out, or this device's family has never been linked to the
+  /// cloud — nothing to sync and nothing to explain.
+  none,
+
+  /// The family is linked but its Owner hasn't linked yet, so no cloud
+  /// family doc exists to sync against (an Adult linked first).
+  awaitingOwner,
+
+  /// The signed-in uid is the family's owner, or joined it via an invite.
+  member,
+
+  /// Signed in with an account Firestore won't admit to this family —
+  /// neither its owner nor invite-joined. Sync stays off rather than
+  /// queueing writes the security rules will always deny.
+  notMember,
+}
+
+/// Decides [CloudAccess] for the signed-in account. Firestore admits only
+/// the family doc's `ownerUid` or a uid with a `joinedUids/{uid}` grant
+/// (see firestore.rules), so this mirrors exactly that: a match on the
+/// local `ownerUid`, or on `joinedUid`, the local record of an invite
+/// claimed on this device (`FamilyProfileRepository.recordJoin`/
+/// `markJoined`). Merely having a local member linked to the uid is *not*
+/// enough — linking on a device that already has a family
+/// (`LinkMemberScreen`) records who you are locally but grants no cloud
+/// access, which is how a second adult signing in on the owner's phone
+/// used to start a sync whose every read and write was denied.
+///
+/// A joiner's local `ownerUid` stays null until sync pulls the family doc
+/// down, so `joinedUid` (set before sync starts) is what lets their sync
+/// start at all — gating on `ownerUid` alone would deadlock.
+final cloudAccessProvider = Provider<CloudAccess>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return CloudAccess.none;
+  final profile = ref.watch(familyProfileStreamProvider).valueOrNull;
+  if (profile?.familyId == null) return CloudAccess.none;
+  if (profile!.ownerUid == user.uid || profile.joinedUid == user.uid) {
+    return CloudAccess.member;
+  }
+  if (profile.ownerUid == null) return CloudAccess.awaitingOwner;
+  // Not a member by local records — but a device that joined before the
+  // `joinedUid` marker existed has no local record either, so confirm
+  // against Firestore once before deciding. A confirmed grant writes the
+  // marker, which re-runs this provider as a member.
+  final remotelyJoined = ref.watch(_remoteJoinGrantProvider((profile.familyId!, user.uid)));
+  return remotelyJoined.valueOrNull == true ? CloudAccess.member : CloudAccess.notMember;
 });
 
+/// One-shot check for a `families/{familyId}/joinedUids/{uid}` grant —
+/// see [cloudAccessProvider]. A non-member's read is denied by the rules
+/// (the grant doc is only readable by members), which counts as "no".
+final _remoteJoinGrantProvider =
+    FutureProvider.family<bool, (String, String)>((ref, args) async {
+  if (!isFirebaseAuthSupportedPlatform) return false;
+  final (familyId, uid) = args;
+  try {
+    final doc = await ref
+        .watch(firestoreProvider)
+        .collection('families')
+        .doc(familyId)
+        .collection('joinedUids')
+        .doc(uid)
+        .get();
+    if (!doc.exists) return false;
+    await ref.read(familyProfileRepositoryProvider).markJoined(uid);
+    return true;
+  } catch (_) {
+    return false;
+  }
+});
+
+/// The familyId [syncEngineProvider] should be syncing against right now,
+/// or null if it shouldn't be syncing at all — see [cloudAccessProvider].
+/// `RootScaffold` listens to this and calls `SyncEngine.start`/`stop`
+/// accordingly.
 final activeSyncFamilyIdProvider = Provider<String?>((ref) {
-  final user = ref.watch(authStateProvider).valueOrNull;
-  if (user == null) return null;
-  final profile = ref.watch(familyProfileStreamProvider).valueOrNull;
-  final familyId = profile?.familyId;
-  if (familyId == null) return null;
-  if (profile?.ownerUid != null) return familyId;
-  final members = ref.watch(_localMembersProvider).valueOrNull ?? [];
-  final joinedAsSelf = members.any((m) => m.linkedUid == user.uid);
-  return joinedAsSelf ? familyId : null;
+  if (ref.watch(cloudAccessProvider) != CloudAccess.member) return null;
+  return ref.watch(familyProfileStreamProvider).valueOrNull?.familyId;
+});
+
+/// See [SyncEngine.listenerError].
+final syncListenerErrorProvider = StreamProvider<String?>((ref) async* {
+  final engine = ref.watch(syncEngineProvider);
+  yield engine.listenerError;
+  yield* engine.listenerErrorChanges;
 });
 
 final isCloudSyncActiveProvider = Provider<bool>((ref) {

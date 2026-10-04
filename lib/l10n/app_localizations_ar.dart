@@ -1399,6 +1399,25 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدث خطأ ما. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
 
   @override
+  String get joinErrorOtherFamily =>
+      'هذا الجهاز مرتبط بعائلة أخرى بالفعل، لذا لا يمكن استخدام هذه الدعوة هنا.';
+
+  @override
+  String get cloudNotMemberTitle => 'لا تتم مزامنة هذه العائلة';
+
+  @override
+  String get cloudNotMemberBody =>
+      'هذا الحساب ليس عضوًا في سحابة هذه العائلة بعد. اطلب رمز دعوة من أحد أفراد العائلة.';
+
+  @override
+  String get cloudNotMemberAction => 'إدخال الرمز';
+
+  @override
+  String syncListenerError(Object code) {
+    return 'تعذّر استلام تحديثات السحابة ($code)';
+  }
+
+  @override
   String joinConfirmTitleNamed(Object name) {
     return 'الانضمام إلى عائلة $name؟';
   }

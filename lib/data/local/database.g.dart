@@ -4880,6 +4880,17 @@ class $FamilyProfileTable extends FamilyProfile
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _joinedUidMeta = const VerificationMeta(
+    'joinedUid',
+  );
+  @override
+  late final GeneratedColumn<String> joinedUid = GeneratedColumn<String>(
+    'joined_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -4909,6 +4920,7 @@ class $FamilyProfileTable extends FamilyProfile
     photoPath,
     familyId,
     ownerUid,
+    joinedUid,
     updatedAt,
     initialCloudMigrationCompletedAt,
   ];
@@ -4943,6 +4955,12 @@ class $FamilyProfileTable extends FamilyProfile
       context.handle(
         _ownerUidMeta,
         ownerUid.isAcceptableOrUnknown(data['owner_uid']!, _ownerUidMeta),
+      );
+    }
+    if (data.containsKey('joined_uid')) {
+      context.handle(
+        _joinedUidMeta,
+        joinedUid.isAcceptableOrUnknown(data['joined_uid']!, _joinedUidMeta),
       );
     }
     if (data.containsKey('updated_at')) {
@@ -4985,6 +5003,10 @@ class $FamilyProfileTable extends FamilyProfile
         DriftSqlType.string,
         data['${effectivePrefix}owner_uid'],
       ),
+      joinedUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}joined_uid'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -5008,6 +5030,7 @@ class FamilyProfileData extends DataClass
   final String? photoPath;
   final String? familyId;
   final String? ownerUid;
+  final String? joinedUid;
 
   /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt` doc
   /// comment. No `deletedAt`: this singleton row is never deleted, only
@@ -5027,6 +5050,7 @@ class FamilyProfileData extends DataClass
     this.photoPath,
     this.familyId,
     this.ownerUid,
+    this.joinedUid,
     required this.updatedAt,
     this.initialCloudMigrationCompletedAt,
   });
@@ -5042,6 +5066,9 @@ class FamilyProfileData extends DataClass
     }
     if (!nullToAbsent || ownerUid != null) {
       map['owner_uid'] = Variable<String>(ownerUid);
+    }
+    if (!nullToAbsent || joinedUid != null) {
+      map['joined_uid'] = Variable<String>(joinedUid);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || initialCloudMigrationCompletedAt != null) {
@@ -5064,6 +5091,9 @@ class FamilyProfileData extends DataClass
       ownerUid: ownerUid == null && nullToAbsent
           ? const Value.absent()
           : Value(ownerUid),
+      joinedUid: joinedUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(joinedUid),
       updatedAt: Value(updatedAt),
       initialCloudMigrationCompletedAt:
           initialCloudMigrationCompletedAt == null && nullToAbsent
@@ -5082,6 +5112,7 @@ class FamilyProfileData extends DataClass
       photoPath: serializer.fromJson<String?>(json['photoPath']),
       familyId: serializer.fromJson<String?>(json['familyId']),
       ownerUid: serializer.fromJson<String?>(json['ownerUid']),
+      joinedUid: serializer.fromJson<String?>(json['joinedUid']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       initialCloudMigrationCompletedAt: serializer.fromJson<DateTime?>(
         json['initialCloudMigrationCompletedAt'],
@@ -5096,6 +5127,7 @@ class FamilyProfileData extends DataClass
       'photoPath': serializer.toJson<String?>(photoPath),
       'familyId': serializer.toJson<String?>(familyId),
       'ownerUid': serializer.toJson<String?>(ownerUid),
+      'joinedUid': serializer.toJson<String?>(joinedUid),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'initialCloudMigrationCompletedAt': serializer.toJson<DateTime?>(
         initialCloudMigrationCompletedAt,
@@ -5108,6 +5140,7 @@ class FamilyProfileData extends DataClass
     Value<String?> photoPath = const Value.absent(),
     Value<String?> familyId = const Value.absent(),
     Value<String?> ownerUid = const Value.absent(),
+    Value<String?> joinedUid = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> initialCloudMigrationCompletedAt = const Value.absent(),
   }) => FamilyProfileData(
@@ -5115,6 +5148,7 @@ class FamilyProfileData extends DataClass
     photoPath: photoPath.present ? photoPath.value : this.photoPath,
     familyId: familyId.present ? familyId.value : this.familyId,
     ownerUid: ownerUid.present ? ownerUid.value : this.ownerUid,
+    joinedUid: joinedUid.present ? joinedUid.value : this.joinedUid,
     updatedAt: updatedAt ?? this.updatedAt,
     initialCloudMigrationCompletedAt: initialCloudMigrationCompletedAt.present
         ? initialCloudMigrationCompletedAt.value
@@ -5126,6 +5160,7 @@ class FamilyProfileData extends DataClass
       photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
       familyId: data.familyId.present ? data.familyId.value : this.familyId,
       ownerUid: data.ownerUid.present ? data.ownerUid.value : this.ownerUid,
+      joinedUid: data.joinedUid.present ? data.joinedUid.value : this.joinedUid,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       initialCloudMigrationCompletedAt:
           data.initialCloudMigrationCompletedAt.present
@@ -5141,6 +5176,7 @@ class FamilyProfileData extends DataClass
           ..write('photoPath: $photoPath, ')
           ..write('familyId: $familyId, ')
           ..write('ownerUid: $ownerUid, ')
+          ..write('joinedUid: $joinedUid, ')
           ..write('updatedAt: $updatedAt, ')
           ..write(
             'initialCloudMigrationCompletedAt: $initialCloudMigrationCompletedAt',
@@ -5155,6 +5191,7 @@ class FamilyProfileData extends DataClass
     photoPath,
     familyId,
     ownerUid,
+    joinedUid,
     updatedAt,
     initialCloudMigrationCompletedAt,
   );
@@ -5166,6 +5203,7 @@ class FamilyProfileData extends DataClass
           other.photoPath == this.photoPath &&
           other.familyId == this.familyId &&
           other.ownerUid == this.ownerUid &&
+          other.joinedUid == this.joinedUid &&
           other.updatedAt == this.updatedAt &&
           other.initialCloudMigrationCompletedAt ==
               this.initialCloudMigrationCompletedAt);
@@ -5176,6 +5214,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
   final Value<String?> photoPath;
   final Value<String?> familyId;
   final Value<String?> ownerUid;
+  final Value<String?> joinedUid;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> initialCloudMigrationCompletedAt;
   const FamilyProfileCompanion({
@@ -5183,6 +5222,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     this.photoPath = const Value.absent(),
     this.familyId = const Value.absent(),
     this.ownerUid = const Value.absent(),
+    this.joinedUid = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.initialCloudMigrationCompletedAt = const Value.absent(),
   });
@@ -5191,6 +5231,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     this.photoPath = const Value.absent(),
     this.familyId = const Value.absent(),
     this.ownerUid = const Value.absent(),
+    this.joinedUid = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.initialCloudMigrationCompletedAt = const Value.absent(),
   });
@@ -5199,6 +5240,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     Expression<String>? photoPath,
     Expression<String>? familyId,
     Expression<String>? ownerUid,
+    Expression<String>? joinedUid,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? initialCloudMigrationCompletedAt,
   }) {
@@ -5207,6 +5249,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
       if (photoPath != null) 'photo_path': photoPath,
       if (familyId != null) 'family_id': familyId,
       if (ownerUid != null) 'owner_uid': ownerUid,
+      if (joinedUid != null) 'joined_uid': joinedUid,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (initialCloudMigrationCompletedAt != null)
         'initial_cloud_migration_completed_at':
@@ -5219,6 +5262,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     Value<String?>? photoPath,
     Value<String?>? familyId,
     Value<String?>? ownerUid,
+    Value<String?>? joinedUid,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? initialCloudMigrationCompletedAt,
   }) {
@@ -5227,6 +5271,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
       photoPath: photoPath ?? this.photoPath,
       familyId: familyId ?? this.familyId,
       ownerUid: ownerUid ?? this.ownerUid,
+      joinedUid: joinedUid ?? this.joinedUid,
       updatedAt: updatedAt ?? this.updatedAt,
       initialCloudMigrationCompletedAt:
           initialCloudMigrationCompletedAt ??
@@ -5249,6 +5294,9 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     if (ownerUid.present) {
       map['owner_uid'] = Variable<String>(ownerUid.value);
     }
+    if (joinedUid.present) {
+      map['joined_uid'] = Variable<String>(joinedUid.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -5267,6 +5315,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
           ..write('photoPath: $photoPath, ')
           ..write('familyId: $familyId, ')
           ..write('ownerUid: $ownerUid, ')
+          ..write('joinedUid: $joinedUid, ')
           ..write('updatedAt: $updatedAt, ')
           ..write(
             'initialCloudMigrationCompletedAt: $initialCloudMigrationCompletedAt',
@@ -12127,6 +12176,7 @@ typedef $$FamilyProfileTableCreateCompanionBuilder =
       Value<String?> photoPath,
       Value<String?> familyId,
       Value<String?> ownerUid,
+      Value<String?> joinedUid,
       Value<DateTime> updatedAt,
       Value<DateTime?> initialCloudMigrationCompletedAt,
     });
@@ -12136,6 +12186,7 @@ typedef $$FamilyProfileTableUpdateCompanionBuilder =
       Value<String?> photoPath,
       Value<String?> familyId,
       Value<String?> ownerUid,
+      Value<String?> joinedUid,
       Value<DateTime> updatedAt,
       Value<DateTime?> initialCloudMigrationCompletedAt,
     });
@@ -12166,6 +12217,11 @@ class $$FamilyProfileTableFilterComposer
 
   ColumnFilters<String> get ownerUid => $composableBuilder(
     column: $table.ownerUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get joinedUid => $composableBuilder(
+    column: $table.joinedUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12210,6 +12266,11 @@ class $$FamilyProfileTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get joinedUid => $composableBuilder(
+    column: $table.joinedUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12242,6 +12303,9 @@ class $$FamilyProfileTableAnnotationComposer
 
   GeneratedColumn<String> get ownerUid =>
       $composableBuilder(column: $table.ownerUid, builder: (column) => column);
+
+  GeneratedColumn<String> get joinedUid =>
+      $composableBuilder(column: $table.joinedUid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -12292,6 +12356,7 @@ class $$FamilyProfileTableTableManager
                 Value<String?> photoPath = const Value.absent(),
                 Value<String?> familyId = const Value.absent(),
                 Value<String?> ownerUid = const Value.absent(),
+                Value<String?> joinedUid = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> initialCloudMigrationCompletedAt =
                     const Value.absent(),
@@ -12300,6 +12365,7 @@ class $$FamilyProfileTableTableManager
                 photoPath: photoPath,
                 familyId: familyId,
                 ownerUid: ownerUid,
+                joinedUid: joinedUid,
                 updatedAt: updatedAt,
                 initialCloudMigrationCompletedAt:
                     initialCloudMigrationCompletedAt,
@@ -12310,6 +12376,7 @@ class $$FamilyProfileTableTableManager
                 Value<String?> photoPath = const Value.absent(),
                 Value<String?> familyId = const Value.absent(),
                 Value<String?> ownerUid = const Value.absent(),
+                Value<String?> joinedUid = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> initialCloudMigrationCompletedAt =
                     const Value.absent(),
@@ -12318,6 +12385,7 @@ class $$FamilyProfileTableTableManager
                 photoPath: photoPath,
                 familyId: familyId,
                 ownerUid: ownerUid,
+                joinedUid: joinedUid,
                 updatedAt: updatedAt,
                 initialCloudMigrationCompletedAt:
                     initialCloudMigrationCompletedAt,

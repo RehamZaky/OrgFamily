@@ -49,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   /// Whether [table] already has [column] — lets a migration step check
   /// before altering, so it's safe to resume after a partial failure (see
@@ -212,6 +212,14 @@ class AppDatabase extends _$AppDatabase {
             }
             if (!await _tableExists('sync_outbox')) {
               await m.createTable(syncOutbox);
+            }
+          }
+          if (from < 15) {
+            // Local record of which uid joined this family via an invite on
+            // this device — sync is now gated on "owner or invite-joined",
+            // not just "signed in" (see family_profile_table.dart).
+            if (!await _columnExists('family_profile', 'joined_uid')) {
+              await m.addColumn(familyProfile, familyProfile.joinedUid);
             }
           }
         },

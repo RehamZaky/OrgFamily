@@ -1350,6 +1350,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something went wrong. Please check your connection and try again.';
 
   @override
+  String get joinErrorOtherFamily =>
+      'This device already belongs to a different family, so this invite can\'t be used here.';
+
+  @override
+  String get cloudNotMemberTitle => 'Not syncing this family';
+
+  @override
+  String get cloudNotMemberBody =>
+      'This account isn\'t a member of this family\'s cloud yet. Ask a family member for an invite code.';
+
+  @override
+  String get cloudNotMemberAction => 'Enter code';
+
+  @override
+  String syncListenerError(Object code) {
+    return 'Can\'t receive cloud updates ($code)';
+  }
+
+  @override
   String joinConfirmTitleNamed(Object name) {
     return 'Join $name\'s family?';
   }
