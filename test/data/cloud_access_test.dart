@@ -78,6 +78,7 @@ void main() {
       firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
       syncEngineProvider.overrideWithValue(engine),
       cloudMembershipRepositoryProvider.overrideWithValue(membership),
+      membershipRetryDelayProvider.overrideWithValue(const Duration(milliseconds: 20)),
       authStateProvider.overrideWith(
         (ref) => Stream.value(signedInUid == null ? null : _FakeUser(signedInUid)),
       ),
@@ -170,6 +171,24 @@ void main() {
     membership.status = MembershipStatus.member;
     final (access, _) = await evaluate('second-adult');
     expect(access, CloudAccess.member);
+    expect((await profiles.watchProfile().first)!.joinedUid, 'second-adult');
+  });
+
+  test('offline with no local record: still checking, never "not a member"', () async {
+    // A member from before the local record existed opens the app offline.
+    await profiles.recordLink(uid: 'owner', isOwner: true);
+    membership.status = MembershipStatus.unknown;
+    final container = await containerFor('second-adult');
+    expect(container.read(cloudAccessProvider), CloudAccess.none);
+    expect(container.read(activeSyncFamilyIdProvider), isNull);
+
+    // The connection returns; the retry asks again without any other trigger.
+    membership.status = MembershipStatus.member;
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    await settle();
+
+    expect(container.read(cloudAccessProvider), CloudAccess.member);
+    expect(container.read(activeSyncFamilyIdProvider), isNotNull);
     expect((await profiles.watchProfile().first)!.joinedUid, 'second-adult');
   });
 

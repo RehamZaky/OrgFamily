@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
@@ -215,6 +217,40 @@ void main() {
     expect(compareForReview(localUpdatedAt: null, remoteUpdatedAt: t), ReviewState.goneLocally);
   });
 
+  test("an account switch mid-drain stops the previous account's drain", () async {
+    // An adapter whose first local read blocks until released — holds
+    // Kareem's drain mid-loop, after it has read its rows.
+    final gate = Completer<void>();
+    final gated = _GatedMemberAdapter(db, gate.future);
+    engine = SyncEngine(db, firestore, [gated]);
+    await linkedFamily();
+    for (final id in ['k1', 'k2']) {
+      await db.into(db.familyMembers).insert(
+            FamilyMembersCompanion.insert(id: id, name: id, colorValue: 0),
+          );
+      await db.into(db.syncOutbox).insert(
+            SyncOutboxCompanion.insert(
+              familyId: familyId,
+              entityType: SyncEntityType.familyMember,
+              entityId: id,
+              operation: SyncOperation.upsert,
+              originUid: const Value('kareem'),
+            ),
+          );
+    }
+
+    engine.start(familyId, 'kareem');
+    await gated.blocked.future; // Kareem's drain is now pushing k1
+    // Same family, different account — the family id still matches, so
+    // only a per-session check can stop the old loop.
+    engine.start(familyId, 'reem');
+    gate.complete();
+    await _settle();
+
+    expect(await uploaded('k2'), isFalse);
+    expect((await outbox()).map((r) => r.entityId), contains('k2'));
+  });
+
   test('discardHeld: the edits stay on this device but never upload', () async {
     await linkedFamily();
     await editMember('held-1');
@@ -246,4 +282,20 @@ void main() {
       [5, 15, 60, 300, 300, 300],
     );
   });
+}
+
+class _GatedMemberAdapter extends FamilyMemberSyncAdapter {
+  _GatedMemberAdapter(super.db, this._gate);
+
+  final Future<void> _gate;
+  final blocked = Completer<void>();
+
+  @override
+  Future<FamilyMember?> getLocalById(String id) async {
+    if (!blocked.isCompleted) {
+      blocked.complete();
+      await _gate;
+    }
+    return super.getLocalById(id);
+  }
 }

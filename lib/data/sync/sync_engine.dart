@@ -46,6 +46,14 @@ class SyncEngine {
   /// origin of changes queued while sync is off. See [setSignedInUid].
   String? _signedInUid;
 
+  /// Bumped by every [start] and [stop]. Async work captures it when it
+  /// begins and bails once it changes — comparing only the family id isn't
+  /// enough, since [start] can restart the *same* family under a different
+  /// account, and a drain or activation still in flight for the previous
+  /// account must not carry on (pushing that account's rows, or attaching
+  /// a second set of listeners) once someone else is signed in.
+  int _session = 0;
+
   Timer? _listenerRetryTimer;
   int _listenerRetryAttempt = 0;
   final _accessDenied = StreamController<void>.broadcast();
@@ -104,10 +112,11 @@ class SyncEngine {
     final familyId = _activeFamilyId;
     if (familyId == null || _listenerRetryTimer != null) return;
     _cancelListeners();
+    final session = _session;
     final delay = listenerRetryDelay(_listenerRetryAttempt++);
     _listenerRetryTimer = Timer(delay, () {
       _listenerRetryTimer = null;
-      if (_activeFamilyId == familyId) _attachListeners(familyId);
+      if (_session == session) _attachListeners(familyId);
     });
   }
 
@@ -153,15 +162,16 @@ class SyncEngine {
     _activeFamilyId = familyId;
     _activeUid = uid;
     _signedInUid = uid;
-    Zone.root.run(() => unawaited(_activateSync(familyId, uid)));
+    final session = _session;
+    Zone.root.run(() => unawaited(_activateSync(familyId, uid, session)));
   }
 
-  Future<void> _activateSync(String familyId, String uid) async {
-    await _runInitialReconciliationIfNeeded(familyId);
+  Future<void> _activateSync(String familyId, String uid, int session) async {
+    await _runInitialReconciliationIfNeeded(familyId, session);
     await drainNow();
     // A stop()/different start() may have run while the above awaited —
-    // don't attach listeners for a family that's no longer the active one.
-    if (_activeFamilyId != familyId) return;
+    // don't attach listeners for a session that's no longer the active one.
+    if (_session != session) return;
     _attachListeners(familyId);
     await _writeMembershipIndex(familyId, uid);
   }
@@ -181,7 +191,7 @@ class SyncEngine {
 
   /// Records `users/{uid}.familyId` — how this account finds its family
   /// again from a new device without another invite (see
-  /// `CloudMembershipRepository.lookupFamily`). Written only once sync is
+  /// `CloudMembershipRepository.findFamily`). Written only once sync is
   /// running, by which point the family doc exists and the rules can
   /// confirm the membership the record claims. Best-effort: a failure is
   /// simply retried the next time sync starts.
@@ -203,6 +213,7 @@ class SyncEngine {
     _listenerRetryTimer?.cancel();
     _listenerRetryTimer = null;
     _listenerRetryAttempt = 0;
+    _session++;
     _activeFamilyId = null;
     _activeUid = null;
     _setListenerError(null);
@@ -279,7 +290,7 @@ class SyncEngine {
   /// succeeded — a failure partway through (e.g. offline mid-pass) leaves
   /// it unset so the next [start] retries the whole thing, rather than
   /// silently skipping whatever didn't finish.
-  Future<void> _runInitialReconciliationIfNeeded(String familyId) async {
+  Future<void> _runInitialReconciliationIfNeeded(String familyId, int session) async {
     if (_firestore == null) return;
     final profile =
         await (_db.select(_db.familyProfile)..where((p) => p.id.equals(1))).getSingleOrNull();
@@ -291,7 +302,7 @@ class SyncEngine {
         // (and, worse, eventually marking migration-complete for) a family
         // that's no longer the active one. See the final check below for
         // why this alone isn't sufficient.
-        if (_activeFamilyId != familyId) return;
+        if (_session != session) return;
         await _reconcileAdapterFully(adapter, familyId);
       }
       // The loop above can only ever *return early* on a family switch,
@@ -301,7 +312,7 @@ class SyncEngine {
       // flag for a family that isn't [familyId] anymore would wrongly mark
       // *this* family's migration complete without ever having reconciled
       // it (this single-row table has no per-family scoping of its own).
-      if (_activeFamilyId != familyId) return;
+      if (_session != session) return;
       await _db.into(_db.familyProfile).insertOnConflictUpdate(
             FamilyProfileCompanion.insert(
               id: const Value(1),
@@ -613,6 +624,7 @@ class SyncEngine {
   Future<void> _drainOnce() async {
     final familyId = _activeFamilyId;
     final uid = _activeUid;
+    final session = _session;
     if (familyId == null || uid == null) return;
     final now = DateTime.now();
     final rows = await (_db.select(_db.syncOutbox)
@@ -624,11 +636,11 @@ class SyncEngine {
         .get();
     for (final row in rows) {
       // Mirrors _runInitialReconciliationIfNeeded's per-adapter guard — a
-      // sign-out/family-switch mid-drain (stop() sets _activeFamilyId to
-      // something else) must stop this loop from continuing to push
-      // [familyId]'s backlog using a family that's no longer active,
-      // rather than only checking once before the whole batch was read.
-      if (_activeFamilyId != familyId) return;
+      // sign-out, account switch or family switch mid-drain must stop this
+      // loop from pushing the previous session's backlog under whoever is
+      // signed in now, rather than only checking once before the whole
+      // batch was read.
+      if (_session != session) return;
       await _pushOne(row);
     }
   }

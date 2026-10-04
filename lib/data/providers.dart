@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -108,9 +110,16 @@ final _accessDeniedCountProvider = StreamProvider<int>((ref) {
   return ref.watch(syncEngineProvider).accessDenied.map((_) => ++count);
 });
 
+/// How long to wait before asking Firestore again after it couldn't be
+/// reached — overridable so tests don't have to wait it out.
+final membershipRetryDelayProvider = Provider<Duration>((ref) => const Duration(seconds: 30));
+
 /// Firestore's answer to "does the signed-in [uid] belong to [familyId]?"
 /// (see [CloudMembershipRepository.verify]), re-asked whenever sync hits a
-/// denial. Also keeps the local cache in step with it: a confirmed
+/// denial — and, while Firestore can't be reached, every
+/// [membershipRetryDelayProvider], since with sync off nothing else would
+/// ever trigger another check once the connection returns. Also keeps the
+/// local cache in step with it: a confirmed
 /// membership with no local record (a join from before the record existed)
 /// gets recorded, and a revoked one has its record cleared.
 final membershipVerificationProvider =
@@ -119,6 +128,10 @@ final membershipVerificationProvider =
   if (!isFirebaseAuthSupportedPlatform) return MembershipStatus.unknown;
   final (familyId, uid) = args;
   final status = await ref.watch(cloudMembershipRepositoryProvider).verify(familyId);
+  if (status == MembershipStatus.unknown) {
+    final retry = Timer(ref.read(membershipRetryDelayProvider), ref.invalidateSelf);
+    ref.onDispose(retry.cancel);
+  }
   final profiles = ref.read(familyProfileRepositoryProvider);
   final profile = await profiles.watchProfile().first;
   if (profile?.familyId != familyId) return status;
@@ -167,8 +180,10 @@ final cloudAccessProvider = Provider<CloudAccess>((ref) {
   return switch (verified) {
     MembershipStatus.member => CloudAccess.member,
     MembershipStatus.notMember => CloudAccess.notMember,
-    MembershipStatus.unknown || null =>
-      hasLocalRecord ? CloudAccess.member : (verified == null ? CloudAccess.none : CloudAccess.notMember),
+    // Couldn't ask (yet): a cached join is honoured so sync works offline;
+    // without one, keep checking rather than declare a verdict Firestore
+    // never gave — the retry above settles it once the connection returns.
+    MembershipStatus.unknown || null => hasLocalRecord ? CloudAccess.member : CloudAccess.none,
   };
 });
 

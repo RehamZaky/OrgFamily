@@ -184,15 +184,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       _error = null;
     });
     try {
-      final membership = ref.read(cloudMembershipRepositoryProvider);
-      final familyId = await membership.lookupFamily(uid);
-      if (familyId == null) return false;
-      final ownerUid = await membership.ownerOf(familyId);
+      final found = await ref.read(cloudMembershipRepositoryProvider).findFamily(uid);
+      if (found == null) return false;
       final family = ref.read(familyRepositoryProvider);
       await ref.read(familyProfileRepositoryProvider).recordRestore(
-            familyId: familyId,
+            familyId: found.familyId,
             uid: uid,
-            isOwner: ownerUid == uid,
+            isOwner: found.ownerUid == uid,
           );
       // Sync's first pass downloads the family; once this account's own
       // member arrives, make it the active profile. If that's slow, the

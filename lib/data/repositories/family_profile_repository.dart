@@ -146,7 +146,7 @@ class FamilyProfileRepository {
 
   /// Points a device with no local family at [familyId], an existing
   /// cloud family [uid] already belongs to — signing in on a new phone,
-  /// found via `CloudMembershipRepository.lookupFamily`, so no new invite
+  /// found via `CloudMembershipRepository.findFamily`, so no new invite
   /// is needed. Records [uid] as owner or joined member to match the
   /// family doc, then starts sync, whose initial reconciliation downloads
   /// everything. `updatedAt` is stamped at the epoch for the same reason
