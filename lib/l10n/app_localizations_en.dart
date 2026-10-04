@@ -410,7 +410,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSystem => 'System';
 
   @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
   String get accountSectionTitle => 'Account';
+
+  @override
+  String get accountSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get accountSignOutConfirmBody =>
+      'Your family stays on this phone. Changes made while signed out won\'t be shared until a family member signs in and reviews them.';
 
   @override
   String get accountSignedOutTitle => 'Back up and share with your family';

@@ -456,7 +456,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguageSystem => 'النظام';
 
   @override
+  String get settingsPreferences => 'التفضيلات';
+
+  @override
   String get accountSectionTitle => 'الحساب';
+
+  @override
+  String get accountSignOutConfirmTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get accountSignOutConfirmBody =>
+      'ستبقى بيانات عائلتك على هذا الهاتف. لن تتم مشاركة التغييرات التي تتم أثناء تسجيل الخروج حتى يسجّل أحد أفراد العائلة الدخول ويراجعها.';
 
   @override
   String get accountSignedOutTitle => 'احفظ بيانات عائلتك وشاركها';

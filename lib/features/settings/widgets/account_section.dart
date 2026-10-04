@@ -9,6 +9,7 @@ import '../../auth/screens/join_family_screen.dart';
 import '../../auth/screens/sign_in_screen.dart';
 import '../../family/providers/family_providers.dart';
 import '../../family/screens/invite_family_member_screen.dart';
+import 'settings_group.dart';
 import 'sync_review_sheet.dart';
 
 /// Settings' Account section: one grouped card instead of a stack of
@@ -24,7 +25,7 @@ class AccountSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final memberCount = ref.watch(familyMembersProvider).valueOrNull?.length ?? 0;
-    final familyRow = _Row(
+    final familyRow = SettingsRow(
       icon: Icons.family_restroom_rounded,
       color: context.colors.accent,
       title: l10n.accountFamilyRow,
@@ -32,12 +33,12 @@ class AccountSection extends ConsumerWidget {
     );
 
     if (!isFirebaseAuthSupportedPlatform) {
-      return _GroupCard(children: [familyRow]);
+      return SettingsGroup(children: [familyRow]);
     }
 
     final user = ref.watch(authStateProvider).valueOrNull;
     if (user == null) {
-      return _GroupCard(
+      return SettingsGroup(
         children: [
           _SignedOutHeader(
             onConnect: () => Navigator.of(context).push(
@@ -63,14 +64,14 @@ class AccountSection extends ConsumerWidget {
     );
     final sync = ref.read(syncEngineProvider);
 
-    return _GroupCard(
+    return SettingsGroup(
       children: [
         _AccountHeader(
           label: user.email ?? user.displayName ?? user.uid,
           status: status,
         ),
         if (reviewCount > 0)
-          _Row(
+          SettingsRow(
             icon: Icons.rule_rounded,
             color: context.colors.warning,
             title: l10n.syncReviewTitle(reviewCount),
@@ -79,7 +80,7 @@ class AccountSection extends ConsumerWidget {
             onTap: () => showSyncReviewSheet(context),
           ),
         if (access == CloudAccess.member || access == CloudAccess.awaitingOwner)
-          _Row(
+          SettingsRow(
             icon: Icons.cloud_sync_outlined,
             color: status.color(context),
             title: l10n.accountSyncRow,
@@ -98,7 +99,7 @@ class AccountSection extends ConsumerWidget {
                 : null,
           ),
         if (access == CloudAccess.notMember)
-          _Row(
+          SettingsRow(
             icon: Icons.vpn_key_outlined,
             color: context.colors.warning,
             title: l10n.accountJoinRow,
@@ -109,7 +110,7 @@ class AccountSection extends ConsumerWidget {
           ),
         familyRow,
         if (access == CloudAccess.member)
-          _Row(
+          SettingsRow(
             icon: Icons.person_add_alt_1_outlined,
             color: context.colors.accent,
             title: l10n.accountInviteRow,
@@ -122,16 +123,44 @@ class AccountSection extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Center(
             child: TextButton.icon(
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+              onPressed: () => _confirmSignOut(context, ref),
               icon: const Icon(Icons.logout_rounded, size: 18),
               label: Text(l10n.accountSignOut),
-              style: TextButton.styleFrom(foregroundColor: context.colors.textSecondary),
+              style: TextButton.styleFrom(
+                foregroundColor: context.colors.textSecondary,
+                textStyle: SettingsText.control,
+              ),
             ),
           ),
         ),
       ],
     );
   }
+}
+
+/// Signing out is one stray tap away at the bottom of the card, and it
+/// stops sync until someone signs back in — so it asks first.
+Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+  final l10n = AppLocalizations.of(context)!;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.accountSignOutConfirmTitle),
+      content: Text(l10n.accountSignOutConfirmBody, style: SettingsText.subtitle(context)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: FilledButton.styleFrom(backgroundColor: context.colors.danger),
+          child: Text(l10n.accountSignOut),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) await ref.read(authRepositoryProvider).signOut();
 }
 
 /// The one status shown in the header pill — collapses access, queue and
@@ -178,29 +207,6 @@ enum _SyncStatus {
       };
 }
 
-class _GroupCard extends StatelessWidget {
-  const _GroupCard({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Divider(height: 1, indent: 16, endIndent: 16, color: context.colors.border),
-            children[i],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 class _AccountHeader extends StatelessWidget {
   const _AccountHeader({required this.label, required this.status});
 
@@ -236,7 +242,7 @@ class _AccountHeader extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  style: SettingsText.title(context).copyWith(fontSize: 16),
                 ),
                 const SizedBox(height: 6),
                 Container(
@@ -299,106 +305,18 @@ class _SignedOutHeader extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  l10n.accountSignedOutTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                ),
+                child: Text(l10n.accountSignedOutTitle, style: SettingsText.title(context)),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            l10n.accountSignedOutBody,
-            style: TextStyle(color: context.colors.textSecondary, height: 1.35),
-          ),
+          Text(l10n.accountSignedOutBody, style: SettingsText.subtitle(context)),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
             child: FilledButton(onPressed: onConnect, child: Text(l10n.accountConnect)),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// A compact row: tinted icon, one-line title, one-line subtitle, and
-/// either a trailing action or a chevron when the row itself is tappable.
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.icon,
-    required this.color,
-    required this.title,
-    this.subtitle,
-    this.trailing,
-    this.onTap,
-    this.highlighted = false,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String? subtitle;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  /// Tints the row's background — for the one thing that needs attention.
-  final bool highlighted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: highlighted ? color.withValues(alpha: 0.08) : Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 20, color: color),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: context.colors.textSecondary, fontSize: 12.5),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (trailing != null)
-                trailing!
-              else if (onTap != null)
-                Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.chevron_left_rounded
-                      : Icons.chevron_right_rounded,
-                  color: context.colors.textSecondary,
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }

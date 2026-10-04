@@ -800,11 +800,29 @@ abstract class AppLocalizations {
   /// **'System'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @settingsPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferences;
+
   /// No description provided for @accountSectionTitle.
   ///
   /// In en, this message translates to:
   /// **'Account'**
   String get accountSectionTitle;
+
+  /// No description provided for @accountSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get accountSignOutConfirmTitle;
+
+  /// No description provided for @accountSignOutConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family stays on this phone. Changes made while signed out won\'t be shared until a family member signs in and reviews them.'**
+  String get accountSignOutConfirmBody;
 
   /// No description provided for @accountSignedOutTitle.
   ///

@@ -7,6 +7,7 @@ import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/account_section.dart';
+import '../widgets/settings_group.dart';
 import 'money_backup_screen.dart';
 import 'money_guide_screen.dart';
 
@@ -33,96 +34,96 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
-                Text(l10n.settingsAppearance,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-                SegmentedButton<ThemeMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      icon: const Icon(Icons.light_mode_outlined),
-                      label: Text(l10n.settingsThemeLight),
+                SettingsSectionHeader(l10n.settingsPreferences),
+                SettingsGroup(
+                  children: [
+                    SettingsControlRow(
+                      icon: Icons.palette_outlined,
+                      color: context.colors.accent,
+                      title: l10n.settingsAppearance,
+                      hint: l10n.settingsThemeSystemHint,
+                      control: SegmentedButton<ThemeMode>(
+                        style: settingsSegmentedStyle(),
+                        showSelectedIcon: false,
+                        segments: [
+                          ButtonSegment(
+                            value: ThemeMode.light,
+                            icon: const Icon(Icons.light_mode_outlined, size: 18),
+                            label: Text(l10n.settingsThemeLight),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.dark,
+                            icon: const Icon(Icons.dark_mode_outlined, size: 18),
+                            label: Text(l10n.settingsThemeDark),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.system,
+                            icon: const Icon(Icons.settings_suggest_outlined, size: 18),
+                            label: Text(l10n.settingsThemeSystem),
+                          ),
+                        ],
+                        selected: {themeMode},
+                        onSelectionChanged: (s) =>
+                            ref.read(themeModeProvider.notifier).state = s.first,
+                      ),
                     ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      icon: const Icon(Icons.dark_mode_outlined),
-                      label: Text(l10n.settingsThemeDark),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      icon: const Icon(Icons.settings_suggest_outlined),
-                      label: Text(l10n.settingsThemeSystem),
+                    SettingsControlRow(
+                      icon: Icons.translate_rounded,
+                      color: context.colors.accent,
+                      title: l10n.settingsLanguage,
+                      control: SegmentedButton<Locale>(
+                        style: settingsSegmentedStyle(),
+                        showSelectedIcon: false,
+                        segments: [
+                          ButtonSegment(
+                            value: const Locale('en'),
+                            label: Text(l10n.settingsLanguageEnglish),
+                          ),
+                          ButtonSegment(
+                            value: const Locale('ar'),
+                            label: Text(l10n.settingsLanguageArabic),
+                          ),
+                          ButtonSegment(
+                            value: _systemLocale,
+                            label: Text(l10n.settingsLanguageSystem),
+                          ),
+                        ],
+                        selected: {locale ?? _systemLocale},
+                        onSelectionChanged: (s) {
+                          final selected = s.first;
+                          ref.read(localeProvider.notifier).state =
+                              selected == _systemLocale ? null : selected;
+                        },
+                      ),
                     ),
                   ],
-                  selected: {themeMode},
-                  onSelectionChanged: (s) =>
-                      ref.read(themeModeProvider.notifier).state = s.first,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.settingsThemeSystemHint,
-                  style: TextStyle(color: context.colors.textSecondary, fontSize: 12),
-                ),
-                const SizedBox(height: 28),
-                Text(l10n.settingsLanguage,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-                SegmentedButton<Locale>(
-                  segments: [
-                    ButtonSegment(
-                      value: const Locale('en'),
-                      label: Text(l10n.settingsLanguageEnglish),
-                    ),
-                    ButtonSegment(
-                      value: const Locale('ar'),
-                      label: Text(l10n.settingsLanguageArabic),
-                    ),
-                    ButtonSegment(
-                      value: _systemLocale,
-                      label: Text(l10n.settingsLanguageSystem),
-                    ),
-                  ],
-                  selected: {locale ?? _systemLocale},
-                  onSelectionChanged: (s) {
-                    final selected = s.first;
-                    ref.read(localeProvider.notifier).state =
-                        selected == _systemLocale ? null : selected;
-                  },
-                ),
-                const SizedBox(height: 28),
-                Text(l10n.accountSectionTitle,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
+                SettingsSectionHeader(l10n.accountSectionTitle),
                 const AccountSection(),
-                const SizedBox(height: 28),
-                Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: Icon(Icons.menu_book_outlined, color: context.colors.accent),
-                    title: Text(l10n.settingsMoneyGuide),
-                    subtitle: Text(l10n.settingsMoneyGuideHint),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const MoneyGuideScreen()),
+                SettingsSectionHeader(l10n.navBudget),
+                SettingsGroup(
+                  children: [
+                    SettingsRow(
+                      icon: Icons.menu_book_outlined,
+                      color: context.colors.accent,
+                      title: l10n.settingsMoneyGuide,
+                      subtitle: l10n.settingsMoneyGuideHint,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const MoneyGuideScreen()),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: const Icon(Icons.backup_outlined, color: AppColors.primary),
-                    title: Text(l10n.moneyBackupTitle),
-                    subtitle: Text(l10n.moneyBackupSettingsHint),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const MoneyBackupScreen()),
+                    SettingsRow(
+                      icon: Icons.backup_outlined,
+                      color: context.colors.accent,
+                      title: l10n.moneyBackupTitle,
+                      subtitle: l10n.moneyBackupSettingsHint,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const MoneyBackupScreen()),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
