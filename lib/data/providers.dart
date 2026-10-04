@@ -8,6 +8,7 @@ import 'local/database.dart';
 import 'local/tables/sync_outbox_table.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/budget_repository.dart';
+import 'repositories/cloud_membership_repository.dart';
 import 'repositories/event_repository.dart';
 import 'repositories/family_invite_repository.dart';
 import 'repositories/family_profile_repository.dart';
@@ -77,87 +78,114 @@ final familyProfileStreamProvider = StreamProvider<FamilyProfileData?>((ref) {
 });
 
 /// Whether the signed-in account may sync this device's family, and if
-/// not, why — drives both [activeSyncFamilyIdProvider] and Settings' cloud
-/// cards.
+/// not, why — drives [activeSyncProvider] and Settings' cloud cards.
 enum CloudAccess {
-  /// Signed out, or this device's family has never been linked to the
-  /// cloud — nothing to sync and nothing to explain.
+  /// Signed out, never linked to the cloud, or still confirming with
+  /// Firestore — nothing to sync and nothing to explain yet.
   none,
 
   /// The family is linked but its Owner hasn't linked yet, so no cloud
   /// family doc exists to sync against (an Adult linked first).
   awaitingOwner,
 
-  /// The signed-in uid is the family's owner, or joined it via an invite.
+  /// The signed-in uid is the family's owner, or holds an invite grant.
   member,
 
   /// Signed in with an account Firestore won't admit to this family —
-  /// neither its owner nor invite-joined. Sync stays off rather than
-  /// queueing writes the security rules will always deny.
+  /// neither its owner nor invite-joined (or its grant was revoked). Sync
+  /// stays off rather than sending writes the security rules will deny.
   notMember,
 }
 
+final cloudMembershipRepositoryProvider = Provider<CloudMembershipRepository>((ref) {
+  return CloudMembershipRepository(ref.watch(firestoreProvider));
+});
+
+/// Counts `permission-denied` answers from [SyncEngine.accessDenied], so
+/// [membershipVerificationProvider] can re-ask Firestore after each.
+final _accessDeniedCountProvider = StreamProvider<int>((ref) {
+  var count = 0;
+  return ref.watch(syncEngineProvider).accessDenied.map((_) => ++count);
+});
+
+/// Firestore's answer to "does the signed-in [uid] belong to [familyId]?"
+/// (see [CloudMembershipRepository.verify]), re-asked whenever sync hits a
+/// denial. Also keeps the local cache in step with it: a confirmed
+/// membership with no local record (a join from before the record existed)
+/// gets recorded, and a revoked one has its record cleared.
+final membershipVerificationProvider =
+    FutureProvider.family<MembershipStatus, (String, String)>((ref, args) async {
+  ref.listen(_accessDeniedCountProvider, (_, _) => ref.invalidateSelf());
+  if (!isFirebaseAuthSupportedPlatform) return MembershipStatus.unknown;
+  final (familyId, uid) = args;
+  final status = await ref.watch(cloudMembershipRepositoryProvider).verify(familyId);
+  final profiles = ref.read(familyProfileRepositoryProvider);
+  final profile = await profiles.watchProfile().first;
+  if (profile?.familyId != familyId) return status;
+  if (status == MembershipStatus.member &&
+      profile?.ownerUid != uid &&
+      profile?.joinedUid != uid) {
+    await profiles.markJoined(uid);
+  } else if (status == MembershipStatus.notMember && profile?.joinedUid == uid) {
+    await profiles.clearJoined();
+  }
+  return status;
+});
+
 /// Decides [CloudAccess] for the signed-in account. Firestore admits only
 /// the family doc's `ownerUid` or a uid with a `joinedUids/{uid}` grant
-/// (see firestore.rules), so this mirrors exactly that: a match on the
-/// local `ownerUid`, or on `joinedUid`, the local record of an invite
-/// claimed on this device (`FamilyProfileRepository.recordJoin`/
-/// `markJoined`). Merely having a local member linked to the uid is *not*
-/// enough — linking on a device that already has a family
-/// (`LinkMemberScreen`) records who you are locally but grants no cloud
-/// access, which is how a second adult signing in on the owner's phone
-/// used to start a sync whose every read and write was denied.
+/// (see firestore.rules), and it — not this device — is the authority:
 ///
-/// A joiner's local `ownerUid` stays null until sync pulls the family doc
-/// down, so `joinedUid` (set before sync starts) is what lets their sync
-/// start at all — gating on `ownerUid` alone would deadlock.
+/// - The owner is trusted locally: `ownerUid` is immutable server-side and
+///   only ever set by the owner's own link or pulled from the family doc.
+/// - A local `joinedUid` record is a cache, honoured optimistically so sync
+///   can start offline, but re-checked with Firestore each session and on
+///   every denial; a revoked grant clears it and ends sync.
+/// - With no local record (a join made before the record existed),
+///   Firestore is asked before deciding.
+///
+/// Merely having a local member linked to the uid is *not* enough — a
+/// second adult who signs in on the owner's phone (`LinkMemberScreen`) is
+/// recorded locally but holds no grant, which is how a sync whose every
+/// read and write was denied used to start.
 final cloudAccessProvider = Provider<CloudAccess>((ref) {
   final user = ref.watch(authStateProvider).valueOrNull;
   if (user == null) return CloudAccess.none;
   final profile = ref.watch(familyProfileStreamProvider).valueOrNull;
-  if (profile?.familyId == null) return CloudAccess.none;
-  if (profile!.ownerUid == user.uid || profile.joinedUid == user.uid) {
-    return CloudAccess.member;
+  final familyId = profile?.familyId;
+  if (profile == null || familyId == null) return CloudAccess.none;
+  if (profile.ownerUid == user.uid) return CloudAccess.member;
+  final hasLocalRecord = profile.joinedUid == user.uid;
+  final verification = membershipVerificationProvider((familyId, user.uid));
+  // No owner linked yet and nothing recorded for this account: wait for the
+  // owner. Unless Firestore was already asked about this account — then its
+  // record was just cleared by a revocation, and its answer stands.
+  if (!hasLocalRecord && profile.ownerUid == null && !ref.exists(verification)) {
+    return CloudAccess.awaitingOwner;
   }
-  if (profile.ownerUid == null) return CloudAccess.awaitingOwner;
-  // Not a member by local records — but a device that joined before the
-  // `joinedUid` marker existed has no local record either, so confirm
-  // against Firestore once before deciding. A confirmed grant writes the
-  // marker, which re-runs this provider as a member.
-  final remotelyJoined = ref.watch(_remoteJoinGrantProvider((profile.familyId!, user.uid)));
-  return remotelyJoined.valueOrNull == true ? CloudAccess.member : CloudAccess.notMember;
+  final verified = ref.watch(verification).valueOrNull;
+  return switch (verified) {
+    MembershipStatus.member => CloudAccess.member,
+    MembershipStatus.notMember => CloudAccess.notMember,
+    MembershipStatus.unknown || null =>
+      hasLocalRecord ? CloudAccess.member : (verified == null ? CloudAccess.none : CloudAccess.notMember),
+  };
 });
 
-/// One-shot check for a `families/{familyId}/joinedUids/{uid}` grant —
-/// see [cloudAccessProvider]. A non-member's read is denied by the rules
-/// (the grant doc is only readable by members), which counts as "no".
-final _remoteJoinGrantProvider =
-    FutureProvider.family<bool, (String, String)>((ref, args) async {
-  if (!isFirebaseAuthSupportedPlatform) return false;
-  final (familyId, uid) = args;
-  try {
-    final doc = await ref
-        .watch(firestoreProvider)
-        .collection('families')
-        .doc(familyId)
-        .collection('joinedUids')
-        .doc(uid)
-        .get();
-    if (!doc.exists) return false;
-    await ref.read(familyProfileRepositoryProvider).markJoined(uid);
-    return true;
-  } catch (_) {
-    return false;
-  }
-});
-
-/// The familyId [syncEngineProvider] should be syncing against right now,
-/// or null if it shouldn't be syncing at all — see [cloudAccessProvider].
-/// `RootScaffold` listens to this and calls `SyncEngine.start`/`stop`
-/// accordingly.
-final activeSyncFamilyIdProvider = Provider<String?>((ref) {
+/// The family and account [syncEngineProvider] should be syncing as right
+/// now, or null if it shouldn't be syncing at all — see
+/// [cloudAccessProvider]. `RootScaffold` listens to this and calls
+/// `SyncEngine.start`/`stop` accordingly.
+final activeSyncProvider = Provider<({String familyId, String uid})?>((ref) {
   if (ref.watch(cloudAccessProvider) != CloudAccess.member) return null;
-  return ref.watch(familyProfileStreamProvider).valueOrNull?.familyId;
+  final familyId = ref.watch(familyProfileStreamProvider).valueOrNull?.familyId;
+  final uid = ref.watch(authStateProvider).valueOrNull?.uid;
+  if (familyId == null || uid == null) return null;
+  return (familyId: familyId, uid: uid);
+});
+
+final activeSyncFamilyIdProvider = Provider<String?>((ref) {
+  return ref.watch(activeSyncProvider)?.familyId;
 });
 
 /// See [SyncEngine.listenerError].
@@ -171,27 +199,43 @@ final isCloudSyncActiveProvider = Provider<bool>((ref) {
   return ref.watch(activeSyncFamilyIdProvider) != null;
 });
 
-/// How many locally-queued changes for the active family haven't reached
-/// Firestore yet ([pending]: still trying, possibly with backoff) versus
-/// given up on ([failed]: a permanent error, or too many unclassified
-/// ones — see `SyncEngine`'s "Outbox failure policy"). Null while sync
-/// isn't active at all.
+/// The active family's queued changes, from the syncing account's point of
+/// view: its own still uploading ([pending]) or given up on ([failed] — a
+/// permanent error, or too many unclassified ones, see `SyncEngine`'s
+/// "Outbox failure policy"), and [review]: changes that only upload once a
+/// member chooses to — made while not syncing, or by another account (see
+/// `SyncEngine.uploadHeld`). Null while sync isn't active at all.
 class SyncOutboxSummary {
-  const SyncOutboxSummary({required this.pending, required this.failed});
+  const SyncOutboxSummary({
+    required this.pending,
+    required this.failed,
+    this.review = const [],
+  });
   final int pending;
   final int failed;
+  final List<SyncOutboxData> review;
+
+  /// Distinct entities in [review] — an entity edited several times is
+  /// queued several times but is one change to the person reviewing it.
+  int get reviewCount => review.map((r) => (r.entityType, r.entityId)).toSet().length;
 }
 
 final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
-  final familyId = ref.watch(activeSyncFamilyIdProvider);
-  if (familyId == null) return Stream.value(null);
+  final active = ref.watch(activeSyncProvider);
+  if (active == null) return Stream.value(null);
   final db = ref.watch(databaseProvider);
-  return (db.select(db.syncOutbox)..where((o) => o.familyId.equals(familyId)))
+  return (db.select(db.syncOutbox)..where((o) => o.familyId.equals(active.familyId)))
       .watch()
-      .map((rows) => SyncOutboxSummary(
-            pending: rows.where((r) => r.status != SyncOutboxStatus.failed).length,
-            failed: rows.where((r) => r.status == SyncOutboxStatus.failed).length,
-          ));
+      .map((rows) {
+    bool needsReview(SyncOutboxData r) =>
+        r.status == SyncOutboxStatus.held || r.originUid != active.uid;
+    final mine = rows.where((r) => !needsReview(r));
+    return SyncOutboxSummary(
+      pending: mine.where((r) => r.status != SyncOutboxStatus.failed).length,
+      failed: mine.where((r) => r.status == SyncOutboxStatus.failed).length,
+      review: rows.where(needsReview).toList(),
+    );
+  });
 });
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {

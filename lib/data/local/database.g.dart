@@ -7447,6 +7447,17 @@ class $SyncOutboxTable extends SyncOutbox
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _originUidMeta = const VerificationMeta(
+    'originUid',
+  );
+  @override
+  late final GeneratedColumn<String> originUid = GeneratedColumn<String>(
+    'origin_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -7461,6 +7472,7 @@ class $SyncOutboxTable extends SyncOutbox
     lastErrorMessage,
     createdAt,
     lastAttemptAt,
+    originUid,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7544,6 +7556,12 @@ class $SyncOutboxTable extends SyncOutbox
         ),
       );
     }
+    if (data.containsKey('origin_uid')) {
+      context.handle(
+        _originUidMeta,
+        originUid.isAcceptableOrUnknown(data['origin_uid']!, _originUidMeta),
+      );
+    }
     return context;
   }
 
@@ -7607,6 +7625,10 @@ class $SyncOutboxTable extends SyncOutbox
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_attempt_at'],
       ),
+      originUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_uid'],
+      ),
     );
   }
 
@@ -7639,6 +7661,12 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
   final String? lastErrorMessage;
   final DateTime createdAt;
   final DateTime? lastAttemptAt;
+
+  /// The Firebase uid signed in when this change was made, or null if none
+  /// was. Only rows whose origin is the account currently syncing drain
+  /// automatically — a change is never silently uploaded under a
+  /// different account than the one that made it.
+  final String? originUid;
   const SyncOutboxData({
     required this.id,
     required this.familyId,
@@ -7652,6 +7680,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     this.lastErrorMessage,
     required this.createdAt,
     this.lastAttemptAt,
+    this.originUid,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7688,6 +7717,9 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     if (!nullToAbsent || lastAttemptAt != null) {
       map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt);
     }
+    if (!nullToAbsent || originUid != null) {
+      map['origin_uid'] = Variable<String>(originUid);
+    }
     return map;
   }
 
@@ -7713,6 +7745,9 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
       lastAttemptAt: lastAttemptAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastAttemptAt),
+      originUid: originUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originUid),
     );
   }
 
@@ -7740,6 +7775,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
       lastErrorMessage: serializer.fromJson<String?>(json['lastErrorMessage']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastAttemptAt: serializer.fromJson<DateTime?>(json['lastAttemptAt']),
+      originUid: serializer.fromJson<String?>(json['originUid']),
     );
   }
   @override
@@ -7764,6 +7800,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
       'lastErrorMessage': serializer.toJson<String?>(lastErrorMessage),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'lastAttemptAt': serializer.toJson<DateTime?>(lastAttemptAt),
+      'originUid': serializer.toJson<String?>(originUid),
     };
   }
 
@@ -7780,6 +7817,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     Value<String?> lastErrorMessage = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> lastAttemptAt = const Value.absent(),
+    Value<String?> originUid = const Value.absent(),
   }) => SyncOutboxData(
     id: id ?? this.id,
     familyId: familyId ?? this.familyId,
@@ -7799,6 +7837,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     lastAttemptAt: lastAttemptAt.present
         ? lastAttemptAt.value
         : this.lastAttemptAt,
+    originUid: originUid.present ? originUid.value : this.originUid,
   );
   SyncOutboxData copyWithCompanion(SyncOutboxCompanion data) {
     return SyncOutboxData(
@@ -7826,6 +7865,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
       lastAttemptAt: data.lastAttemptAt.present
           ? data.lastAttemptAt.value
           : this.lastAttemptAt,
+      originUid: data.originUid.present ? data.originUid.value : this.originUid,
     );
   }
 
@@ -7843,7 +7883,8 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
           ..write('lastErrorCode: $lastErrorCode, ')
           ..write('lastErrorMessage: $lastErrorMessage, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastAttemptAt: $lastAttemptAt')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('originUid: $originUid')
           ..write(')'))
         .toString();
   }
@@ -7862,6 +7903,7 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     lastErrorMessage,
     createdAt,
     lastAttemptAt,
+    originUid,
   );
   @override
   bool operator ==(Object other) =>
@@ -7878,7 +7920,8 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
           other.lastErrorCode == this.lastErrorCode &&
           other.lastErrorMessage == this.lastErrorMessage &&
           other.createdAt == this.createdAt &&
-          other.lastAttemptAt == this.lastAttemptAt);
+          other.lastAttemptAt == this.lastAttemptAt &&
+          other.originUid == this.originUid);
 }
 
 class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
@@ -7894,6 +7937,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
   final Value<String?> lastErrorMessage;
   final Value<DateTime> createdAt;
   final Value<DateTime?> lastAttemptAt;
+  final Value<String?> originUid;
   const SyncOutboxCompanion({
     this.id = const Value.absent(),
     this.familyId = const Value.absent(),
@@ -7907,6 +7951,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     this.lastErrorMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastAttemptAt = const Value.absent(),
+    this.originUid = const Value.absent(),
   });
   SyncOutboxCompanion.insert({
     this.id = const Value.absent(),
@@ -7921,6 +7966,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     this.lastErrorMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastAttemptAt = const Value.absent(),
+    this.originUid = const Value.absent(),
   }) : familyId = Value(familyId),
        entityType = Value(entityType),
        entityId = Value(entityId),
@@ -7938,6 +7984,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     Expression<String>? lastErrorMessage,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? lastAttemptAt,
+    Expression<String>? originUid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -7952,6 +7999,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
       if (lastErrorMessage != null) 'last_error_message': lastErrorMessage,
       if (createdAt != null) 'created_at': createdAt,
       if (lastAttemptAt != null) 'last_attempt_at': lastAttemptAt,
+      if (originUid != null) 'origin_uid': originUid,
     });
   }
 
@@ -7968,6 +8016,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     Value<String?>? lastErrorMessage,
     Value<DateTime>? createdAt,
     Value<DateTime?>? lastAttemptAt,
+    Value<String?>? originUid,
   }) {
     return SyncOutboxCompanion(
       id: id ?? this.id,
@@ -7982,6 +8031,7 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
       lastErrorMessage: lastErrorMessage ?? this.lastErrorMessage,
       createdAt: createdAt ?? this.createdAt,
       lastAttemptAt: lastAttemptAt ?? this.lastAttemptAt,
+      originUid: originUid ?? this.originUid,
     );
   }
 
@@ -8030,6 +8080,9 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     if (lastAttemptAt.present) {
       map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt.value);
     }
+    if (originUid.present) {
+      map['origin_uid'] = Variable<String>(originUid.value);
+    }
     return map;
   }
 
@@ -8047,7 +8100,8 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
           ..write('lastErrorCode: $lastErrorCode, ')
           ..write('lastErrorMessage: $lastErrorMessage, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastAttemptAt: $lastAttemptAt')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('originUid: $originUid')
           ..write(')'))
         .toString();
   }
@@ -13695,6 +13749,7 @@ typedef $$SyncOutboxTableCreateCompanionBuilder =
       Value<String?> lastErrorMessage,
       Value<DateTime> createdAt,
       Value<DateTime?> lastAttemptAt,
+      Value<String?> originUid,
     });
 typedef $$SyncOutboxTableUpdateCompanionBuilder =
     SyncOutboxCompanion Function({
@@ -13710,6 +13765,7 @@ typedef $$SyncOutboxTableUpdateCompanionBuilder =
       Value<String?> lastErrorMessage,
       Value<DateTime> createdAt,
       Value<DateTime?> lastAttemptAt,
+      Value<String?> originUid,
     });
 
 class $$SyncOutboxTableFilterComposer
@@ -13783,6 +13839,11 @@ class $$SyncOutboxTableFilterComposer
     column: $table.lastAttemptAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get originUid => $composableBuilder(
+    column: $table.originUid,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$SyncOutboxTableOrderingComposer
@@ -13853,6 +13914,11 @@ class $$SyncOutboxTableOrderingComposer
     column: $table.lastAttemptAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get originUid => $composableBuilder(
+    column: $table.originUid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SyncOutboxTableAnnotationComposer
@@ -13912,6 +13978,9 @@ class $$SyncOutboxTableAnnotationComposer
     column: $table.lastAttemptAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get originUid =>
+      $composableBuilder(column: $table.originUid, builder: (column) => column);
 }
 
 class $$SyncOutboxTableTableManager
@@ -13957,6 +14026,7 @@ class $$SyncOutboxTableTableManager
                 Value<String?> lastErrorMessage = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
+                Value<String?> originUid = const Value.absent(),
               }) => SyncOutboxCompanion(
                 id: id,
                 familyId: familyId,
@@ -13970,6 +14040,7 @@ class $$SyncOutboxTableTableManager
                 lastErrorMessage: lastErrorMessage,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
+                originUid: originUid,
               ),
           createCompanionCallback:
               ({
@@ -13985,6 +14056,7 @@ class $$SyncOutboxTableTableManager
                 Value<String?> lastErrorMessage = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
+                Value<String?> originUid = const Value.absent(),
               }) => SyncOutboxCompanion.insert(
                 id: id,
                 familyId: familyId,
@@ -13998,6 +14070,7 @@ class $$SyncOutboxTableTableManager
                 lastErrorMessage: lastErrorMessage,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
+                originUid: originUid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

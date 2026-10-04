@@ -13,7 +13,18 @@ enum SyncEntityType {
 
 enum SyncOperation { upsert, delete }
 
-enum SyncOutboxStatus { pending, retrying, failed }
+/// Stored by index — only ever append new values.
+enum SyncOutboxStatus {
+  pending,
+  retrying,
+  failed,
+
+  /// Queued while this device wasn't syncing as a verified member (signed
+  /// out, or signed in with an account the family hasn't admitted). Never
+  /// drained automatically: a member has to choose to upload it or keep it
+  /// local-only — see `SyncEngine.uploadHeld`/`discardHeld`.
+  held,
+}
 
 /// A durable record of "this local write still needs to reach Firestore,"
 /// written in the same Drift transaction as the entity change it describes
@@ -39,4 +50,9 @@ class SyncOutbox extends Table {
   TextColumn get lastErrorMessage => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
+  /// The Firebase uid signed in when this change was made, or null if none
+  /// was. Only rows whose origin is the account currently syncing drain
+  /// automatically — a change is never silently uploaded under a
+  /// different account than the one that made it.
+  TextColumn get originUid => text().nullable()();
 }

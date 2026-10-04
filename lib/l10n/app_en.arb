@@ -630,6 +630,27 @@
   "cloudNotMemberBody": "This account isn't a member of this family's cloud yet. Ask a family member for an invite code.",
   "cloudNotMemberAction": "Enter code",
   "syncListenerError": "Can't receive cloud updates ({code})",
+  "syncReviewTitle": "{count} {count, plural, one{change} other{changes}} to review",
+  "@syncReviewTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "syncReviewBody": "Made while not syncing, or by another account. They won't upload until you choose.",
+  "syncReviewAction": "Review",
+  "syncReviewSheetBody": "These changes were made on this phone while it wasn't syncing as you, so they haven't been shared with the family. Upload them as your changes, or keep them on this phone only.",
+  "syncReviewUpload": "Upload",
+  "syncReviewKeepLocal": "Keep on this phone",
+  "syncReviewTask": "Task",
+  "syncReviewEvent": "Event",
+  "syncReviewShoppingItem": "Shopping item",
+  "syncReviewShoppingList": "Shopping list",
+  "syncReviewMember": "Family member",
+  "syncReviewFamily": "Family settings",
+  "syncReviewDeleted": "(no longer on this phone)",
+  "restoreFamilyChecking": "Looking for your family…",
+  "restoreFamilyError": "Couldn't check for an existing family. Check your connection and try again.",
+  "restoreFamilyRetry": "Try again",
   "@syncListenerError": {
     "placeholders": {
       "code": {}

@@ -79,7 +79,7 @@ class FamilyProfileRepository {
       // familyId bookkeeping above, but sync stays dormant until the
       // Owner links too.
       if (isOwner) {
-        _sync.start(familyId);
+        _sync.start(familyId, uid);
         await _sync.enqueueUpsert(
           db: _db,
           type: SyncEntityType.familyProfile,
@@ -121,7 +121,7 @@ class FamilyProfileRepository {
             updatedAt: Value(DateTime.fromMillisecondsSinceEpoch(0)),
           ),
         );
-    _sync.start(familyId);
+    _sync.start(familyId, uid);
   }
 
   /// Records that [uid] holds an invite grant for this device's *existing*
@@ -134,5 +134,37 @@ class FamilyProfileRepository {
   Future<void> markJoined(String uid) {
     return (_db.update(_db.familyProfile)..where((p) => p.id.equals(_rowId)))
         .write(FamilyProfileCompanion(joinedUid: Value(uid)));
+  }
+
+  /// Drops the local "joined" record once Firestore has said this account
+  /// is no longer a member (its invite grant was revoked) — the record is
+  /// only ever a cache of server-side membership, never the authority.
+  Future<void> clearJoined() {
+    return (_db.update(_db.familyProfile)..where((p) => p.id.equals(_rowId)))
+        .write(const FamilyProfileCompanion(joinedUid: Value(null)));
+  }
+
+  /// Points a device with no local family at [familyId], an existing
+  /// cloud family [uid] already belongs to — signing in on a new phone,
+  /// found via `CloudMembershipRepository.lookupFamily`, so no new invite
+  /// is needed. Records [uid] as owner or joined member to match the
+  /// family doc, then starts sync, whose initial reconciliation downloads
+  /// everything. `updatedAt` is stamped at the epoch for the same reason
+  /// as [recordJoin]: the real family doc must win last-write-wins.
+  Future<void> recordRestore({
+    required String familyId,
+    required String uid,
+    required bool isOwner,
+  }) async {
+    await _db.into(_db.familyProfile).insertOnConflictUpdate(
+          FamilyProfileCompanion.insert(
+            id: const Value(_rowId),
+            familyId: Value(familyId),
+            ownerUid: Value(isOwner ? uid : null),
+            joinedUid: Value(isOwner ? null : uid),
+            updatedAt: Value(DateTime.fromMillisecondsSinceEpoch(0)),
+          ),
+        );
+    _sync.start(familyId, uid);
   }
 }

@@ -40,13 +40,18 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
     // so a fresh app boot that's already linked resumes syncing right away,
     // not just at the moment recordLink itself runs. See
     // docs/architecture.md "Firestore sync".
-    ref.listenManual(activeSyncFamilyIdProvider, (previous, next) {
+    ref.listenManual(activeSyncProvider, (previous, next) {
       final sync = ref.read(syncEngineProvider);
       if (next != null) {
-        sync.start(next);
+        sync.start(next.familyId, next.uid);
       } else {
         sync.stop();
       }
+    }, fireImmediately: true);
+    // Changes made while not syncing are still queued (held for review),
+    // tagged with whoever was signed in — see SyncEngine.enqueueUpsert.
+    ref.listenManual(authStateProvider, (previous, next) {
+      ref.read(syncEngineProvider).setSignedInUid(next.valueOrNull?.uid);
     }, fireImmediately: true);
   }
 
@@ -64,7 +69,9 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
     // backgrounded for a while, so give it an immediate nudge on resume
     // rather than waiting for its scheduled retry.
     if (state == AppLifecycleState.resumed) {
-      unawaited(ref.read(syncEngineProvider).drainNow());
+      final sync = ref.read(syncEngineProvider);
+      unawaited(sync.drainNow());
+      sync.reconnectNow();
     }
   }
 
@@ -93,6 +100,24 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
     // "+" FAB bleed through underneath the onboarding UI.
     if (membersAsync.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if ((membersAsync.valueOrNull ?? []).isEmpty &&
+        ref.watch(familyProfileStreamProvider).valueOrNull?.familyId != null) {
+      // A restored cloud family (a member's new phone, see SignInScreen)
+      // whose members haven't downloaded yet — not a fresh install, so
+      // don't offer to create a new family while it arrives.
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(l10n.restoreFamilyChecking),
+            ],
+          ),
+        ),
+      );
     }
     if ((membersAsync.valueOrNull ?? []).isEmpty) {
       // Fresh install, no local family at all: show the intro slides

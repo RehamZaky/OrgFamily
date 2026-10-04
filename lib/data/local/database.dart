@@ -49,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   /// Whether [table] already has [column] — lets a migration step check
   /// before altering, so it's safe to resume after a partial failure (see
@@ -221,6 +221,19 @@ class AppDatabase extends _$AppDatabase {
             if (!await _columnExists('family_profile', 'joined_uid')) {
               await m.addColumn(familyProfile, familyProfile.joinedUid);
             }
+          }
+          if (from < 16) {
+            // Outbox rows now record which account made each change, and
+            // only that account's changes drain automatically. Rows queued
+            // before this have no recorded origin, so none of them can be
+            // attributed safely — hold them all for a member to review
+            // rather than upload them under whoever signs in next.
+            if (!await _columnExists('sync_outbox', 'origin_uid')) {
+              await m.addColumn(syncOutbox, syncOutbox.originUid);
+            }
+            await customStatement(
+              'UPDATE sync_outbox SET status = ${SyncOutboxStatus.held.index}',
+            );
           }
         },
       );

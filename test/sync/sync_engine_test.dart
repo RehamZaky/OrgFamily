@@ -93,10 +93,11 @@ void main() {
               entityId: 'm1',
               operation: SyncOperation.upsert,
               status: const Value(SyncOutboxStatus.failed),
+              originUid: const Value('uid-1'),
             ),
           );
 
-      engine.start(familyId);
+      engine.start(familyId, 'uid-1');
       await _settle();
 
       // A remote change — newer than the local edit — arrives, e.g. from
@@ -124,7 +125,7 @@ void main() {
       final localEditedAt = DateTime(2025, 1, 1);
       await _memberRow(db, id: 'm2', name: 'Local', updatedAt: localEditedAt);
 
-      engine.start(familyId);
+      engine.start(familyId, 'uid-1');
       await _settle();
 
       await firestore.collection('families/$familyId/members').doc('m2').set(
@@ -158,8 +159,8 @@ void main() {
 
       await _memberRow(db, id: 'm1', name: 'Alex', updatedAt: DateTime(2025));
 
-      engine.start('family-A');
-      engine.start('family-B'); // preempts A before its reconciliation can run
+      engine.start('family-A', 'uid-1');
+      engine.start('family-B', 'uid-1'); // preempts A before its reconciliation can run
 
       await _settle();
 
@@ -190,7 +191,7 @@ void main() {
           );
       const familyId = 'fam-2';
 
-      engine.start(familyId);
+      engine.start(familyId, 'uid-1');
       await _settle();
 
       // Malformed: FamilyMemberSyncAdapter.applyRemoteUpsert reads
@@ -242,7 +243,7 @@ void main() {
             ),
           );
       const familyId = 'fam-3';
-      engine.start(familyId);
+      engine.start(familyId, 'uid-1');
       await _settle();
 
       await _memberRow(db, id: 'm1', name: 'Alex', updatedAt: DateTime(2025));
@@ -252,6 +253,7 @@ void main() {
               entityType: SyncEntityType.familyMember,
               entityId: 'm1',
               operation: SyncOperation.upsert,
+              originUid: const Value('uid-1'),
             ),
           );
 

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../core/auth/auth_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/boxed_field.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import 'link_member_screen.dart';
 
@@ -37,6 +39,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isSignUp = false;
   bool _isSubmitting = false;
   String? _error;
+  bool _restoring = false;
+  bool _restoreFailed = false;
 
   @override
   void dispose() {
@@ -142,6 +146,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final uid = ref.read(authRepositoryProvider).currentUser?.uid;
     if (uid == null || !mounted) return;
     final members = await ref.read(familyRepositoryProvider).getMembers();
+    if (members.isEmpty && isFirebaseAuthSupportedPlatform) {
+      final restored = await _restoreExistingFamily(uid);
+      // null: the lookup failed — stay here (with a retry) rather than let
+      // the caller go on to create a duplicate family for this account.
+      if (restored == null || !mounted) return;
+      if (restored) {
+        Navigator.of(context).maybePop();
+        return;
+      }
+    }
     final linkedMember = members.where((m) => m.linkedUid == uid).firstOrNull;
     final hasUnlinkedAdults =
         members.any((m) => m.role != FamilyRole.child && m.linkedUid == null);
@@ -156,6 +170,51 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     // local profile picker to them (see activeMemberIdProvider's doc).
     if (linkedMember != null) await setActiveMember(ref, linkedMember.id);
     if (mounted) Navigator.of(context).maybePop();
+  }
+
+  /// A fresh device (no local family) signed in as an account that already
+  /// belongs to a cloud family — e.g. a member's second phone: brings that
+  /// family down instead of starting a new one, with no new invite needed
+  /// (membership belongs to the account, not the device). Returns whether
+  /// a family was restored, or null if Firestore couldn't be asked.
+  Future<bool?> _restoreExistingFamily(String uid) async {
+    setState(() {
+      _restoring = true;
+      _restoreFailed = false;
+      _error = null;
+    });
+    try {
+      final membership = ref.read(cloudMembershipRepositoryProvider);
+      final familyId = await membership.lookupFamily(uid);
+      if (familyId == null) return false;
+      final ownerUid = await membership.ownerOf(familyId);
+      final family = ref.read(familyRepositoryProvider);
+      await ref.read(familyProfileRepositoryProvider).recordRestore(
+            familyId: familyId,
+            uid: uid,
+            isOwner: ownerUid == uid,
+          );
+      // Sync's first pass downloads the family; once this account's own
+      // member arrives, make it the active profile. If that's slow, the
+      // app still opens (on the Owner by default) and catches up.
+      final me = await family
+          .watchMembers()
+          .map((members) => members.where((m) => m.linkedUid == uid).firstOrNull)
+          .firstWhere((m) => m != null)
+          .timeout(const Duration(seconds: 20), onTimeout: () => null);
+      if (me != null) await setActiveMember(ref, me.id);
+      return true;
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = AppLocalizations.of(context)!.restoreFamilyError;
+          _restoreFailed = true;
+        });
+      }
+      return null;
+    } finally {
+      if (mounted) setState(() => _restoring = false);
+    }
   }
 
   @override
@@ -262,10 +321,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         child: const Text('Forgot password?'),
                       ),
                     ),
+                  if (_restoring) ...[
+                    const SizedBox(height: 8),
+                    Text(AppLocalizations.of(context)!.restoreFamilyChecking),
+                  ],
                   if (_error != null) ...[
                     const SizedBox(height: 8),
                     Text(_error!, style: const TextStyle(color: AppColors.priorityUrgent)),
                   ],
+                  if (_restoreFailed)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        onPressed: _restoring ? null : _afterSignedIn,
+                        child: Text(AppLocalizations.of(context)!.restoreFamilyRetry),
+                      ),
+                    ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: _isSubmitting ? null : _submitEmail,

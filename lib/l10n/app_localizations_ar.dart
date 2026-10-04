@@ -1418,6 +1418,65 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String syncReviewTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return '$count $_temp0 بحاجة إلى مراجعة';
+  }
+
+  @override
+  String get syncReviewBody =>
+      'تمت أثناء توقف المزامنة أو بواسطة حساب آخر. لن تُرفع حتى تختار.';
+
+  @override
+  String get syncReviewAction => 'مراجعة';
+
+  @override
+  String get syncReviewSheetBody =>
+      'تمت هذه التغييرات على هذا الهاتف عندما لم يكن يزامن باسمك، لذلك لم تتم مشاركتها مع العائلة. ارفعها كتغييرات خاصة بك، أو احتفظ بها على هذا الهاتف فقط.';
+
+  @override
+  String get syncReviewUpload => 'رفع';
+
+  @override
+  String get syncReviewKeepLocal => 'الاحتفاظ على هذا الهاتف';
+
+  @override
+  String get syncReviewTask => 'مهمة';
+
+  @override
+  String get syncReviewEvent => 'حدث';
+
+  @override
+  String get syncReviewShoppingItem => 'عنصر تسوق';
+
+  @override
+  String get syncReviewShoppingList => 'قائمة تسوق';
+
+  @override
+  String get syncReviewMember => 'فرد من العائلة';
+
+  @override
+  String get syncReviewFamily => 'إعدادات العائلة';
+
+  @override
+  String get syncReviewDeleted => '(لم يعد موجودًا على هذا الهاتف)';
+
+  @override
+  String get restoreFamilyChecking => 'جارٍ البحث عن عائلتك…';
+
+  @override
+  String get restoreFamilyError =>
+      'تعذّر التحقق من وجود عائلة. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get restoreFamilyRetry => 'حاول مرة أخرى';
+
+  @override
   String joinConfirmTitleNamed(Object name) {
     return 'الانضمام إلى عائلة $name؟';
   }

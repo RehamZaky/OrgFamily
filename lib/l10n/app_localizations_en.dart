@@ -1369,6 +1369,65 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String syncReviewTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 to review';
+  }
+
+  @override
+  String get syncReviewBody =>
+      'Made while not syncing, or by another account. They won\'t upload until you choose.';
+
+  @override
+  String get syncReviewAction => 'Review';
+
+  @override
+  String get syncReviewSheetBody =>
+      'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Upload them as your changes, or keep them on this phone only.';
+
+  @override
+  String get syncReviewUpload => 'Upload';
+
+  @override
+  String get syncReviewKeepLocal => 'Keep on this phone';
+
+  @override
+  String get syncReviewTask => 'Task';
+
+  @override
+  String get syncReviewEvent => 'Event';
+
+  @override
+  String get syncReviewShoppingItem => 'Shopping item';
+
+  @override
+  String get syncReviewShoppingList => 'Shopping list';
+
+  @override
+  String get syncReviewMember => 'Family member';
+
+  @override
+  String get syncReviewFamily => 'Family settings';
+
+  @override
+  String get syncReviewDeleted => '(no longer on this phone)';
+
+  @override
+  String get restoreFamilyChecking => 'Looking for your family…';
+
+  @override
+  String get restoreFamilyError =>
+      'Couldn\'t check for an existing family. Check your connection and try again.';
+
+  @override
+  String get restoreFamilyRetry => 'Try again';
+
+  @override
   String joinConfirmTitleNamed(Object name) {
     return 'Join $name\'s family?';
   }

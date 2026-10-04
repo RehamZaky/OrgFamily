@@ -143,7 +143,10 @@ the entity change, so a write and its sync intent commit atomically.
   drain pushes via `.set()` with `updatedAt: FieldValue.serverTimestamp()`,
   reading the resolved server timestamp back into the local row afterward
   so both sides always compare the same server-assigned clock (raw
-  device clocks would break last-write-wins under clock skew).
+  device clocks would break last-write-wins under clock skew). Each
+  outbox row records the account that made the change (`originUid`), and
+  a drain only ever pushes rows made by the account syncing right now —
+  see "Who may sync, and changes made while not syncing" below.
 - **Pull**: a `.snapshots()` listener per collection, merging incoming
   changes only when newer and only when there's no matching outbox entry
   still in flight for that entity (so a racing snapshot never clobbers
@@ -160,10 +163,21 @@ the entity change, so a write and its sync intent commit atomically.
   permanent errors (and unclassified ones after a few attempts) stop
   retrying and surface in Settings ("Cloud sync" card) with a manual
   retry action.
-- **Lifecycle**: `RootScaffold` listens to `activeSyncFamilyIdProvider`
-  (signed in + linked + Owner-confirmed) and calls `start`/`stop`
-  accordingly — covering app boot while already linked, pause on
-  sign-out, and resume on signing back into the same family. Always
+- **Listener recovery**: every listener has an `onError`. Firestore ends
+  a listener's stream after an error, so the engine tears all of them
+  down and reattaches them with backoff (5s → 15s → 1m → every 5m;
+  immediately on app resume), and shows the error in the Cloud sync card
+  until a snapshot arrives again. A `permission-denied` (from a listener
+  or a push) also fires `SyncEngine.accessDenied`, which makes the app
+  re-check membership with Firestore. Plain connectivity loss never
+  errors a listener — Firestore keeps it alive offline and resumes it.
+- **Lifecycle**: `RootScaffold` listens to `activeSyncProvider` (signed
+  in as an account Firestore admits to this family — see below) and
+  calls `start(familyId, uid)`/`stop` accordingly — covering app boot
+  while already linked, pause on sign-out, and resume on signing back
+  into the same family. It also keeps the engine told who is signed in
+  (`setSignedInUid`), so changes made while not syncing still record
+  their origin. Always
   injected as a non-null `SyncEngine` (an inert no-op instance on
   desktop or in tests), same pattern as `NotificationService`.
 
@@ -260,14 +274,11 @@ argued for in this doc comment: see "Testing" below.
 `familyId` to the *joined* family (never mints a new one, unlike
 `recordLink`) and creates its own `FamilyMember` row with `linkedUid`
 set — `ownerUid` is deliberately left null, since only the real Owner's
-`recordLink` ever sets it. This is why `activeSyncFamilyIdProvider`
-(`lib/data/providers.dart`) no longer gates purely on `ownerUid != null`:
-a joiner's local `ownerUid` only ever arrives *through* sync pulling the
-family doc down, so requiring it up front would deadlock — sync could
-never start for them at all. It now also activates once the signed-in uid
-matches a local member's own `linkedUid`, which is true for the Owner
-immediately after `recordLink` and for a joiner immediately after this
-local step. Once sync starts, the existing initial reconciliation pass
+`recordLink` ever sets it, and a joiner's local `ownerUid` only ever
+arrives *through* sync pulling the family doc down. `recordJoin` instead
+records the joiner in `FamilyProfile.joinedUid`, which is what lets their
+sync start before that (see "Who may sync" below). Once sync starts, the
+existing initial reconciliation pass
 (see "Firestore sync" above) does the rest unmodified: this device's only
 local data is its own new member, so everything else — the rest of the
 family's members, tasks, events, lists — arrives exactly the way it
@@ -281,6 +292,64 @@ stamping "now" made the local row look newer than the real family doc's
 the real `ownerUid` — it would've stayed null on the joiner's device
 forever, quietly breaking the very invariant the previous paragraph
 describes. `test/sync/sync_engine_test.dart` covers this directly.
+
+### Who may sync, and changes made while not syncing
+
+Firestore admits exactly two kinds of account to a family: its owner
+(`ownerUid` on the family doc) and an account holding a
+`joinedUids/{uid}` grant. `cloudAccessProvider` (`lib/data/providers.dart`)
+mirrors that, and sync runs only for those accounts — signing in alone,
+or having a local member linked to the account (`LinkMemberScreen` on a
+device that already has the family), is not enough. That gap is what
+let a second adult signing in on the owner's phone start a sync whose
+every read and write was denied.
+
+**Firestore is the authority; the device only caches it.** The owner is
+trusted locally (`ownerUid` is immutable server-side). A joined member's
+local `FamilyProfile.joinedUid` is a cache: honoured optimistically so
+sync can start offline, but re-checked with Firestore every session and
+after every `permission-denied` (`membershipVerificationProvider`, via
+`CloudMembershipRepository.verify` — the family doc is readable exactly
+when the caller is a member, so one read answers it). A "no" clears the
+cache and stops sync, so a revoked grant (there's no revoke action in the
+app yet; the console or Admin SDK can delete a `joinedUids` doc) takes
+effect without the device ever uploading again. A "yes" with no local
+record (a join from before the record existed) records one. A
+non-member sees "Not syncing this family" in Settings, with an Enter
+code action; claiming an invite for the family already on the device
+just records the grant (no duplicate profile), and a code for a
+*different* family is refused before it's spent.
+
+**Changes made while not syncing are kept, not uploaded blindly.** While
+the device's family is in the cloud but this device isn't syncing as a
+member (signed out, or signed in as a non-member), `enqueueUpsert` still
+queues every change — as `SyncOutboxStatus.held`, tagged with whoever
+was signed in (`originUid`, null if nobody). Held rows never drain on
+their own. Nor does a row queued under a different account than the one
+syncing now: signing in never makes someone else's changes upload under
+your account. Both kinds show in Settings as "N changes to review"; the
+member can **Upload** them (taking them on as their own — they're
+re-tagged and drain normally) or **Keep on this phone** (the outbox rows
+are dropped; the edits stay in the local database). Until then the rows
+also keep incoming remote updates from overwriting those local edits.
+Rows queued before origins were recorded (schema v16) have no
+attributable origin, so the migration holds all of them for review.
+
+### New devices
+
+Membership belongs to the account, not the device. While syncing,
+`SyncEngine` keeps `users/{uid}` = `{familyId}`; the rules let an account
+read only its own record and write it only naming a family it's
+currently a member of, so it can't point at someone else's family and a
+revoked member can't refresh it. It only names the family — reading the
+family still goes through the membership rules. After sign-in on a
+device with no local family, `SignInScreen` looks that record up and, if
+found, `FamilyProfileRepository.recordRestore` points the device at the
+family (as owner or joined member, matching the family doc) and starts
+sync, whose initial reconciliation downloads everything. No invite is
+needed, and onboarding never offers to create a duplicate family while
+the download is in flight. A failed lookup is shown with a retry rather
+than treated as "no family".
 
 ## Testing
 

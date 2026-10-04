@@ -2558,6 +2558,102 @@ abstract class AppLocalizations {
   /// **'Can\'t receive cloud updates ({code})'**
   String syncListenerError(Object code);
 
+  /// No description provided for @syncReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} to review'**
+  String syncReviewTitle(int count);
+
+  /// No description provided for @syncReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Made while not syncing, or by another account. They won\'t upload until you choose.'**
+  String get syncReviewBody;
+
+  /// No description provided for @syncReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get syncReviewAction;
+
+  /// No description provided for @syncReviewSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Upload them as your changes, or keep them on this phone only.'**
+  String get syncReviewSheetBody;
+
+  /// No description provided for @syncReviewUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get syncReviewUpload;
+
+  /// No description provided for @syncReviewKeepLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep on this phone'**
+  String get syncReviewKeepLocal;
+
+  /// No description provided for @syncReviewTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get syncReviewTask;
+
+  /// No description provided for @syncReviewEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get syncReviewEvent;
+
+  /// No description provided for @syncReviewShoppingItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping item'**
+  String get syncReviewShoppingItem;
+
+  /// No description provided for @syncReviewShoppingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list'**
+  String get syncReviewShoppingList;
+
+  /// No description provided for @syncReviewMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Family member'**
+  String get syncReviewMember;
+
+  /// No description provided for @syncReviewFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family settings'**
+  String get syncReviewFamily;
+
+  /// No description provided for @syncReviewDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'(no longer on this phone)'**
+  String get syncReviewDeleted;
+
+  /// No description provided for @restoreFamilyChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for your family…'**
+  String get restoreFamilyChecking;
+
+  /// No description provided for @restoreFamilyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for an existing family. Check your connection and try again.'**
+  String get restoreFamilyError;
+
+  /// No description provided for @restoreFamilyRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get restoreFamilyRetry;
+
   /// No description provided for @joinConfirmTitleNamed.
   ///
   /// In en, this message translates to:

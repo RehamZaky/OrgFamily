@@ -116,7 +116,7 @@ The point where Firebase actually earns its place.
       (a joiner never gets a local `ownerUid`) to make this possible at
       all. The security-rule surface for this flow is now verified
       against the real Firestore Local Emulator Suite (not mocked) — see
-      `firestore_rules_test/` — 37 passing cases covering create/claim/
+      `firestore_rules_test/` — 52 passing cases (originally 37) covering create/claim/
       expiry/single-use/tamper-proofing for `invites/{code}` and
       `joinedUids/{uid}` (including a server-side bound on `expiresAt`
       itself, added after review — the rules originally trusted the
@@ -134,7 +134,7 @@ The point where Firebase actually earns its place.
 - [x] Firebase-emulator-based tests for the sync engine's security rules
       — `firestore_rules_test/` (a small Node subproject using
       `@firebase/rules-unit-testing`, documented in its own README) runs
-      37 rules-level tests against the real emulator, covering exactly
+      52 rules-level tests (originally 37) against the real emulator, covering exactly
       the multi-document, rules-dependent behavior unit tests and
       `fake_cloud_firestore` can't exercise: single-use invite claiming,
       expiry, tamper-proofing, and the `joinedUids` grant's cross-document

@@ -71,6 +71,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (!mounted || ref.read(authRepositoryProvider).currentUser == null) {
         return;
       }
+      // Signing in restored an existing cloud family for this account (a
+      // member's new phone) — there's no first member to create, even if
+      // the download hasn't delivered the members yet.
+      final profile = await ref.read(familyProfileRepositoryProvider).watchProfile().first;
+      if (profile?.familyId != null) return;
     }
     // Must be push, not pushReplacement: OnboardingScreen isn't a separate
     // route (RootScaffold renders it inline as the app's one and only

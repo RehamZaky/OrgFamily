@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Expression;
 import 'package:drift/drift.dart';
 
 import '../local/database.dart';
@@ -37,6 +37,19 @@ class SyncEngine {
   final List<StreamSubscription> _subscriptions = [];
   String? _activeFamilyId;
 
+  /// The verified member uid sync is running as — set by [start] together
+  /// with [_activeFamilyId]. Only outbox rows this uid made drain on their
+  /// own.
+  String? _activeUid;
+
+  /// Whoever is signed in right now, syncing or not — recorded as the
+  /// origin of changes queued while sync is off. See [setSignedInUid].
+  String? _signedInUid;
+
+  Timer? _listenerRetryTimer;
+  int _listenerRetryAttempt = 0;
+  final _accessDenied = StreamController<void>.broadcast();
+
   // Reentrancy guard for [drainNow] — see its doc comment for why a plain
   // "already running, do nothing" early-return isn't safe here.
   bool _draining = false;
@@ -46,6 +59,16 @@ class SyncEngine {
   String? _listenerError;
 
   String? get activeFamilyId => _activeFamilyId;
+  String? get activeUid => _activeUid;
+
+  /// Fires whenever Firestore answers `permission-denied` to a listener or
+  /// a push — the signal for the app to re-check this account's family
+  /// membership (it may have been revoked) rather than keep trying.
+  Stream<void> get accessDenied => _accessDenied.stream;
+
+  /// Kept current by the app on every auth change, so changes made while
+  /// sync is off still record who made them.
+  void setSignedInUid(String? uid) => _signedInUid = uid;
 
   /// The error code (e.g. `permission-denied`) that stopped a live
   /// listener for the active family, or null while all are healthy.
@@ -65,8 +88,44 @@ class SyncEngine {
   /// A listener's `onError` — without one, every denied or failed
   /// listener surfaces as an unhandled async exception instead of a sync
   /// status the user can see.
+  ///
+  /// Firestore ends a listener's stream after an error, so this also tears
+  /// the remaining listeners down and schedules all of them to reattach
+  /// with backoff — a denial or transient fault must not leave live
+  /// updates permanently stopped. (Plain connectivity loss never lands
+  /// here: Firestore keeps listeners alive offline and resumes them
+  /// itself.) A `permission-denied` additionally fires [accessDenied] so
+  /// membership is re-verified; if it really was revoked, the app stops
+  /// sync altogether and the pending retry is cancelled by [stop].
   void _onListenerError(Object error) {
-    _setListenerError(error is FirebaseException ? error.code : 'unknown');
+    final code = error is FirebaseException ? error.code : 'unknown';
+    _setListenerError(code);
+    if (code == 'permission-denied') _accessDenied.add(null);
+    final familyId = _activeFamilyId;
+    if (familyId == null || _listenerRetryTimer != null) return;
+    _cancelListeners();
+    final delay = listenerRetryDelay(_listenerRetryAttempt++);
+    _listenerRetryTimer = Timer(delay, () {
+      _listenerRetryTimer = null;
+      if (_activeFamilyId == familyId) _attachListeners(familyId);
+    });
+  }
+
+  /// A snapshot arrived, so the listeners are healthy again.
+  void _onListenerHealthy() {
+    if (_listenerError == null) return;
+    _listenerRetryAttempt = 0;
+    _setListenerError(null);
+  }
+
+  /// Reattaches errored listeners right away instead of waiting out the
+  /// backoff — for app resume, alongside [drainNow].
+  void reconnectNow() {
+    final familyId = _activeFamilyId;
+    if (familyId == null || _listenerRetryTimer == null) return;
+    _listenerRetryTimer!.cancel();
+    _listenerRetryTimer = null;
+    _attachListeners(familyId);
   }
 
   /// Begins syncing against [familyId]: runs the initial reconciliation
@@ -84,23 +143,55 @@ class SyncEngine {
   /// `_db`'s queries to the transaction's own executor for anything
   /// launched inside its zone, even unawaited, and that executor is
   /// invalid the moment the transaction itself closes.
-  void start(String familyId) {
+  ///
+  /// [uid] must be an account the family admits (its owner or an
+  /// invite-joined member) — see `cloudAccessProvider`.
+  void start(String familyId, String uid) {
     if (_firestore == null) return;
-    if (_activeFamilyId == familyId) return;
+    if (_activeFamilyId == familyId && _activeUid == uid) return;
     stop();
     _activeFamilyId = familyId;
-    Zone.root.run(() => unawaited(_activateSync(familyId)));
+    _activeUid = uid;
+    _signedInUid = uid;
+    Zone.root.run(() => unawaited(_activateSync(familyId, uid)));
   }
 
-  Future<void> _activateSync(String familyId) async {
+  Future<void> _activateSync(String familyId, String uid) async {
     await _runInitialReconciliationIfNeeded(familyId);
     await drainNow();
     // A stop()/different start() may have run while the above awaited —
     // don't attach listeners for a family that's no longer the active one.
     if (_activeFamilyId != familyId) return;
+    _attachListeners(familyId);
+    await _writeMembershipIndex(familyId, uid);
+  }
+
+  void _attachListeners(String familyId) {
     for (final adapter in _adapters.values) {
       _listen(adapter, familyId);
     }
+  }
+
+  void _cancelListeners() {
+    for (final sub in _subscriptions) {
+      unawaited(sub.cancel());
+    }
+    _subscriptions.clear();
+  }
+
+  /// Records `users/{uid}.familyId` — how this account finds its family
+  /// again from a new device without another invite (see
+  /// `CloudMembershipRepository.lookupFamily`). Written only once sync is
+  /// running, by which point the family doc exists and the rules can
+  /// confirm the membership the record claims. Best-effort: a failure is
+  /// simply retried the next time sync starts.
+  Future<void> _writeMembershipIndex(String familyId, String uid) async {
+    try {
+      await _firestore!.collection('users').doc(uid).set({
+        'familyId': familyId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {}
   }
 
   /// Detaches every listener and stops draining. Does not touch the
@@ -108,11 +199,12 @@ class SyncEngine {
   /// for the same family (see the "pause on sign-out" behavior in the
   /// Firestore sync plan).
   void stop() {
-    for (final sub in _subscriptions) {
-      unawaited(sub.cancel());
-    }
-    _subscriptions.clear();
+    _cancelListeners();
+    _listenerRetryTimer?.cancel();
+    _listenerRetryTimer = null;
+    _listenerRetryAttempt = 0;
     _activeFamilyId = null;
+    _activeUid = null;
     _setListenerError(null);
   }
 
@@ -124,6 +216,7 @@ class SyncEngine {
           .doc(familyId)
           .snapshots()
           .listen((doc) async {
+        _onListenerHealthy();
         if (doc.metadata.hasPendingWrites) return;
         final data = doc.data();
         if (data == null) return;
@@ -142,6 +235,7 @@ class SyncEngine {
         .collection(adapter.collectionPath(familyId))
         .snapshots()
         .listen((snapshot) async {
+      _onListenerHealthy();
       for (final change in snapshot.docChanges) {
         // Our own optimistic write echoing back — the eventual
         // server-timestamp round-trip in _pushOne is the authoritative
@@ -297,8 +391,17 @@ class SyncEngine {
   /// Queues [entityId] to be pushed — call from inside the same
   /// `AppDatabase.transaction()` block as the entity write it describes,
   /// so the two commit atomically (see the Firestore sync plan's
-  /// "Durability" section for why). A no-op if sync isn't active yet
-  /// (nothing local has a family to push to).
+  /// "Durability" section for why).
+  ///
+  /// While syncing, the row is queued under the syncing account and
+  /// drained right away. While *not* syncing but the family is already in
+  /// the cloud (signed out, or signed in as an account the family hasn't
+  /// admitted), the change is still recorded — as [SyncOutboxStatus.held],
+  /// with whoever was signed in as its origin — so it's never silently
+  /// lost, but also never uploaded until a member reviews it (see
+  /// [uploadHeld]/[discardHeld]). A no-op only when there's no cloud family
+  /// to sync to yet: before the first link, the initial reconciliation
+  /// pass uploads every local row anyway.
   ///
   /// The follow-up drain is dispatched via `Zone.root.run`, the same
   /// escape [start] uses and for the same reason — this is always called
@@ -310,17 +413,66 @@ class SyncEngine {
     required SyncEntityType type,
     required String entityId,
   }) async {
-    final familyId = _activeFamilyId;
-    if (familyId == null) return;
+    if (_firestore == null) return;
+    final activeFamilyId = _activeFamilyId;
+    var familyId = activeFamilyId;
+    if (familyId == null) {
+      final profile =
+          await (db.select(db.familyProfile)..where((p) => p.id.equals(1))).getSingleOrNull();
+      if (profile?.familyId == null || profile?.initialCloudMigrationCompletedAt == null) {
+        return;
+      }
+      familyId = profile!.familyId!;
+    }
+    final syncing = activeFamilyId != null;
     await db.into(db.syncOutbox).insert(
           SyncOutboxCompanion.insert(
             familyId: familyId,
             entityType: type,
             entityId: entityId,
             operation: SyncOperation.upsert,
+            status: Value(syncing ? SyncOutboxStatus.pending : SyncOutboxStatus.held),
+            originUid: Value(syncing ? _activeUid : _signedInUid),
           ),
         );
-    Zone.root.run(() => unawaited(drainNow()));
+    if (syncing) Zone.root.run(() => unawaited(drainNow()));
+  }
+
+  /// Rows of the active family that only drain once a member decides to:
+  /// [SyncOutboxStatus.held] ones, plus any queued under a different
+  /// account than the one syncing now (e.g. the owner's unsent changes on
+  /// a shared phone, after someone else signs in). Signing in never makes
+  /// another account's changes upload on its own.
+  Expression<bool> _needsReview($SyncOutboxTable o, String familyId, String uid) =>
+      o.familyId.equals(familyId) &
+      (o.status.equalsValue(SyncOutboxStatus.held) |
+          o.originUid.isNull() |
+          o.originUid.equals(uid).not());
+
+  /// "Upload": the syncing member takes the reviewed changes on as their
+  /// own and they drain like any other.
+  Future<void> uploadHeld() async {
+    final familyId = _activeFamilyId;
+    final uid = _activeUid;
+    if (familyId == null || uid == null) return;
+    await (_db.update(_db.syncOutbox)..where((o) => _needsReview(o, familyId, uid))).write(
+      SyncOutboxCompanion(
+        status: const Value(SyncOutboxStatus.pending),
+        originUid: Value(uid),
+        attemptCount: const Value(0),
+        nextRetryAt: const Value(null),
+      ),
+    );
+    await drainNow();
+  }
+
+  /// "Keep on this device": drops the reviewed changes from the queue. The
+  /// edits themselves stay in the local database; they just won't upload.
+  Future<void> discardHeld() async {
+    final familyId = _activeFamilyId;
+    final uid = _activeUid;
+    if (familyId == null || uid == null) return;
+    await (_db.delete(_db.syncOutbox)..where((o) => _needsReview(o, familyId, uid))).go();
   }
 
   /// The manual "Retry" action for the Settings sync status row: `failed`
@@ -330,10 +482,13 @@ class SyncEngine {
   /// them back in the running by resetting their status before draining.
   Future<void> retryFailed() async {
     final familyId = _activeFamilyId;
-    if (familyId == null) return;
+    final uid = _activeUid;
+    if (familyId == null || uid == null) return;
     await (_db.update(_db.syncOutbox)
           ..where((o) =>
-              o.familyId.equals(familyId) & o.status.equalsValue(SyncOutboxStatus.failed)))
+              o.familyId.equals(familyId) &
+              o.originUid.equals(uid) &
+              o.status.equalsValue(SyncOutboxStatus.failed)))
         .write(const SyncOutboxCompanion(
       status: Value(SyncOutboxStatus.pending),
       attemptCount: Value(0),
@@ -377,12 +532,14 @@ class SyncEngine {
 
   Future<void> _drainOnce() async {
     final familyId = _activeFamilyId;
-    if (familyId == null) return;
+    final uid = _activeUid;
+    if (familyId == null || uid == null) return;
     final now = DateTime.now();
     final rows = await (_db.select(_db.syncOutbox)
           ..where((o) =>
               o.familyId.equals(familyId) &
-              o.status.equalsValue(SyncOutboxStatus.failed).not() &
+              o.originUid.equals(uid) &
+              o.status.isInValues([SyncOutboxStatus.pending, SyncOutboxStatus.retrying]) &
               (o.nextRetryAt.isNull() | o.nextRetryAt.isSmallerOrEqualValue(now))))
         .get();
     for (final row in rows) {
@@ -436,6 +593,7 @@ class SyncEngine {
   Future<void> _recordFailure(SyncOutboxData row, Object error) async {
     final kind = classifyOutboxFailure(error);
     final code = error is FirebaseException ? error.code : 'unknown';
+    if (code == 'permission-denied') _accessDenied.add(null);
     final attempt = row.attemptCount + 1;
     final now = DateTime.now();
     // Permanent, or an unclassified error that's failed enough times in a
@@ -465,4 +623,11 @@ class SyncEngine {
       ),
     );
   }
+}
+
+/// How long to wait before reattaching listeners after the [attempt]th
+/// consecutive listener error: 5s, 15s, 1m, then every 5m.
+Duration listenerRetryDelay(int attempt) {
+  const stepsSeconds = [5, 15, 60, 300];
+  return Duration(seconds: stepsSeconds[attempt.clamp(0, stepsSeconds.length - 1)]);
 }

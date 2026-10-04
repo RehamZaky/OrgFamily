@@ -13,6 +13,7 @@ import '../../auth/screens/join_family_screen.dart';
 import '../../auth/screens/sign_in_screen.dart';
 import '../../family/providers/family_providers.dart';
 import '../../family/screens/invite_family_member_screen.dart';
+import '../widgets/sync_review_sheet.dart';
 import 'money_guide_screen.dart';
 
 /// A sentinel distinct from any real [Locale] to represent "follow system"
@@ -222,6 +223,30 @@ class SettingsScreen extends ConsumerWidget {
                                     child: const Text('Retry'),
                                   )
                                 : null,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final summary = ref.watch(syncOutboxSummaryProvider).valueOrNull;
+                      if (summary == null || summary.review.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: const Icon(Icons.rule_folder_outlined,
+                                color: AppColors.priorityNormal),
+                            title: Text(l10n.syncReviewTitle(summary.reviewCount)),
+                            subtitle: Text(l10n.syncReviewBody),
+                            trailing: TextButton(
+                              onPressed: () => showSyncReviewSheet(context, summary.review),
+                              child: Text(l10n.syncReviewAction),
+                            ),
                           ),
                         ),
                       );

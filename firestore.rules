@@ -107,6 +107,28 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.createdByUid == request.auth.uid;
     }
 
+    // Per-account record of which family the account belongs to, kept by
+    // SyncEngine while it syncs — how a member signing in on a new device
+    // finds their family again without another invite (membership belongs
+    // to the account, not to a device). See docs/architecture.md "Family
+    // invitations" § "New devices".
+    //
+    // Only ever readable/writable by its own account, and a write must
+    // name a family the account really is a member of right now, so it
+    // can't be used to point an account at someone else's family (and a
+    // revoked member can't refresh it). It only *names* the family — it
+    // grants nothing: reading the family still goes through the
+    // membership rules below.
+    match /users/{uid} {
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['familyId', 'updatedAt'])
+        && request.resource.data.familyId is string
+        && isFamilyMember(request.resource.data.familyId);
+      allow delete: if isSignedIn() && request.auth.uid == uid;
+    }
+
     match /families/{familyId} {
       allow read: if isDirectOrJoinedMember(resource.data.memberUids, familyId);
 
