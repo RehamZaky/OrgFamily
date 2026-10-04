@@ -1482,6 +1482,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get syncReviewApply => 'تطبيق';
 
   @override
+  String syncReviewApplying(int done, int total) {
+    return 'جارٍ التطبيق $done من $total…';
+  }
+
+  @override
   String get syncReviewUpload => 'رفع';
 
   @override

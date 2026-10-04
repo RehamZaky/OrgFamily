@@ -48,6 +48,9 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
   late Future<List<_Entry>> _entries = _load();
   bool _busy = false;
 
+  /// (done, total) while applying; null otherwise.
+  (int, int)? _progress;
+
   Future<List<_Entry>> _load() async {
     final db = ref.read(databaseProvider);
     final items = await ref.read(syncEngineProvider).inspectReview();
@@ -124,10 +127,20 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
       if (mounted) {
         setState(() {
           _busy = false;
+          _progress = null;
           _entries = _load();
         });
       }
     }
+  }
+
+  Future<void> _apply(List<_Entry> entries) {
+    return _run(() => ref.read(syncEngineProvider).resolveReview(
+          {for (final e in entries) (e.item.type, e.item.entityId): e.choice},
+          onProgress: (done, total) {
+            if (mounted) setState(() => _progress = (done, total));
+          },
+        ));
   }
 
   @override
@@ -223,13 +236,28 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
                     ),
                   ),
                 const SizedBox(height: 12),
+                if (_busy) ...[
+                  LinearProgressIndicator(
+                    value: switch (_progress) {
+                      (final done, final total) when total > 0 => done / total,
+                      _ => null,
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  if (_progress case (final done, final total))
+                    Text(l10n.syncReviewApplying(done, total),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.colors.textSecondary)),
+                  const SizedBox(height: 8),
+                ],
                 FilledButton(
-                  onPressed: _busy || entries == null
-                      ? null
-                      : () => _run(() => sync.resolveReview({
-                            for (final e in entries) (e.item.type, e.item.entityId): e.choice,
-                          })),
-                  child: Text(l10n.syncReviewApply),
+                  onPressed: _busy || entries == null ? null : () => _apply(entries),
+                  child: _busy
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.syncReviewApply),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(

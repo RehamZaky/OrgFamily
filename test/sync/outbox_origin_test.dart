@@ -180,6 +180,17 @@ void main() {
       expect(await outbox(), isEmpty);
     });
 
+    test('applying reports progress for every decision', () async {
+      final items = await engine.inspectReview();
+      final progress = <(int, int)>[];
+      await engine.resolveReview(
+        {for (final i in items) (i.type, i.entityId): i.defaultChoice},
+        onProgress: (done, total) => progress.add((done, total)),
+      );
+      expect(progress, [(0, 3), (1, 3), (2, 3), (3, 3)]);
+      await _settle(); // let the background uploads finish before tearDown
+    });
+
     test('the member can still choose to overwrite, or keep a change on the phone', () async {
       await engine.resolveReview({
         (SyncEntityType.familyMember, 'stale'): ReviewChoice.upload,

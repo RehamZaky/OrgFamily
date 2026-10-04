@@ -1434,6 +1434,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncReviewApply => 'Apply';
 
   @override
+  String syncReviewApplying(int done, int total) {
+    return 'Applying $done of $total…';
+  }
+
+  @override
   String get syncReviewUpload => 'Upload';
 
   @override

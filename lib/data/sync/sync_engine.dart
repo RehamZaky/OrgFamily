@@ -495,11 +495,20 @@ class SyncEngine {
   /// - [ReviewChoice.phoneOnly]: the change is dropped from the queue; the
   ///   edit stays on this phone but never uploads.
   ///
-  /// Entities not in [choices] are left awaiting review.
-  Future<void> resolveReview(Map<(SyncEntityType, String), ReviewChoice> choices) async {
+  /// Entities not in [choices] are left awaiting review. Returns once every
+  /// decision is applied, reporting each via [onProgress] — the uploads
+  /// themselves then carry on in the background like any other drain
+  /// (shown in Settings' Cloud sync card), rather than holding the caller
+  /// until every push has round-tripped.
+  Future<void> resolveReview(
+    Map<(SyncEntityType, String), ReviewChoice> choices, {
+    void Function(int done, int total)? onProgress,
+  }) async {
     final familyId = _activeFamilyId;
     final uid = _activeUid;
     if (familyId == null || uid == null) return;
+    var done = 0;
+    onProgress?.call(done, choices.length);
     for (final MapEntry(key: (type, entityId), value: choice) in choices.entries) {
       Expression<bool> rowsOf($SyncOutboxTable o) =>
           _needsReview(o, familyId, uid) &
@@ -531,8 +540,9 @@ class SyncEngine {
         case ReviewChoice.phoneOnly:
           await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
       }
+      onProgress?.call(++done, choices.length);
     }
-    await drainNow();
+    unawaited(drainNow());
   }
 
   /// "Keep all on this phone": drops every change awaiting review from the

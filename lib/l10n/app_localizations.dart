@@ -2648,6 +2648,12 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get syncReviewApply;
 
+  /// No description provided for @syncReviewApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying {done} of {total}…'**
+  String syncReviewApplying(int done, int total);
+
   /// No description provided for @syncReviewUpload.
   ///
   /// In en, this message translates to:

@@ -527,6 +527,7 @@
   "syncReviewChoiceUseCloud": "نسخة السحابة",
   "syncReviewChoicePhoneOnly": "الهاتف فقط",
   "syncReviewApply": "تطبيق",
+  "syncReviewApplying": "جارٍ التطبيق {done} من {total}…",
   "syncReviewUpload": "رفع",
   "syncReviewKeepLocal": "الاحتفاظ على هذا الهاتف",
   "syncReviewTask": "مهمة",

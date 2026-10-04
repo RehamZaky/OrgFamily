@@ -655,6 +655,13 @@
   "syncReviewChoiceUseCloud": "Use cloud",
   "syncReviewChoicePhoneOnly": "Phone only",
   "syncReviewApply": "Apply",
+  "syncReviewApplying": "Applying {done} of {total}…",
+  "@syncReviewApplying": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "syncReviewUpload": "Upload",
   "syncReviewKeepLocal": "Keep on this phone",
   "syncReviewTask": "Task",
