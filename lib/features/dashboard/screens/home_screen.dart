@@ -346,8 +346,6 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const BannerAdWidget(),
-                  const SizedBox(height: 20),
                   SectionHeader(title: l10n.sectionFamilyActivity),
                   const SizedBox(height: 10),
                   Card(
@@ -356,6 +354,8 @@ class HomeScreen extends ConsumerWidget {
                       child: FamilyActivityFeed(tasks: allTasks, lists: lists),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  const BannerAdWidget(),
                   if (notes.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Padding(

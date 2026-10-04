@@ -157,7 +157,7 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
 
     // Ads sit above the bottom nav on the browsing-heavy tabs — not on
     // Tasks/Lists, which are already dense with actionable content. Home
-    // shows its own banner inline (between Upcoming and Family Activity)
+    // shows its own banner inline (just below Family Activity)
     // instead of pinned here.
     final showBanner = _index == 2 || _index == 4 || _index == 5;
 
