@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../utils/enum_display.dart';
 import 'member_avatar.dart';
+import '../theme/app_color_scheme.dart';
 
 /// The app-wide navigation drawer — same content on every tab (Home, Tasks,
 /// Calendar, Lists, Family), reached via the menu icon each Scaffold's
@@ -39,7 +40,7 @@ class AppDrawer extends ConsumerWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -56,7 +57,7 @@ class AppDrawer extends ConsumerWidget {
                   title: Text(m.name),
                   subtitle: Text(m.role.label),
                   trailing: m.id == currentId
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -81,11 +82,11 @@ class AppDrawer extends ConsumerWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [AppColors.primaryLight, AppColors.primary],
+                  colors: context.colors.heroGradient,
                 ),
               ),
               child: Column(
@@ -154,7 +155,7 @@ class AppDrawer extends ConsumerWidget {
                   _DrawerItem(
                     icon: Icons.person_outline,
                     label: l10n.drawerProfile,
-                    color: AppColors.primary,
+                    color: context.colors.accent,
                     enabled: me != null,
                     onTap: () {
                       Navigator.of(context).pop();
@@ -178,7 +179,7 @@ class AppDrawer extends ConsumerWidget {
                   _DrawerItem(
                     icon: Icons.info_outline,
                     label: l10n.drawerAbout,
-                    color: AppColors.success,
+                    color: context.colors.success,
                     onTap: () {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
@@ -222,7 +223,7 @@ class _DrawerItem extends StatelessWidget {
           color: color.withValues(alpha: enabled ? 0.15 : 0.06),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 18, color: enabled ? color : Colors.grey),
+        child: Icon(icon, size: 18, color: enabled ? color : context.colors.textSecondary),
       ),
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
       onTap: onTap,

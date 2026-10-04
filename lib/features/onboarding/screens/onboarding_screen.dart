@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_config.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/screens/join_family_screen.dart';
@@ -209,7 +208,7 @@ class _SetupPage extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
+                            color: context.colors.accent.withValues(alpha: 0.25),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),

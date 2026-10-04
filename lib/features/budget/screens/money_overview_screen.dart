@@ -6,7 +6,6 @@ import 'package:lottie/lottie.dart';
 import '../../../core/permissions/family_permissions.dart';
 import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_format_x.dart';
 import '../../../core/utils/enum_display.dart';
 import '../../../core/widgets/app_drawer.dart';
@@ -55,7 +54,7 @@ class MoneyOverviewScreen extends ConsumerWidget {
                     radius: 20,
                     backgroundColor: const Color(0x14000000),
                     child: IconButton(
-                      icon: const Icon(Icons.menu, color: AppColors.primary),
+                      icon: Icon(Icons.menu, color: context.colors.accent),
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
@@ -76,10 +75,10 @@ class MoneyOverviewScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 20,
                   backgroundColor: Color(0x14000000),
-                  child: Icon(Icons.notifications_none, color: AppColors.primary),
+                  child: Icon(Icons.notifications_none, color: context.colors.accent),
                 ),
               ],
             ),
@@ -130,9 +129,13 @@ class MoneyOverviewScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: context.colors.heroCardGradient,
+                ),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -146,8 +149,9 @@ class MoneyOverviewScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(l10n.totalBalance,
-                                style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                            const SizedBox(height: 8),
+                                style: TextStyle(
+                                    color: context.colors.onHeroSecondary, fontSize: 13)),
+                            const SizedBox(height: 12),
                             Text(
                               formatCents(balance, currencyCode: currencyCode),
                               style: const TextStyle(
@@ -181,7 +185,7 @@ class MoneyOverviewScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
@@ -200,10 +204,10 @@ class MoneyOverviewScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     l10n.netThisMonth(formatCents(income - expenses, currencyCode: currencyCode)),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: context.colors.onHeroSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -336,8 +340,8 @@ class MoneyOverviewScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: t.type == TransactionType.expense
-                              ? AppColors.priorityUrgent
-                              : AppColors.success,
+                              ? context.colors.danger
+                              : context.colors.success,
                         ),
                       ),
                     ],
@@ -420,11 +424,11 @@ class _QuickLink extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: context.colors.borderSubtle),
         ),
         child: Column(
           children: [
-            Icon(icon, color: AppColors.primary, size: 18),
+            Icon(icon, color: context.colors.accent, size: 18),
             const SizedBox(height: 3),
             Text(label,
                 maxLines: 1,
@@ -466,7 +470,8 @@ class _InlineStat extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
-              Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+              Text(label,
+                  style: TextStyle(color: context.colors.onHeroSecondary, fontSize: 11)),
             ],
           ),
         ),
@@ -490,9 +495,9 @@ class _BudgetMiniCard extends ConsumerWidget {
     final month = ref.watch(selectedBudgetMonthProvider);
     final level = warningLevel(spent, totalLimit);
     final color = switch (level) {
-      BudgetWarningLevel.ok => AppColors.success,
-      BudgetWarningLevel.approaching => AppColors.taskPriorityHigh,
-      BudgetWarningLevel.exceeded => AppColors.priorityUrgent,
+      BudgetWarningLevel.ok => context.colors.success,
+      BudgetWarningLevel.approaching => context.colors.warning,
+      BudgetWarningLevel.exceeded => context.colors.danger,
     };
     final fraction =
         totalLimit == null || totalLimit <= 0 ? 0.0 : (spent / totalLimit).clamp(0.0, 1.0);
@@ -507,7 +512,7 @@ class _BudgetMiniCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: context.colors.borderSubtle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,8 +534,8 @@ class _BudgetMiniCard extends ConsumerWidget {
                   showSetBudgetSheet(context);
                 },
                 child: Text(l10n.setBudget,
-                    style: const TextStyle(
-                        color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12)),
+                    style: TextStyle(
+                        color: context.colors.accent, fontWeight: FontWeight.w700, fontSize: 12)),
               ),
             ] else ...[
               Text(
@@ -546,7 +551,7 @@ class _BudgetMiniCard extends ConsumerWidget {
                 child: LinearProgressIndicator(
                   value: fraction,
                   minHeight: 6,
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor: context.colors.track,
                   valueColor: AlwaysStoppedAnimation(color),
                 ),
               ),
@@ -590,7 +595,7 @@ class _SavingsMiniCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: context.colors.borderSubtle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -612,8 +617,8 @@ class _SavingsMiniCard extends ConsumerWidget {
                   showAddGoalSheet(context);
                 },
                 child: Text(l10n.addGoal,
-                    style: const TextStyle(
-                        color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12)),
+                    style: TextStyle(
+                        color: context.colors.accent, fontWeight: FontWeight.w700, fontSize: 12)),
               ),
             ] else
               Text(

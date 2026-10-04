@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/permissions/active_profile_provider.dart';
 import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
-import '../core/theme/app_colors.dart';
 import '../core/widgets/banner_ad_widget.dart';
 import '../data/backup/money_backup_providers.dart';
 import '../data/providers.dart';
@@ -30,7 +29,8 @@ class RootScaffold extends ConsumerStatefulWidget {
   ConsumerState<RootScaffold> createState() => _RootScaffoldState();
 }
 
-class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBindingObserver {
+class _RootScaffoldState extends ConsumerState<RootScaffold>
+    with WidgetsBindingObserver {
   int _index = 0;
 
   @override
@@ -92,10 +92,10 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
   Widget _buildScreen(int index) {
     return switch (index) {
       0 => HomeScreen(
-          onViewTasks: () => setState(() => _index = 1),
-          onViewEvents: () => setState(() => _index = 2),
-          onViewLists: () => setState(() => _index = 3),
-        ),
+        onViewTasks: () => setState(() => _index = 1),
+        onViewEvents: () => setState(() => _index = 2),
+        onViewLists: () => setState(() => _index = 3),
+      ),
       1 => const TasksScreen(),
       2 => const CalendarScreen(),
       3 => const ShoppingScreen(),
@@ -145,8 +145,10 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
     // tab. If the active profile switches to Child while it's open, fall
     // back to Home rather than leaving a Child looking at a screen it can
     // no longer navigate to.
-    final canViewFinances =
-        canPerform(ref.watch(activeRoleProvider), FamilyAction.viewFinances);
+    final canViewFinances = canPerform(
+      ref.watch(activeRoleProvider),
+      FamilyAction.viewFinances,
+    );
     if (_index == 5 && !canViewFinances) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _index = 0);
@@ -181,63 +183,71 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
         child: const Icon(Icons.add, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        color: context.colors.surface,
-        child: Row(
-          children: [
-            Expanded(
-              child: _NavItem(
-                icon: Icons.home_rounded,
-                label: l10n.navHome,
-                selected: _index == 0,
-                onTap: () => setState(() => _index = 0),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.check_circle_outline,
-                label: l10n.navTasks,
-                selected: _index == 1,
-                onTap: () => setState(() => _index = 1),
-              ),
-            ),
-            const SizedBox(width: 40),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.calendar_today_outlined,
-                label: l10n.navCalendar,
-                selected: _index == 2,
-                onTap: () => setState(() => _index = 2),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.checklist_rounded,
-                label: l10n.navLists,
-                selected: _index == 3,
-                onTap: () => setState(() => _index = 3),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.people_alt_outlined,
-                label: l10n.navFamily,
-                selected: _index == 4,
-                onTap: () => setState(() => _index = 4),
-              ),
-            ),
-            if (canViewFinances)
+      bottomNavigationBar: DecoratedBox(
+        // Transparent in light; a hairline in dark, where the bar shares the
+        // page background instead of standing out as its own surface.
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: context.colors.navDivider)),
+        ),
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          color: context.colors.navBackground,
+          surfaceTintColor: Colors.transparent,
+          child: Row(
+            children: [
               Expanded(
                 child: _NavItem(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: l10n.navBudget,
-                  selected: _index == 5,
-                  onTap: () => setState(() => _index = 5),
+                  icon: Icons.home_rounded,
+                  label: l10n.navHome,
+                  selected: _index == 0,
+                  onTap: () => setState(() => _index = 0),
                 ),
               ),
-          ],
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.check_circle_outline,
+                  label: l10n.navTasks,
+                  selected: _index == 1,
+                  onTap: () => setState(() => _index = 1),
+                ),
+              ),
+              const SizedBox(width: 40),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.calendar_today_outlined,
+                  label: l10n.navCalendar,
+                  selected: _index == 2,
+                  onTap: () => setState(() => _index = 2),
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.checklist_rounded,
+                  label: l10n.navLists,
+                  selected: _index == 3,
+                  onTap: () => setState(() => _index = 3),
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.people_alt_outlined,
+                  label: l10n.navFamily,
+                  selected: _index == 4,
+                  onTap: () => setState(() => _index = 4),
+                ),
+              ),
+              if (canViewFinances)
+                Expanded(
+                  child: _NavItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    label: l10n.navBudget,
+                    selected: _index == 5,
+                    onTap: () => setState(() => _index = 5),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -259,7 +269,9 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : context.colors.textSecondary;
+    final color = selected
+        ? context.colors.accent
+        : context.colors.textSecondary;
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),

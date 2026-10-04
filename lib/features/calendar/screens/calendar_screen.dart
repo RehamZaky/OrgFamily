@@ -83,7 +83,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     leading: const Icon(Icons.apps),
                     title: Text(l10n.allCategories),
                     trailing: _categoryFilter == null
-                        ? const Icon(Icons.check, color: AppColors.primary)
+                        ? Icon(Icons.check, color: context.colors.accent)
                         : null,
                     onTap: () =>
                         Navigator.of(sheetContext).pop(_allCategoriesSentinel),
@@ -92,7 +92,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         leading: Icon(c.icon),
                         title: Text(c.label(l10n)),
                         trailing: c == _categoryFilter
-                            ? const Icon(Icons.check, color: AppColors.primary)
+                            ? Icon(Icons.check, color: context.colors.accent)
                             : null,
                         onTap: () => Navigator.of(sheetContext).pop(c.name),
                       )),
@@ -137,7 +137,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               leading: const Icon(Icons.people_outline),
               title: Text(l10n.everyone),
               trailing: _memberFilter == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
@@ -145,7 +145,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               leading: const MemberAvatar(),
               title: Text(l10n.unassigned),
               trailing: _memberFilter == _unassignedSentinel
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(_unassignedSentinel),
             ),
@@ -153,7 +153,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
                   trailing: m.id == _memberFilter
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -201,7 +201,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
           IconButton(
             icon: Icon(_hasFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
-                color: _hasFilters ? AppColors.primary : null),
+                color: _hasFilters ? context.colors.accent : null),
             tooltip: l10n.filter,
             onPressed: () => showModalBottomSheet(
               context: context,
@@ -457,7 +457,7 @@ class _MemberAvatarsStack extends StatelessWidget {
               left: overlap * shown,
               child: CircleAvatar(
                 radius: radius,
-                backgroundColor: Colors.grey.shade300,
+                backgroundColor: context.colors.border,
                 child: Text(
                   '+${members.length - shown}',
                   style: TextStyle(fontSize: radius * 0.65, fontWeight: FontWeight.w700),

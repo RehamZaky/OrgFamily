@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_config.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../data/providers.dart';
 import '../../../data/repositories/family_invite_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -168,20 +167,20 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
                   letterSpacing: 2,
                 ),
                 filled: true,
-                fillColor: AppColors.primary.withValues(alpha: 0.06),
+                fillColor: context.colors.accent.withValues(alpha: 0.06),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 18,
                 ),
                 enabledBorder: border(
-                  AppColors.primary.withValues(alpha: 0.45),
+                  context.colors.accent.withValues(alpha: 0.45),
                 ),
                 disabledBorder: border(
-                  AppColors.primary.withValues(alpha: 0.25),
+                  context.colors.accent.withValues(alpha: 0.25),
                 ),
-                focusedBorder: border(AppColors.primary, 1.8),
-                errorBorder: border(AppColors.priorityUrgent),
-                focusedErrorBorder: border(AppColors.priorityUrgent, 1.8),
+                focusedBorder: border(context.colors.accent, 1.8),
+                errorBorder: border(context.colors.danger),
+                focusedErrorBorder: border(context.colors.danger, 1.8),
                 errorText: _error,
                 errorMaxLines: 3,
                 helperText: l10n.joinCodeHelper,

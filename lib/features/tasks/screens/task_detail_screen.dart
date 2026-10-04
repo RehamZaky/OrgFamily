@@ -179,7 +179,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               children: [
                 _DetailRow(
                   icon: Icons.people_alt_outlined,
-                  iconColor: AppColors.primary,
+                  iconColor: context.colors.accent,
                   label: l10n.labelAssignedTo,
                   child: Row(
                     children: [
@@ -230,7 +230,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               children: [
                 _DetailRow(
                   icon: Icons.calendar_today_outlined,
-                  iconColor: AppColors.success,
+                  iconColor: context.colors.success,
                   label: l10n.labelDueDate,
                   valueText: task.dueDate == null
                       ? l10n.notSet

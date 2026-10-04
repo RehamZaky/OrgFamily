@@ -27,7 +27,7 @@ class MoneyGuideScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _GuideCard(
             icon: Icons.work_outline,
-            color: AppColors.success,
+            color: context.colors.success,
             heading: l10n.moneyGuideIncomeSourceHeading,
             body: l10n.moneyGuideIncomeSourceBody,
           ),
@@ -41,7 +41,7 @@ class MoneyGuideScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _GuideCard(
             icon: Icons.swap_horiz,
-            color: AppColors.primary,
+            color: context.colors.accent,
             heading: l10n.moneyGuideTransferHeading,
             body: l10n.moneyGuideTransferBody,
           ),

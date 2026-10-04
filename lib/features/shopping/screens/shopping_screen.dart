@@ -63,7 +63,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                     child: CircleAvatar(
                       radius: 18,
                       backgroundColor:
-                          selected ? color.withValues(alpha: 0.2) : Colors.grey.shade100,
+                          selected ? color.withValues(alpha: 0.2) : context.colors.surfaceElevated,
                       child: Icon(icon, color: color, size: 18),
                     ),
                   );

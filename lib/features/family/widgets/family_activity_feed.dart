@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/member_avatar.dart';
 import '../../../data/local/database.dart';
 import '../../../l10n/app_localizations.dart';
@@ -23,7 +22,9 @@ class ActivityEntry {
   final String text;
   final DateTime time;
   final IconData icon;
-  final Color iconColor;
+  /// Resolved against the active theme at render time, since entries are
+  /// built outside any widget's [BuildContext].
+  final Color Function(AppColorScheme colors) iconColor;
 }
 
 /// Merges completed tasks and newly added shopping items into one
@@ -45,7 +46,7 @@ List<ActivityEntry> buildFamilyActivity({
         text: l10n.activityCompleted(t.title),
         time: t.completedAt!,
         icon: Icons.check_circle,
-        iconColor: AppColors.success,
+        iconColor: (c) => c.success,
       ));
     }
   }
@@ -57,7 +58,7 @@ List<ActivityEntry> buildFamilyActivity({
         text: l10n.activityAdded(item.name, list.name),
         time: item.createdAt,
         icon: Icons.add_circle,
-        iconColor: AppColors.primary,
+        iconColor: (c) => c.accent,
       ));
     }
   }
@@ -95,7 +96,7 @@ class ActivityRow extends StatelessWidget {
               child: CircleAvatar(
                 radius: 8,
                 backgroundColor: Colors.white,
-                child: Icon(entry.icon, size: 12, color: entry.iconColor),
+                child: Icon(entry.icon, size: 12, color: entry.iconColor(context.colors)),
               ),
             ),
           ],

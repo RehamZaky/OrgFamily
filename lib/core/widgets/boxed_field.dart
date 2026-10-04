@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_color_scheme.dart';
 
 /// A labeled field with a visible border — used instead of the app-wide
 /// borderless [InputDecorationTheme] (which fills with `colors.background`,
@@ -21,13 +22,13 @@ class BoxedField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text(label, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: verticalPadding),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(14),
           ),
           child: child,

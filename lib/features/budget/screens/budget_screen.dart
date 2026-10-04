@@ -6,7 +6,6 @@ import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/permissions/family_permissions.dart';
 import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_format_x.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
@@ -79,14 +78,14 @@ class BudgetScreen extends ConsumerWidget {
                   : [
                       DonutSection(
                         switch (level) {
-                          BudgetWarningLevel.ok => AppColors.success,
-                          BudgetWarningLevel.approaching => AppColors.taskPriorityHigh,
-                          BudgetWarningLevel.exceeded => AppColors.priorityUrgent,
+                          BudgetWarningLevel.ok => context.colors.success,
+                          BudgetWarningLevel.approaching => context.colors.warning,
+                          BudgetWarningLevel.exceeded => context.colors.danger,
                         },
                         spent.toDouble(),
                       ),
                       if (spent < totalLimit)
-                        DonutSection(Colors.grey.shade200, (totalLimit - spent).toDouble()),
+                        DonutSection(context.colors.track, (totalLimit - spent).toDouble()),
                     ],
               centerLabel: totalLimit == null
                   ? l10n.noBudgetSet
@@ -107,7 +106,7 @@ class BudgetScreen extends ConsumerWidget {
                 _AmountColumn(
                   label: formatCents(remaining ?? 0, currencyCode: currencyCode),
                   sub: l10n.budgetRemaining,
-                  color: (remaining ?? 0) < 0 ? AppColors.priorityUrgent : AppColors.success,
+                  color: (remaining ?? 0) < 0 ? context.colors.danger : context.colors.success,
                 ),
               ],
             ),
@@ -137,7 +136,7 @@ class BudgetScreen extends ConsumerWidget {
                   background: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 12),
-                    child: const Icon(Icons.delete_outline, color: AppColors.priorityUrgent),
+                    child: Icon(Icons.delete_outline, color: context.colors.danger),
                   ),
                   confirmDismiss: (_) async {
                     return checkPermission(context, ref, FamilyAction.manageBudget);

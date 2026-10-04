@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_color_scheme.dart';
-import '../theme/app_colors.dart';
 
 /// Shows a modal bottom sheet listing [options] as tappable rows, replacing
 /// the app's old dropdown menus with the bottom-sheet pattern used
@@ -28,7 +27,7 @@ Future<T?> showOptionPickerSheet<T>({
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: context.colors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -51,7 +50,7 @@ Future<T?> showOptionPickerSheet<T>({
                       iconBuilder != null ? Icon(iconBuilder(o)) : null,
                   title: Text(labelBuilder(o)),
                   trailing: isSelected
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(o),
                 );

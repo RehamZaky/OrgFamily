@@ -312,7 +312,7 @@ class HomeScreen extends ConsumerWidget {
                                               padding: const EdgeInsets.symmetric(
                                                   vertical: 6, horizontal: 10),
                                               decoration: BoxDecoration(
-                                                color: AppColors.success
+                                                color: context.colors.success
                                                     .withValues(alpha: 0.12),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
@@ -320,16 +320,16 @@ class HomeScreen extends ConsumerWidget {
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  const Icon(Icons.shopping_cart,
+                                                  Icon(Icons.shopping_cart,
                                                       size: 14,
-                                                      color: AppColors.success),
+                                                      color: context.colors.success),
                                                   const SizedBox(width: 6),
                                                   Text(
                                                     l10n.itemsCount(primaryItems.length),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 12,
                                                       fontWeight: FontWeight.w600,
-                                                      color: AppColors.success,
+                                                      color: context.colors.success,
                                                     ),
                                                   ),
                                                 ],
@@ -365,10 +365,10 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.sectionNotes.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: context.colors.accent,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -376,7 +376,7 @@ class HomeScreen extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+                                icon: Icon(Icons.add, size: 18, color: context.colors.accent),
                                 visualDensity: VisualDensity.compact,
                                 tooltip: l10n.quickAddNote,
                                 onPressed: () => Navigator.of(context).push(
@@ -385,7 +385,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               PopupMenuButton<NoteSort>(
                                 icon:
-                                    const Icon(Icons.sort, size: 18, color: AppColors.primary),
+                                    Icon(Icons.sort, size: 18, color: context.colors.accent),
                                 initialValue: noteSort,
                                 onSelected: (sort) =>
                                     ref.read(noteSortProvider.notifier).state = sort,
@@ -477,11 +477,11 @@ class _Header extends ConsumerWidget {
           child: Container(
             height: 210,
             width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primaryLight, AppColors.primary],
+                colors: context.colors.heroGradient,
               ),
             ),
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -530,7 +530,7 @@ class _Header extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             DateFormat('EEEE, MMMM d', locale).format(DateTime.now()),
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(color: context.colors.onHeroSecondary),
                           ),
                         ],
                       ),
@@ -593,7 +593,7 @@ class _Header extends ConsumerWidget {
                 children: [
                   _StatChip(
                     icon: Icons.assignment_turned_in_outlined,
-                    color: AppColors.primary,
+                    color: context.colors.accent,
                     value: taskCount,
                     label: l10n.statTasksToday,
                   ),
@@ -607,7 +607,7 @@ class _Header extends ConsumerWidget {
                   const _StatDivider(),
                   _StatChip(
                     icon: Icons.shopping_cart_outlined,
-                    color: AppColors.success,
+                    color: context.colors.success,
                     value: listCount,
                     label: listCount == 1 ? l10n.statList : l10n.statLists,
                   ),
@@ -626,7 +626,7 @@ class _StatDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(height: 32, width: 1, color: Colors.grey.shade200);
+    return Container(height: 32, width: 1, color: context.colors.border);
   }
 }
 
@@ -681,15 +681,15 @@ class _NeedsAttentionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, size: 14, color: AppColors.priorityHigh),
+          Icon(Icons.error_outline, size: 14, color: context.colors.danger),
           const SizedBox(width: 6),
           Text(
             '${l10n.needsAttention.toUpperCase()} ($count)',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: AppColors.priorityHigh,
+              color: context.colors.danger,
             ),
           ),
         ],
@@ -715,9 +715,9 @@ class _PriorityRow extends StatelessWidget {
     final isHighPriority =
         task.priority == TaskPriority.high || task.priority == TaskPriority.urgent;
     final statusColor = task.isCompleted
-        ? AppColors.success
+        ? context.colors.success
         : isHighPriority
-            ? AppColors.priorityUrgent
+            ? context.colors.danger
             : AppColors.priorityNormal;
 
     return InkWell(
@@ -772,7 +772,7 @@ class _PriorityRow extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: overdue ? FontWeight.w700 : null,
                             color: overdue
-                                ? AppColors.priorityHigh
+                                ? context.colors.danger
                                 : context.colors.textSecondary,
                           ),
                         ),
@@ -795,7 +795,7 @@ class _PriorityRow extends StatelessWidget {
                 ),
               )
             else if (overdue)
-              const Icon(Icons.error_outline, size: 18, color: AppColors.priorityHigh)
+              Icon(Icons.error_outline, size: 18, color: context.colors.danger)
             else if (isHighPriority)
               Icon(Icons.flag_rounded, size: 18, color: statusColor)
             else
@@ -925,7 +925,7 @@ class _EmptyCard extends StatelessWidget {
               label: Text(actionLabel!),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                foregroundColor: AppColors.primary,
+                foregroundColor: context.colors.accent,
               ),
             ),
           ],

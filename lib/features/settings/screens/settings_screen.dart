@@ -113,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
                     return Card(
                       margin: EdgeInsets.zero,
                       child: ListTile(
-                        leading: const Icon(Icons.storage_outlined, color: AppColors.primary),
+                        leading: Icon(Icons.storage_outlined, color: context.colors.accent),
                         title: const Text('Local family'),
                         subtitle: Text(
                           memberCount == 1
@@ -171,7 +171,7 @@ class SettingsScreen extends ConsumerWidget {
                             margin: EdgeInsets.zero,
                             child: ListTile(
                               leading: Icon(Icons.cloud_off_outlined,
-                                  color: AppColors.priorityNormal),
+                                  color: context.colors.warning),
                               title: Text(l10n.cloudNotMemberTitle),
                               subtitle: Text(l10n.cloudNotMemberBody),
                               trailing: TextButton(
@@ -203,8 +203,8 @@ class SettingsScreen extends ConsumerWidget {
                                   ? Icons.cloud_off_outlined
                                   : Icons.cloud_sync_outlined,
                               color: failed > 0 || listenerError != null
-                                  ? AppColors.priorityUrgent
-                                  : AppColors.primary,
+                                  ? context.colors.danger
+                                  : context.colors.accent,
                             ),
                             title: const Text('Cloud sync'),
                             subtitle: Text(
@@ -240,8 +240,8 @@ class SettingsScreen extends ConsumerWidget {
                         child: Card(
                           margin: EdgeInsets.zero,
                           child: ListTile(
-                            leading: const Icon(Icons.rule_folder_outlined,
-                                color: AppColors.priorityNormal),
+                            leading: Icon(Icons.rule_folder_outlined,
+                                color: context.colors.warning),
                             title: Text(l10n.syncReviewTitle(summary.reviewCount)),
                             subtitle: Text(l10n.syncReviewBody),
                             trailing: TextButton(
@@ -262,8 +262,8 @@ class SettingsScreen extends ConsumerWidget {
                         child: Card(
                           margin: EdgeInsets.zero,
                           child: ListTile(
-                            leading: const Icon(Icons.person_add_outlined,
-                                color: AppColors.primary),
+                            leading: Icon(Icons.person_add_outlined,
+                                color: context.colors.accent),
                             title: const Text('Invite a family member'),
                             subtitle: const Text(
                               'Generate a code for another adult to join on their own device',
@@ -288,7 +288,7 @@ class SettingsScreen extends ConsumerWidget {
                 Card(
                   margin: EdgeInsets.zero,
                   child: ListTile(
-                    leading: const Icon(Icons.menu_book_outlined, color: AppColors.primary),
+                    leading: Icon(Icons.menu_book_outlined, color: context.colors.accent),
                     title: Text(l10n.settingsMoneyGuide),
                     subtitle: Text(l10n.settingsMoneyGuideHint),
                     trailing: const Icon(Icons.chevron_right),

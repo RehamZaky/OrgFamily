@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../theme/app_color_scheme.dart';
-import '../theme/app_colors.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
@@ -43,14 +42,14 @@ class SectionHeader extends StatelessWidget {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.viewAll,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: context.colors.accent,
                     ),
                   ),
                   Icon(isRtl ? Icons.chevron_left : Icons.chevron_right,
-                      size: 16, color: AppColors.primary),
+                      size: 16, color: context.colors.accent),
                 ],
               ),
             ),

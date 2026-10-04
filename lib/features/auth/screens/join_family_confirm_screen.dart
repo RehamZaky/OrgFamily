@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../data/providers.dart';
 import '../../../data/repositories/family_invite_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -165,7 +164,7 @@ class _JoinFamilyConfirmScreenState
                 color: colors.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: context.colors.accent.withValues(alpha: 0.12),
                 ),
               ),
               child: Row(
@@ -175,11 +174,11 @@ class _JoinFamilyConfirmScreenState
                     height: 64,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(alpha: 0.12),
+                      color: context.colors.accent.withValues(alpha: 0.12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.groups_rounded,
-                      color: AppColors.primary,
+                      color: context.colors.accent,
                       size: 34,
                     ),
                   ),
@@ -218,7 +217,7 @@ class _JoinFamilyConfirmScreenState
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.priorityUrgent),
+                style: TextStyle(color: context.colors.danger),
               ),
             ],
             const SizedBox(height: 32),
@@ -231,7 +230,7 @@ class _JoinFamilyConfirmScreenState
             TextButton(
               onPressed: _joining ? null : () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
+                foregroundColor: context.colors.accent,
                 minimumSize: const Size.fromHeight(48),
                 textStyle: const TextStyle(
                   fontSize: 17,

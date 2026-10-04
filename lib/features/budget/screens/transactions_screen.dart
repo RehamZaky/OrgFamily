@@ -253,8 +253,8 @@ class _TransactionTile extends ConsumerWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: t.type == TransactionType.expense
-                            ? AppColors.priorityUrgent
-                            : AppColors.success,
+                            ? context.colors.danger
+                            : context.colors.success,
                       ),
                     ),
                     Text(t.date.timeLabel,
@@ -289,7 +289,7 @@ class _TabChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : context.colors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: selected ? null : Border.all(color: Colors.grey.shade300),
+          border: selected ? null : Border.all(color: context.colors.border),
         ),
         child: Text(
           label,

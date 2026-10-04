@@ -9,6 +9,7 @@ import '../budget/widgets/add_transaction_sheet.dart';
 import '../calendar/screens/event_form_screen.dart';
 import '../notes/screens/note_form_screen.dart';
 import '../tasks/widgets/quick_add_task_sheet.dart';
+import '../../core/theme/app_color_scheme.dart';
 
 void showQuickAddSheet(BuildContext context) {
   showModalBottomSheet(
@@ -46,7 +47,7 @@ class _QuickAddSheet extends ConsumerWidget {
                 _QuickAddOption(
                   icon: Icons.check_circle_outline,
                   label: l10n.quickAddTask,
-                  color: AppColors.primary,
+                  color: context.colors.accent,
                   onTap: () {
                     Navigator.of(context).pop();
                     showQuickAddTaskSheet(context);
@@ -78,7 +79,7 @@ class _QuickAddSheet extends ConsumerWidget {
                   _QuickAddOption(
                     icon: Icons.attach_money,
                     label: l10n.quickAddTransaction,
-                    color: AppColors.primary,
+                    color: context.colors.accent,
                     onTap: () {
                       Navigator.of(context).pop();
                       showAddTransactionSheet(context);

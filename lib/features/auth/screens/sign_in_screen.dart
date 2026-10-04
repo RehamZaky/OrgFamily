@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/auth/auth_config.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/boxed_field.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import 'link_member_screen.dart';
+import '../../../core/theme/app_color_scheme.dart';
 
 /// Sign in / sign up with a Firebase account. Used two ways:
 ///  - Rendered inline by `RootScaffold` when there's no local family yet
@@ -230,10 +230,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 28),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.primaryLight, AppColors.primary],
+                        colors: context.colors.heroGradient,
                       ),
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -325,7 +325,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: 8),
-                    Text(_error!, style: const TextStyle(color: AppColors.priorityUrgent)),
+                    Text(_error!, style: TextStyle(color: context.colors.danger)),
                   ],
                   if (_restoreFailed)
                     Align(

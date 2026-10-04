@@ -72,8 +72,8 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
                       background: Container(
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 16),
-                        child: const Icon(Icons.delete_outline,
-                            color: AppColors.priorityHigh),
+                        child: Icon(Icons.delete_outline,
+                            color: context.colors.danger),
                       ),
                       onDismissed: (_) => ref
                           .read(shoppingRepositoryProvider)

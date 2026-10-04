@@ -19,6 +19,7 @@ import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
 import '../providers/family_providers.dart';
+import '../../../core/theme/app_color_scheme.dart';
 
 class AddMemberScreen extends ConsumerStatefulWidget {
   const AddMemberScreen({
@@ -297,7 +298,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                   children: [
                     Expanded(child: Text(_role.label)),
                     Icon(Icons.keyboard_arrow_down,
-                        color: Colors.grey.shade600),
+                        color: context.colors.textSecondary),
                   ],
                 ),
               ),
@@ -319,11 +320,11 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                     InkWell(
                       onTap: () => setState(() => _birthday = null),
                       child: Icon(Icons.close,
-                          size: 18, color: Colors.grey.shade600),
+                          size: 18, color: context.colors.textSecondary),
                     ),
                   const SizedBox(width: 8),
                   Icon(Icons.calendar_today_outlined,
-                      size: 18, color: Colors.grey.shade600),
+                      size: 18, color: context.colors.textSecondary),
                 ],
               ),
             ),
@@ -400,7 +401,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                     radius: 22,
                     backgroundColor: selected
                         ? _color.withValues(alpha: 0.25)
-                        : Colors.grey.shade100,
+                        : context.colors.surfaceElevated,
                     backgroundImage: asset != null ? AssetImage(asset) : null,
                     child: asset == null
                         ? Text(e, style: const TextStyle(fontSize: 22))

@@ -231,7 +231,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                   children: [
                     _StatTile(
                       icon: Icons.check_circle_outline,
-                      color: AppColors.success,
+                      color: context.colors.success,
                       value: '$tasksDone',
                       label: 'Tasks Done',
                     ),
@@ -247,9 +247,9 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                       value: '$points',
                       label: 'Points',
                     ),
-                    const _StatTile(
+                    _StatTile(
                       icon: Icons.flag_outlined,
-                      color: AppColors.primary,
+                      color: context.colors.accent,
                       value: '—',
                       label: 'Goal Contributed',
                     ),
@@ -266,8 +266,8 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                 if (canPerform(ref.watch(activeRoleProvider),
                     FamilyAction.manageResponsibilities))
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline,
-                        color: AppColors.primary),
+                    icon: Icon(Icons.add_circle_outline,
+                        color: context.colors.accent),
                     onPressed: _addResponsibility,
                   ),
               ],
@@ -314,13 +314,13 @@ class _QuickActionButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: context.colors.border),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
+          Icon(icon, size: 20, color: context.colors.accent),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],
@@ -524,7 +524,7 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
