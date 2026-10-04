@@ -800,6 +800,150 @@ abstract class AppLocalizations {
   /// **'System'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @accountSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSectionTitle;
+
+  /// No description provided for @accountSignedOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and share with your family'**
+  String get accountSignedOutTitle;
+
+  /// No description provided for @accountSignedOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family is saved on this phone. Connect an account to keep it in sync across everyone\'s devices.'**
+  String get accountSignedOutBody;
+
+  /// No description provided for @accountConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get accountConnect;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get accountStatusSynced;
+
+  /// No description provided for @accountStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get accountStatusSyncing;
+
+  /// No description provided for @accountStatusProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync problem'**
+  String get accountStatusProblem;
+
+  /// No description provided for @accountStatusNotSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not syncing'**
+  String get accountStatusNotSyncing;
+
+  /// No description provided for @accountStatusWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for owner'**
+  String get accountStatusWaiting;
+
+  /// No description provided for @accountStatusChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get accountStatusChecking;
+
+  /// No description provided for @accountSyncRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get accountSyncRow;
+
+  /// No description provided for @accountSyncUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get accountSyncUpToDate;
+
+  /// No description provided for @accountSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} syncing'**
+  String accountSyncPending(int count);
+
+  /// No description provided for @accountSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} couldn\'t sync'**
+  String accountSyncFailed(int count);
+
+  /// No description provided for @accountSyncWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts once the family owner connects'**
+  String get accountSyncWaiting;
+
+  /// No description provided for @accountRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get accountRetry;
+
+  /// No description provided for @accountReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to share with the family'**
+  String get accountReviewHint;
+
+  /// No description provided for @accountFamilyRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Family on this phone'**
+  String get accountFamilyRow;
+
+  /// No description provided for @accountFamilyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{member} other{members}} · works offline'**
+  String accountFamilyMembers(int count);
+
+  /// No description provided for @accountInviteRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a family member'**
+  String get accountInviteRow;
+
+  /// No description provided for @accountInviteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a code so another adult can join'**
+  String get accountInviteHint;
+
+  /// No description provided for @accountJoinRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with an invite code'**
+  String get accountJoinRow;
+
+  /// No description provided for @accountJoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This account isn\'t part of this family\'s cloud yet'**
+  String get accountJoinHint;
+
   /// No description provided for @settingsMoneyGuide.
   ///
   /// In en, this message translates to:

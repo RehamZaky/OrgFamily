@@ -456,6 +456,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguageSystem => 'النظام';
 
   @override
+  String get accountSectionTitle => 'الحساب';
+
+  @override
+  String get accountSignedOutTitle => 'احفظ بيانات عائلتك وشاركها';
+
+  @override
+  String get accountSignedOutBody =>
+      'بيانات عائلتك محفوظة على هذا الهاتف. اربط حسابًا لمزامنتها على أجهزة الجميع.';
+
+  @override
+  String get accountConnect => 'ربط';
+
+  @override
+  String get accountSignOut => 'تسجيل الخروج';
+
+  @override
+  String get accountStatusSynced => 'متزامن';
+
+  @override
+  String get accountStatusSyncing => 'جارٍ المزامنة';
+
+  @override
+  String get accountStatusProblem => 'مشكلة في المزامنة';
+
+  @override
+  String get accountStatusNotSyncing => 'لا تتم المزامنة';
+
+  @override
+  String get accountStatusWaiting => 'بانتظار المالك';
+
+  @override
+  String get accountStatusChecking => 'جارٍ التحقق…';
+
+  @override
+  String get accountSyncRow => 'المزامنة السحابية';
+
+  @override
+  String get accountSyncUpToDate => 'محدّث';
+
+  @override
+  String accountSyncPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return '$count $_temp0 قيد المزامنة';
+  }
+
+  @override
+  String accountSyncFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return 'تعذّرت مزامنة $count $_temp0';
+  }
+
+  @override
+  String get accountSyncWaiting => 'تبدأ عندما يربط مالك العائلة حسابه';
+
+  @override
+  String get accountRetry => 'إعادة المحاولة';
+
+  @override
+  String get accountReviewHint => 'اختر ما تريد مشاركته مع العائلة';
+
+  @override
+  String get accountFamilyRow => 'العائلة على هذا الهاتف';
+
+  @override
+  String accountFamilyMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أفراد',
+      one: 'فرد',
+    );
+    return '$count $_temp0 · تعمل دون اتصال';
+  }
+
+  @override
+  String get accountInviteRow => 'دعوة فرد من العائلة';
+
+  @override
+  String get accountInviteHint => 'شارك رمزًا ليتمكن شخص بالغ آخر من الانضمام';
+
+  @override
+  String get accountJoinRow => 'الانضمام برمز دعوة';
+
+  @override
+  String get accountJoinHint => 'هذا الحساب ليس ضمن سحابة هذه العائلة بعد';
+
+  @override
   String get settingsMoneyGuide => 'دليل الدخل والحسابات';
 
   @override

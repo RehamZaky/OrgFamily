@@ -410,6 +410,104 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSystem => 'System';
 
   @override
+  String get accountSectionTitle => 'Account';
+
+  @override
+  String get accountSignedOutTitle => 'Back up and share with your family';
+
+  @override
+  String get accountSignedOutBody =>
+      'Your family is saved on this phone. Connect an account to keep it in sync across everyone\'s devices.';
+
+  @override
+  String get accountConnect => 'Connect';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountStatusSynced => 'Synced';
+
+  @override
+  String get accountStatusSyncing => 'Syncing';
+
+  @override
+  String get accountStatusProblem => 'Sync problem';
+
+  @override
+  String get accountStatusNotSyncing => 'Not syncing';
+
+  @override
+  String get accountStatusWaiting => 'Waiting for owner';
+
+  @override
+  String get accountStatusChecking => 'Checking…';
+
+  @override
+  String get accountSyncRow => 'Cloud sync';
+
+  @override
+  String get accountSyncUpToDate => 'Up to date';
+
+  @override
+  String accountSyncPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 syncing';
+  }
+
+  @override
+  String accountSyncFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 couldn\'t sync';
+  }
+
+  @override
+  String get accountSyncWaiting => 'Starts once the family owner connects';
+
+  @override
+  String get accountRetry => 'Retry';
+
+  @override
+  String get accountReviewHint => 'Choose what to share with the family';
+
+  @override
+  String get accountFamilyRow => 'Family on this phone';
+
+  @override
+  String accountFamilyMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'members',
+      one: 'member',
+    );
+    return '$count $_temp0 · works offline';
+  }
+
+  @override
+  String get accountInviteRow => 'Invite a family member';
+
+  @override
+  String get accountInviteHint => 'Share a code so another adult can join';
+
+  @override
+  String get accountJoinRow => 'Join with an invite code';
+
+  @override
+  String get accountJoinHint =>
+      'This account isn\'t part of this family\'s cloud yet';
+
+  @override
   String get settingsMoneyGuide => 'Income & Accounts Guide';
 
   @override

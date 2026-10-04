@@ -195,6 +195,45 @@
   "settingsLanguageEnglish": "English",
   "settingsLanguageArabic": "العربية",
   "settingsLanguageSystem": "System",
+  "accountSectionTitle": "Account",
+  "accountSignedOutTitle": "Back up and share with your family",
+  "accountSignedOutBody": "Your family is saved on this phone. Connect an account to keep it in sync across everyone's devices.",
+  "accountConnect": "Connect",
+  "accountSignOut": "Sign out",
+  "accountStatusSynced": "Synced",
+  "accountStatusSyncing": "Syncing",
+  "accountStatusProblem": "Sync problem",
+  "accountStatusNotSyncing": "Not syncing",
+  "accountStatusWaiting": "Waiting for owner",
+  "accountStatusChecking": "Checking…",
+  "accountSyncRow": "Cloud sync",
+  "accountSyncUpToDate": "Up to date",
+  "accountSyncPending": "{count} {count, plural, one{change} other{changes}} syncing",
+  "@accountSyncPending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountSyncFailed": "{count} {count, plural, one{change} other{changes}} couldn't sync",
+  "@accountSyncFailed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountSyncWaiting": "Starts once the family owner connects",
+  "accountRetry": "Retry",
+  "accountReviewHint": "Choose what to share with the family",
+  "accountFamilyRow": "Family on this phone",
+  "accountFamilyMembers": "{count} {count, plural, one{member} other{members}} · works offline",
+  "@accountFamilyMembers": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountInviteRow": "Invite a family member",
+  "accountInviteHint": "Share a code so another adult can join",
+  "accountJoinRow": "Join with an invite code",
+  "accountJoinHint": "This account isn't part of this family's cloud yet",
 
   "settingsMoneyGuide": "Income & Accounts Guide",
   "settingsMoneyGuideHint": "What Income Source, Account, and Transfer mean",

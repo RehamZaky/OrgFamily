@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/auth/auth_config.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
-import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/screens/join_family_screen.dart';
-import '../../auth/screens/sign_in_screen.dart';
-import '../../family/providers/family_providers.dart';
-import '../../family/screens/invite_family_member_screen.dart';
-import '../widgets/sync_review_sheet.dart';
+import '../widgets/account_section.dart';
 import 'money_backup_screen.dart';
 import 'money_guide_screen.dart';
 
@@ -99,189 +92,10 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 28),
-                const Text('Account', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text(l10n.accountSectionTitle,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
-                // Local family data and the cloud account are independent —
-                // signing out only disconnects the cloud side, it never
-                // clears the local family, so each gets its own status line
-                // instead of one row that implies they're the same thing.
-                // See docs/architecture.md "Family identity and authentication".
-                Builder(
-                  builder: (context) {
-                    final memberCount =
-                        ref.watch(familyMembersProvider).valueOrNull?.length ?? 0;
-                    return Card(
-                      margin: EdgeInsets.zero,
-                      child: ListTile(
-                        leading: Icon(Icons.storage_outlined, color: context.colors.accent),
-                        title: const Text('Local family'),
-                        subtitle: Text(
-                          memberCount == 1
-                              ? '1 member on this device · Available offline'
-                              : '$memberCount members on this device · Available offline',
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                if (isFirebaseAuthSupportedPlatform) ...[
-                  const SizedBox(height: 8),
-                  Builder(
-                    builder: (context) {
-                      final user = ref.watch(authStateProvider).valueOrNull;
-                      if (user == null) {
-                        return Card(
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: const Icon(Icons.cloud_off_outlined,
-                                color: AppColors.textSecondary),
-                            title: const Text('Cloud account'),
-                            subtitle: const Text('Not connected'),
-                            trailing: TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const SignInScreen()),
-                              ),
-                              child: const Text('Connect'),
-                            ),
-                          ),
-                        );
-                      }
-                      return Card(
-                        margin: EdgeInsets.zero,
-                        child: ListTile(
-                          leading:
-                              const Icon(Icons.cloud_done_outlined, color: AppColors.priorityLow),
-                          title: const Text('Cloud account'),
-                          subtitle:
-                              Text('${user.email ?? user.displayName ?? user.uid} · Connected'),
-                          trailing: TextButton(
-                            onPressed: () => ref.read(authRepositoryProvider).signOut(),
-                            child: const Text('Disconnect'),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  Builder(
-                    builder: (context) {
-                      if (ref.watch(cloudAccessProvider) == CloudAccess.notMember) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Card(
-                            margin: EdgeInsets.zero,
-                            child: ListTile(
-                              leading: Icon(Icons.cloud_off_outlined,
-                                  color: context.colors.warning),
-                              title: Text(l10n.cloudNotMemberTitle),
-                              subtitle: Text(l10n.cloudNotMemberBody),
-                              trailing: TextButton(
-                                onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const JoinFamilyScreen(),
-                                  ),
-                                ),
-                                child: Text(l10n.cloudNotMemberAction),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                      final isActive = ref.watch(isCloudSyncActiveProvider);
-                      if (!isActive) return const SizedBox.shrink();
-                      final summary = ref.watch(syncOutboxSummaryProvider).valueOrNull;
-                      final failed = summary?.failed ?? 0;
-                      final pending = summary?.pending ?? 0;
-                      final listenerError = ref.watch(syncListenerErrorProvider).valueOrNull;
-                      final upToDate = failed == 0 && pending == 0;
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: Icon(
-                              failed > 0 || listenerError != null
-                                  ? Icons.cloud_off_outlined
-                                  : Icons.cloud_sync_outlined,
-                              color: failed > 0 || listenerError != null
-                                  ? context.colors.danger
-                                  : context.colors.accent,
-                            ),
-                            title: const Text('Cloud sync'),
-                            subtitle: Text(
-                              failed > 0
-                                  ? '$failed change${failed == 1 ? '' : 's'} need attention'
-                                  : listenerError != null
-                                      ? l10n.syncListenerError(listenerError)
-                                      : upToDate
-                                          ? 'Up to date'
-                                          : '$pending change${pending == 1 ? '' : 's'} syncing',
-                            ),
-                            trailing: (failed > 0 || pending > 0)
-                                ? TextButton(
-                                    onPressed: () => failed > 0
-                                        ? ref.read(syncEngineProvider).retryFailed()
-                                        : ref.read(syncEngineProvider).drainNow(),
-                                    child: const Text('Retry'),
-                                  )
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  Builder(
-                    builder: (context) {
-                      final summary = ref.watch(syncOutboxSummaryProvider).valueOrNull;
-                      if (summary == null || summary.review.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: Icon(Icons.rule_folder_outlined,
-                                color: context.colors.warning),
-                            title: Text(l10n.syncReviewTitle(summary.reviewCount)),
-                            subtitle: Text(l10n.syncReviewBody),
-                            trailing: TextButton(
-                              onPressed: () => showSyncReviewSheet(context),
-                              child: Text(l10n.syncReviewAction),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  Builder(
-                    builder: (context) {
-                      final isActive = ref.watch(isCloudSyncActiveProvider);
-                      if (!isActive) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: Icon(Icons.person_add_outlined,
-                                color: context.colors.accent),
-                            title: const Text('Invite a family member'),
-                            subtitle: const Text(
-                              'Generate a code for another adult to join on their own device',
-                            ),
-                            trailing: TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const InviteFamilyMemberScreen(),
-                                ),
-                              ),
-                              child: const Text('Invite'),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                const AccountSection(),
                 const SizedBox(height: 28),
                 Text(l10n.navBudget, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
