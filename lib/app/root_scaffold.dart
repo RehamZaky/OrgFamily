@@ -161,6 +161,25 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
     // instead of pinned here.
     final showBanner = _index == 2 || _index == 4 || _index == 5;
 
+    Widget navItem(int index, IconData icon, String label) => Expanded(
+          child: _NavItem(
+            icon: icon,
+            label: label,
+            selected: _index == index,
+            onTap: () => setState(() => _index = index),
+          ),
+        );
+    final navItems = [
+      navItem(0, Icons.home_rounded, l10n.navHome),
+      navItem(1, Icons.check_circle_outline, l10n.navTasks),
+      navItem(2, Icons.calendar_today_outlined, l10n.navCalendar),
+      navItem(3, Icons.checklist_rounded, l10n.navLists),
+      navItem(4, Icons.people_alt_outlined, l10n.navFamily),
+      if (canViewFinances)
+        navItem(5, Icons.account_balance_wallet_outlined, l10n.navBudget),
+    ];
+    final split = navItems.length ~/ 2;
+
     return Scaffold(
       body: Column(
         children: [
@@ -194,58 +213,15 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
           notchMargin: 8,
           color: context.colors.navBackground,
           surfaceTintColor: Colors.transparent,
+          // Tabs split into two equal-width halves around a gap the size of
+          // the docked FAB, so the gap — and the FAB's notch — stays centered
+          // whether Money is shown (3 + 3) or not (2 + 3). A single row with
+          // a gap after the second tab put the FAB on top of Calendar.
           child: Row(
             children: [
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.home_rounded,
-                  label: l10n.navHome,
-                  selected: _index == 0,
-                  onTap: () => setState(() => _index = 0),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.check_circle_outline,
-                  label: l10n.navTasks,
-                  selected: _index == 1,
-                  onTap: () => setState(() => _index = 1),
-                ),
-              ),
-              const SizedBox(width: 40),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.calendar_today_outlined,
-                  label: l10n.navCalendar,
-                  selected: _index == 2,
-                  onTap: () => setState(() => _index = 2),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.checklist_rounded,
-                  label: l10n.navLists,
-                  selected: _index == 3,
-                  onTap: () => setState(() => _index = 3),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.people_alt_outlined,
-                  label: l10n.navFamily,
-                  selected: _index == 4,
-                  onTap: () => setState(() => _index = 4),
-                ),
-              ),
-              if (canViewFinances)
-                Expanded(
-                  child: _NavItem(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: l10n.navBudget,
-                    selected: _index == 5,
-                    onTap: () => setState(() => _index = 5),
-                  ),
-                ),
+              Expanded(child: Row(children: navItems.sublist(0, split))),
+              const SizedBox(width: _fabGapWidth),
+              Expanded(child: Row(children: navItems.sublist(split))),
             ],
           ),
         ),
@@ -253,6 +229,9 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
     );
   }
 }
+
+/// Docked FAB diameter (56) plus `notchMargin` (8) on each side.
+const double _fabGapWidth = 72;
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
