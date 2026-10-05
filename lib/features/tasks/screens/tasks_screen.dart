@@ -35,7 +35,7 @@ bool _isOverdue(Task t) => isTaskOverdue(TaskDeadlineInput.fromTask(t), DateTime
 /// Which permission covers toggling [task]'s completion for whoever the app
 /// is currently "acting as" — their own task vs someone else's.
 FamilyAction _completeAction(Task task, WidgetRef ref) {
-  final activeId = ref.read(activeMemberIdProvider);
+  final activeId = ref.read(actingMemberIdProvider);
   final isOwnTask = activeId != null && task.assigneeId == activeId;
   return isOwnTask ? FamilyAction.completeOwnTask : FamilyAction.completeAnyTask;
 }
@@ -45,7 +45,7 @@ FamilyAction _completeAction(Task task, WidgetRef ref) {
 /// task, matching [taskUpdateAction] (used by the full editor for the same
 /// distinction).
 FamilyAction _rescheduleAction(Task task, WidgetRef ref) {
-  final activeId = ref.read(activeMemberIdProvider);
+  final activeId = ref.read(actingMemberIdProvider);
   final isOwnTask = activeId != null && task.assigneeId == activeId;
   return isOwnTask ? FamilyAction.rescheduleOwnTask : FamilyAction.editAnyTask;
 }
@@ -55,7 +55,7 @@ FamilyAction _rescheduleAction(Task task, WidgetRef ref) {
 /// Adult/Child. Pre-checks here so a denied swipe never even animates.
 bool _checkDeletePermission(BuildContext context, WidgetRef ref, Task task) {
   final role = ref.read(activeRoleProvider);
-  final memberId = ref.read(activeMemberIdProvider);
+  final memberId = ref.read(actingMemberIdProvider);
   if (canDeleteTask(task, role, memberId)) return true;
   final l10n = AppLocalizations.of(context)!;
   ScaffoldMessenger.of(context).showSnackBar(
@@ -647,7 +647,7 @@ class _TaskCard extends ConsumerWidget {
                   task.id,
                   !task.isCompleted,
                   actingRole: ref.read(activeRoleProvider),
-                  actingMemberId: ref.read(activeMemberIdProvider),
+                  actingMemberId: ref.read(actingMemberIdProvider),
                 );
           }
           return false;
@@ -657,7 +657,7 @@ class _TaskCard extends ConsumerWidget {
       onDismissed: (_) => ref.read(taskRepositoryProvider).deleteTask(
             task.id,
             actingRole: ref.read(activeRoleProvider),
-            actingMemberId: ref.read(activeMemberIdProvider),
+            actingMemberId: ref.read(actingMemberIdProvider),
           ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
@@ -699,7 +699,7 @@ class _TaskCard extends ConsumerWidget {
                                   task.id,
                                   !task.isCompleted,
                                   actingRole: ref.read(activeRoleProvider),
-                                  actingMemberId: ref.read(activeMemberIdProvider),
+                                  actingMemberId: ref.read(actingMemberIdProvider),
                                 );
                           },
                           child: Icon(
@@ -769,7 +769,7 @@ class _TaskCard extends ConsumerWidget {
                                     ref.read(taskRepositoryProvider).rescheduleToTomorrow(
                                           task.id,
                                           actingRole: ref.read(activeRoleProvider),
-                                          actingMemberId: ref.read(activeMemberIdProvider),
+                                          actingMemberId: ref.read(actingMemberIdProvider),
                                         );
                                   },
                                   child: Row(

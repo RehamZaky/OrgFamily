@@ -83,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
     // full-screen before this widget is ever built, so `members` here is
     // always non-empty.
     final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
-    final me = ref.watch(currentMemberProvider);
+    final me = ref.watch(actingMemberProvider);
 
     final allTasks = ref.watch(allTasksProvider).valueOrNull ?? [];
     final todayTasks = allTasks.where((t) => t.dueDate?.isToday ?? false).toList()

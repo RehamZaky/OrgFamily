@@ -8,40 +8,53 @@ import '../../../data/providers.dart';
 import '../../tasks/providers/task_providers.dart';
 
 const _activeMemberIdPrefsKey = 'active_member_id';
+const _activeMemberUidPrefsKey = 'active_member_uid';
 
-/// Which family member the app is currently "acting as" — a soft, local
-/// profile switcher (see the drawer), not authentication: nothing stops
-/// anyone from switching back. Restored on launch by
-/// [loadPersistedActiveMemberId] (called from main.dart before the widget
-/// tree is built) and updated by [setActiveMember] whenever someone picks a
-/// different profile. Null means "no explicit pick" — [currentMemberProvider]
-/// then falls back to the Owner, same as if this provider didn't exist.
+/// The profile someone explicitly picked as "me" in the drawer's profile
+/// switcher — e.g. a parent handing their phone to a child. Only one input
+/// to [actingMemberProvider], which is what everything else should read.
+/// Null means "no explicit pick". Restored on launch by
+/// [loadPersistedActiveMember] (main.dart) and changed via
+/// [setActiveMember].
 ///
-/// V2 Auth note: signing in as an adult already linked to a member (see
-/// `SignInScreen`/`LinkMemberScreen`) calls [setActiveMember] once, right
-/// at that moment, to default the picker to them — a one-time nudge, not
-/// a standing rule. This provider still drives only local UI/business
-/// permissions (`canPerform`/`activeRoleProvider`); free switching to any
-/// profile, including a child's, on a shared device is unchanged
-/// afterward, and this value must never be used for cloud/Firestore
-/// authorization — see docs/architecture.md.
+/// Purely local: never used for cloud/Firestore authorization, which always
+/// goes by the signed-in Firebase uid — see docs/architecture.md.
 final activeMemberIdProvider = StateProvider<String?>((ref) => null);
 
-Future<String?> loadPersistedActiveMemberId() async {
+/// The Firebase uid that was signed in when [activeMemberIdProvider] was
+/// picked (null if nobody was). A pick only counts while that same account
+/// is signed in, so when Kareem signs out and Mariam signs in, Mariam never
+/// inherits Kareem's "acting as Omar".
+final activeMemberPickUidProvider = StateProvider<String?>((ref) => null);
+
+Future<({String? memberId, String? uid})> loadPersistedActiveMember() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString(_activeMemberIdPrefsKey);
+  return (
+    memberId: prefs.getString(_activeMemberIdPrefsKey),
+    uid: prefs.getString(_activeMemberUidPrefsKey),
+  );
 }
 
-/// Switches the active profile and persists the choice — call this rather
-/// than writing [activeMemberIdProvider] directly, so the pick survives an
-/// app restart. Pass null to clear back to "no explicit pick" (Owner).
+/// Switches the explicit "me" pick and persists it, tagged with the
+/// account signed in right now — call this rather than writing
+/// [activeMemberIdProvider] directly. Pass null to clear the pick, which
+/// makes [actingMemberProvider] fall back to the signed-in account's own
+/// profile.
 Future<void> setActiveMember(WidgetRef ref, String? memberId) async {
+  final uid = ref.read(authStateProvider).valueOrNull?.uid;
   ref.read(activeMemberIdProvider.notifier).state = memberId;
+  ref.read(activeMemberPickUidProvider.notifier).state = memberId == null ? null : uid;
   final prefs = await SharedPreferences.getInstance();
   if (memberId == null) {
     await prefs.remove(_activeMemberIdPrefsKey);
+    await prefs.remove(_activeMemberUidPrefsKey);
   } else {
     await prefs.setString(_activeMemberIdPrefsKey, memberId);
+    if (uid == null) {
+      await prefs.remove(_activeMemberUidPrefsKey);
+    } else {
+      await prefs.setString(_activeMemberUidPrefsKey, uid);
+    }
   }
 }
 
@@ -127,23 +140,55 @@ final tasksPendingForMemberProvider =
   return tasks.where((t) => t.assigneeId == memberId && !t.isCompleted).length;
 });
 
-/// The member treated as "you" — for greetings, defaults, AND permission
-/// checks (see activeRoleProvider in core/permissions), so switching
-/// profiles in the drawer changes both at once rather than leaving them
-/// out of sync. Prefers whoever [activeMemberIdProvider] points at; falls
-/// back to the family owner (or the first member, if no owner is set yet)
-/// when nothing's been explicitly picked, or the pick refers to a member
-/// that's since been deleted.
-final currentMemberProvider = Provider<FamilyMember?>((ref) {
+/// The profile linked to the signed-in Firebase account (`linkedUid`) —
+/// who actually holds cloud authority on this device. Null when signed out
+/// or when the account has no linked profile.
+final authenticatedMemberProvider = Provider<FamilyMember?>((ref) {
+  final uid = ref.watch(authStateProvider).valueOrNull?.uid;
+  if (uid == null) return null;
+  final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
+  return members.where((m) => m.linkedUid == uid).firstOrNull;
+});
+
+/// The member this device is acting as — who performs family actions
+/// (`createdByMemberId`, `completedByMemberId`, budget/goal authorship),
+/// who the greeting and drawer show, and whose role local permissions use.
+/// Distinct from who holds cloud authority: Firestore only ever sees the
+/// signed-in uid, even while a parent's phone acts as a child.
+///
+/// Resolution:
+/// 1. An explicit pick ([activeMemberIdProvider]) made under the account
+///    that's signed in now, if that member still exists.
+/// 2. Otherwise the signed-in account's own profile — so joining via an
+///    invite, restoring on a new phone, or a stale/foreign pick all land on
+///    the right person with no manual step, including on already-installed
+///    apps.
+/// 3. Signed in but no linked profile: unresolved (null). Never silently
+///    the Owner — that fallback is what made an invited adult appear as,
+///    and act with the permissions of, the family Owner.
+/// 4. Signed out (a local-only family, or V1 data): the legacy Owner
+///    fallback, as before accounts existed.
+final actingMemberProvider = Provider<FamilyMember?>((ref) {
   final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
   if (members.isEmpty) return null;
-  final activeId = ref.watch(activeMemberIdProvider);
-  if (activeId != null) {
-    final active = members.where((m) => m.id == activeId).firstOrNull;
-    if (active != null) return active;
+  final auth = ref.watch(authStateProvider);
+  final pickId = ref.watch(activeMemberIdProvider);
+  final pickUid = ref.watch(activeMemberPickUidProvider);
+  // While auth is still resolving at launch, assume the account the pick
+  // was made under — it's the one that was signed in last time.
+  final uid = auth.isLoading ? pickUid : auth.valueOrNull?.uid;
+  if (pickId != null && pickUid == uid) {
+    final picked = members.where((m) => m.id == pickId).firstOrNull;
+    if (picked != null) return picked;
   }
+  if (uid != null) return members.where((m) => m.linkedUid == uid).firstOrNull;
   return members.firstWhere(
     (m) => m.role == FamilyRole.owner,
     orElse: () => members.first,
   );
+});
+
+/// [actingMemberProvider]'s id — what every "who did this" field records.
+final actingMemberIdProvider = Provider<String?>((ref) {
+  return ref.watch(actingMemberProvider)?.id;
 });

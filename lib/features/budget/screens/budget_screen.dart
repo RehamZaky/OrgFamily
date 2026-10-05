@@ -145,7 +145,7 @@ class BudgetScreen extends ConsumerWidget {
                   onDismissed: (_) => ref.read(budgetRepositoryProvider).deleteCategoryLimit(
                         c,
                         actingRole: ref.read(activeRoleProvider),
-                        actingMemberId: ref.read(activeMemberIdProvider),
+                        actingMemberId: ref.read(actingMemberIdProvider),
                       ),
                   child: CategoryBudgetRow(
                     category: c,

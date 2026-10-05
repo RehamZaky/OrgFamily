@@ -18,6 +18,7 @@ import '../../../core/widgets/option_picker_sheet.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
+import '../providers/family_providers.dart';
 
 class AddMemberScreen extends ConsumerStatefulWidget {
   const AddMemberScreen({
@@ -186,6 +187,11 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
             .read(familyProfileRepositoryProvider)
             .recordLink(uid: linkedUid, isOwner: true);
       }
+      // This device's first member is the signed-in adult themselves —
+      // the new Owner, or someone joining via an invite — so make them
+      // "me" explicitly. (actingMemberProvider would resolve them anyway
+      // via linkedUid; this also clears any pick left over from before.)
+      if (widget.isFirstMember) await setActiveMember(ref, _memberId);
     } else {
       await repo.updateMember(
         widget.existing!.copyWith(

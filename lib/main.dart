@@ -18,8 +18,9 @@ void main() async {
   }
   if (isMobileAdsSupportedPlatform) await MobileAds.instance.initialize();
   final container = ProviderContainer();
-  container.read(activeMemberIdProvider.notifier).state =
-      await loadPersistedActiveMemberId();
+  final pick = await loadPersistedActiveMember();
+  container.read(activeMemberIdProvider.notifier).state = pick.memberId;
+  container.read(activeMemberPickUidProvider.notifier).state = pick.uid;
   await container.read(notificationServiceProvider).init();
   if (await hasRebootedSinceLastCheck()) {
     await container.read(taskRepositoryProvider).resyncReminders();

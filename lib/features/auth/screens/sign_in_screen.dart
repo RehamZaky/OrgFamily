@@ -167,7 +167,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       return;
     }
     // Already-linked adult signing back in on this device — default the
-    // local profile picker to them (see activeMemberIdProvider's doc).
+    // local profile picker to them (see actingMemberProvider).
     if (linkedMember != null) await setActiveMember(ref, linkedMember.id);
     if (mounted) Navigator.of(context).maybePop();
   }

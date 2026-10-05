@@ -17,13 +17,13 @@ class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   /// The drawer's "Switch profile" sheet — a soft, unprotected picker (see
-  /// activeMemberIdProvider's doc comment): anyone can tap back to Owner,
+  /// actingMemberProvider's doc comment): anyone can tap back to Owner,
   /// this just changes who the app treats as "you" for greetings and
   /// permission checks while it's set.
   Future<void> _pickProfile(BuildContext context, WidgetRef ref) async {
     final members = ref.read(familyMembersProvider).valueOrNull ?? [];
     if (members.isEmpty) return;
-    final currentId = ref.read(currentMemberProvider)?.id;
+    final currentId = ref.read(actingMemberProvider)?.id;
     final l10n = AppLocalizations.of(context)!;
     final result = await showModalBottomSheet<String>(
       context: context,
@@ -71,7 +71,7 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final me = ref.watch(currentMemberProvider);
+    final me = ref.watch(actingMemberProvider);
 
     return Drawer(
       child: SafeArea(

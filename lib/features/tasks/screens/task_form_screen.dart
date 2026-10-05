@@ -253,7 +253,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
     final actingRole = ref.read(activeRoleProvider);
-    final actingMemberId = ref.read(activeMemberIdProvider);
+    final actingMemberId = ref.read(actingMemberIdProvider);
     final repo = ref.read(taskRepositoryProvider);
     if (widget.existing == null) {
       if (!checkPermission(context, ref, FamilyAction.createTask)) return;

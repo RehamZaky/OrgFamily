@@ -68,7 +68,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final member = widget.member;
-    final me = ref.watch(currentMemberProvider);
+    final me = ref.watch(actingMemberProvider);
     final isYou = member.id == me?.id;
     final birthday = member.birthday;
     final pointsByMember = ref.watch(familyPointsThisWeekProvider);

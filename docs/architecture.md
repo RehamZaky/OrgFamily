@@ -80,8 +80,11 @@ Three distinct identities, kept deliberately separate:
   account per adult (`FirebaseAuth` via `auth_repository.dart`).
 - **`FamilyMember`** answers "who are they inside the family" — the local
   Drift row, same as always.
-- **`activeMemberIdProvider`** answers "which profile is acting on this
-  device right now" — a soft, local profile switcher, unrelated to auth.
+- **`actingMemberProvider`** answers "which profile is acting on this
+  device right now" — who performed a family action
+  (`createdByMemberId`, `completedByMemberId`, budget/goal authorship),
+  who the greeting and drawer show, and whose role local permissions use.
+  Unrelated to cloud authority.
 
 Only adults get real accounts; children never sign in and keep
 zero-friction local profile access. A `FamilyMember` links to its
@@ -91,15 +94,30 @@ stable id generated once, by whichever Owner/Adult links first) and
 `ownerUid` (set only once the local **Owner** specifically links, so an
 Adult linking first can't accidentally become the cloud owner).
 
+**Resolving the acting member** (`family_providers.dart`):
+`authenticatedMemberProvider` is the profile whose `linkedUid` is the
+signed-in uid. `actingMemberProvider` is, in order: an explicit drawer
+pick (`activeMemberIdProvider`) — honoured only while the account that
+made it (`activeMemberPickUidProvider`, persisted alongside it) is still
+signed in — then the authenticated member, then, only when signed out (a
+local-only family or V1 data), the legacy Owner fallback. A signed-in
+account with no linked profile is *unresolved*: no acting member, and
+`activeRoleProvider` gives it the most restricted role, never the
+Owner's. That Owner fallback used to apply to signed-in accounts too,
+which is how an invited adult whose join never set an active profile
+appeared as — and had the local permissions of — the family Owner, and
+saved tasks with no creator. Joining (or creating the first Owner) now
+sets the active profile explicitly, and resolving by `linkedUid` repairs
+already-installed apps with no manual step.
+
 An authenticated parent can still locally switch into a child's profile
-on a shared device — that's `activeMemberIdProvider` doing its normal
-job, and it keeps driving today's local permission checks
-(`canPerform`/`FamilyRole` in `family_permissions.dart`) exactly as
-before. **Rule to hold onto for the Firestore-sync work still ahead**:
-`activeMemberIdProvider` may keep driving local UI/business permissions,
-but must never be trusted for cloud/server authorization — that has to
-come from the authenticated Firebase `uid` and cloud family-membership
-records, not the local acting-profile picker.
+on a shared device — that's the explicit pick doing its normal job, and
+it keeps driving local permission checks (`canPerform`/`FamilyRole` in
+`family_permissions.dart`). **Rule to hold onto**: the acting member may
+drive local UI/business permissions and "who did this" fields, but must
+never be trusted for cloud/server authorization — that comes from the
+authenticated Firebase `uid` and cloud family-membership records. (V3's
+paired child devices are where a child actor becomes server-verifiable.)
 
 **V1 → V2 migration guarantee**: signing in never recreates or
 duplicates an existing local family. A fresh install with no local

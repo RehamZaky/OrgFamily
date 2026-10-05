@@ -93,7 +93,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
     await ref.read(budgetRepositoryProvider).setCurrencyCode(
           code,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
   }
 
@@ -160,7 +160,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
     await ref.read(budgetRepositoryProvider).setTotalLimit(
           (amount * 100).round(),
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
     if (mounted) FocusManager.instance.primaryFocus?.unfocus();
   }
@@ -193,7 +193,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
           category: _category,
           limitCents: amountCents,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
     if (mounted) Navigator.of(context).pop();
   }

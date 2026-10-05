@@ -61,7 +61,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     // silently unassigned, which reads as "someone" in the family activity
     // feed and never counts toward that member's stats even after they
     // complete it themselves. Still overridable via the assignee picker.
-    _assigneeId = ref.read(currentMemberProvider)?.id;
+    _assigneeId = ref.read(actingMemberProvider)?.id;
     // Default to today too — a quick-added task is almost always "do this
     // today", and defaulting it means the Add button only ever waits on
     // the title, not a second required decision. Still overridable via
@@ -268,7 +268,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           reminderOffsetMinutes: _reminderOffsetMinutes,
           reminderAt: _reminderAt,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
     if (mounted) Navigator.of(context).pop();
   }

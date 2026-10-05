@@ -42,7 +42,7 @@ class _InviteFamilyMemberScreenState
       throw StateError('Invites need an active cloud-synced family');
     }
     // The inviter's own member row (the one linked to this account), not
-    // currentMemberProvider — that's whichever profile is picked right
+    // actingMemberProvider — that's whichever profile is picked right
     // now, which could be a child's.
     final members = await ref.read(familyRepositoryProvider).getMembers();
     final inviterName = members

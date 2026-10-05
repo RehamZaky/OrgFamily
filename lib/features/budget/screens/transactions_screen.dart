@@ -198,7 +198,7 @@ class _TransactionTile extends ConsumerWidget {
       onDismissed: (_) => ref.read(budgetRepositoryProvider).deleteTransaction(
             t.id,
             actingRole: ref.read(activeRoleProvider),
-            actingMemberId: ref.read(activeMemberIdProvider),
+            actingMemberId: ref.read(actingMemberIdProvider),
           ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),

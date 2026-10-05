@@ -170,7 +170,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final eventsAsync = ref.watch(allEventsProvider);
-    final currentMember = ref.watch(currentMemberProvider);
+    final currentMember = ref.watch(actingMemberProvider);
     final Map<String, FamilyMember> members = {
       for (final m in ref.watch(familyMembersProvider).valueOrNull ?? [])
         m.id: m

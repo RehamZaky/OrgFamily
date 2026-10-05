@@ -117,7 +117,7 @@ class FamilyRepository {
   }
 
   /// Enforces "at most one Owner" — the app treats the Owner as "you" for
-  /// greetings/defaults ([currentMemberProvider]), so two Owners at once
+  /// greetings/defaults ([actingMemberProvider]), so two Owners at once
   /// makes that pick ambiguous. Demotes everyone else currently marked
   /// Owner to Adult whenever a member is (re)assigned the role.
   Future<void> _demoteOtherOwners({required String exceptId}) async {
