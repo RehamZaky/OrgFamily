@@ -119,7 +119,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             children: [
               for (var i = 1; i <= _imagePageCount; i++)
                 _OnboardingImagePage(
-                  assetPath: 'assets/onboarding/$lang/page$i.png',
+                  assetPath: 'assets/onboarding/$lang/page$i.webp',
                   onTap: _next,
                 ),
               _SetupPage(l10n: l10n, onAddYourself: _addYourself, onJoinFamily: _joinFamily),
