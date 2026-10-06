@@ -415,7 +415,7 @@ class _ResponsibilityRow extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.priorityUrgent),
+            style: FilledButton.styleFrom(backgroundColor: context.colors.danger),
             child: Text(l10n.responsibilityDelete),
           ),
         ],
