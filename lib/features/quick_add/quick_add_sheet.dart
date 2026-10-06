@@ -32,7 +32,7 @@ class _QuickAddSheet extends ConsumerWidget {
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Column(

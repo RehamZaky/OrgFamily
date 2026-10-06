@@ -267,7 +267,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: context.colors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_fieldRadius),
         borderSide: BorderSide(color: context.colors.border),

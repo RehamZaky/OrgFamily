@@ -95,7 +95,7 @@ class ActivityRow extends StatelessWidget {
               bottom: -2,
               child: CircleAvatar(
                 radius: 8,
-                backgroundColor: Colors.white,
+                backgroundColor: context.colors.surface,
                 child: Icon(entry.icon, size: 12, color: entry.iconColor(context.colors)),
               ),
             ),

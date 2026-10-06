@@ -124,10 +124,16 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
                     maxLines: null,
                     textAlignVertical: TextAlignVertical.top,
                     textCapitalization: TextCapitalization.sentences,
-                    style: const TextStyle(fontSize: 16),
+                    // The note's pastel fill is light in both themes, so its
+                    // text stays dark rather than following the theme (which
+                    // in dark mode would be near-white on pale yellow).
+                    style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+                    cursorColor: AppColors.textPrimary,
                     decoration: InputDecoration(
                       hintText: l10n.noteHint,
+                      hintStyle: const TextStyle(color: AppColors.textSecondary),
                       border: InputBorder.none,
+                      filled: false,
                     ),
                   ),
                 ),
