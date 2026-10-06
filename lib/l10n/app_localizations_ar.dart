@@ -500,7 +500,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountStatusChecking => 'جارٍ التحقق…';
 
   @override
-  String get accountSyncRow => 'المزامنة السحابية';
+  String get accountSyncRow => 'ربط وتحديث ملفاتك على كل الأجهزة';
 
   @override
   String get accountSyncUpToDate => 'محدّث';
@@ -632,7 +632,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutLocalNote =>
-      'هذه نسخة أولى تعمل محليًا فقط — تبقى بيانات عائلتك على هذا الجهاز. المزامنة السحابية بين الأجهزة مخطط لها في نسخة لاحقة.';
+      'تُحفظ بيانات عائلتك على هذا الهاتف وتعمل دون اتصال. اربط حسابًا لتبقى محدّثة على أجهزة جميع أفراد العائلة.';
 
   @override
   String get taskPriorityLow => 'منخفضة';

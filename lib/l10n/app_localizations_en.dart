@@ -588,7 +588,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutLocalNote =>
-      'This is a local-only V1 — your family\'s data stays on this device. Cloud sync across devices is planned for a later version.';
+      'Your family\'s data is saved on this phone and works offline. Connect an account to keep it up to date on every family member\'s device.';
 
   @override
   String get taskPriorityLow => 'Low';

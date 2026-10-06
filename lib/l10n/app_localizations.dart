@@ -1085,7 +1085,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutLocalNote.
   ///
   /// In en, this message translates to:
-  /// **'This is a local-only V1 — your family\'s data stays on this device. Cloud sync across devices is planned for a later version.'**
+  /// **'Your family\'s data is saved on this phone and works offline. Connect an account to keep it up to date on every family member\'s device.'**
   String get aboutLocalNote;
 
   /// No description provided for @taskPriorityLow.

@@ -142,7 +142,7 @@
   "accountStatusNotSyncing": "لا تتم المزامنة",
   "accountStatusWaiting": "بانتظار المالك",
   "accountStatusChecking": "جارٍ التحقق…",
-  "accountSyncRow": "المزامنة السحابية",
+  "accountSyncRow": "ربط وتحديث ملفاتك على كل الأجهزة",
   "accountSyncUpToDate": "محدّث",
   "accountSyncPending": "{count} {count, plural, one{تغيير} other{تغييرات}} قيد المزامنة",
   "accountSyncFailed": "تعذّرت مزامنة {count} {count, plural, one{تغيير} other{تغييرات}}",
@@ -177,7 +177,7 @@
   "aboutDescription": "منظّم عائلي مشترك: المهام والتقويم وقوائم التسوق التي يراها كل أفراد العائلة ويحدّثونها معًا.",
   "aboutBuiltWith": "بُني باستخدام",
   "aboutTechStack": "Flutter وRiverpod وDrift (قاعدة بيانات SQLite محلية).",
-  "aboutLocalNote": "هذه نسخة أولى تعمل محليًا فقط — تبقى بيانات عائلتك على هذا الجهاز. المزامنة السحابية بين الأجهزة مخطط لها في نسخة لاحقة.",
+  "aboutLocalNote": "تُحفظ بيانات عائلتك على هذا الهاتف وتعمل دون اتصال. اربط حسابًا لتبقى محدّثة على أجهزة جميع أفراد العائلة.",
 
   "taskPriorityLow": "منخفضة",
   "taskPriorityNormal": "عادية",
