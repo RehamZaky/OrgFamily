@@ -1517,6 +1517,86 @@ class AppLocalizationsAr extends AppLocalizations {
   String get responsibilitiesTitle => 'المسؤوليات';
 
   @override
+  String get moneyBackupTitle => 'النسخ الاحتياطي للأموال';
+
+  @override
+  String get moneyBackupSettingsHint =>
+      'نسخة احتياطية مشفّرة من سجلات أموال عائلتك';
+
+  @override
+  String moneyBackupLastBackup(Object when) {
+    return 'آخر نسخة: $when';
+  }
+
+  @override
+  String get moneyBackupNever => 'لا توجد نسخة بعد';
+
+  @override
+  String get moneyBackupAutoInfo =>
+      'يتم النسخ تلقائيًا مرة يوميًا عند تغيّر سجلات الأموال. الاستعادة تستبدل سجلات الأموال على هذا الهاتف فقط.';
+
+  @override
+  String get moneyBackupNow => 'نسخ احتياطي الآن';
+
+  @override
+  String get moneyBackupDone => 'تم حفظ النسخة';
+
+  @override
+  String get moneyBackupLimit =>
+      'يمكنك الاحتفاظ بثلاث نسخ يدوية كحد أقصى. احذف واحدة لإضافة أخرى.';
+
+  @override
+  String get moneyBackupFailed =>
+      'تعذّر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get moneyBackupAutomatic => 'تلقائية';
+
+  @override
+  String get moneyBackupManual => 'يدوية';
+
+  @override
+  String get moneyBackupSafety => 'قبل الاستعادة';
+
+  @override
+  String moneyBackupCounts(int transactions, int goals) {
+    return '$transactions معاملة · $goals هدف ادخار';
+  }
+
+  @override
+  String get moneyBackupRestore => 'استعادة';
+
+  @override
+  String get moneyBackupRestoreTitle => 'استعادة هذه النسخة؟';
+
+  @override
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  ) {
+    return 'نسخة بتاريخ $when: $transactions معاملة و$limits ميزانية فئات و$goals هدف ادخار.\n\nستحل محل سجلات الأموال على هذا الهاتف. يتم أولًا حفظ نسخة أمان من سجلاتك الحالية، لتتمكن من التراجع.';
+  }
+
+  @override
+  String get moneyBackupRestored => 'تمت استعادة سجلات الأموال';
+
+  @override
+  String get moneyBackupDeleteTitle => 'حذف هذه النسخة؟';
+
+  @override
+  String get moneyBackupDelete => 'حذف';
+
+  @override
+  String get moneyBackupOwnerOnly =>
+      'يمكن لمالك العائلة فقط النسخ الاحتياطي والاستعادة لسجلات الأموال.';
+
+  @override
+  String get moneyBackupNeedsAccount =>
+      'اربط حساب مالك العائلة لعمل نسخة احتياطية لسجلات الأموال.';
+
+  @override
   String get responsibilitiesEmpty => 'لا توجد مسؤوليات بعد';
 
   @override

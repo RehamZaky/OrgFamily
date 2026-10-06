@@ -158,6 +158,39 @@ The point where Firebase actually earns its place.
       above, and manual on-device verification for the original sync
       engine (not yet repeated for invitations).
 
+- [x] **Money backup** (built 2026-10-06; Money itself stays
+      local-only, deliberately — **backup is not sync**). Encrypted,
+      versioned snapshots of the Money source tables (transactions,
+      category limits, budget settings, savings goals — never derived
+      totals) for disaster recovery: a new or reset phone can get its
+      Money records back. Design (see `lib/data/backup/`):
+  - Stored as Firestore `Bytes` chunks (~600 KB) under
+    `families/{id}/moneyBackups/{backupId}` — Cloud Storage would be the
+    natural home, but it requires the paid Blaze plan since 2026-02-03;
+    the manifest/chunk split lets the bytes move there later without
+    changing the format or the app's screens.
+  - Pipeline: snapshot → versioned JSON (`formatVersion`) → gzip →
+    AES-256-GCM → chunks → verify → manifest `status: complete`. Only
+    complete backups are ever listed or restorable; abandoned uploads are
+    cleaned up. A SHA-256 checksum is verified before decrypting.
+  - Owner only — create, read, restore, delete — enforced by
+    `firestore.rules` (Adults and children can't even read the
+    ciphertext). Retention: automatic current + previous (made at most
+    daily, only when Money changed), up to 3 manual, plus one pre-restore
+    safety backup so a wrong restore can be undone.
+  - **Temporary V2 security trade-off**: the family's random AES key is
+    stored raw in an Owner-only Firestore document, so the Owner can
+    restore on any new phone. That protects the backup bytes, but not
+    against Firebase project-owner access. Wrapping the key inside
+    Firestore wouldn't change that (the unwrapping key would have to be
+    there too); real separation needs an Owner passphrase or a
+    server-side KMS (Blaze). `encryptionVersion`/`keyVersion` are
+    recorded per backup so that upgrade can come later.
+- [ ] **Family Money Cloud (V2.x/V3, its own phase)**: live multi-device
+      Money sync — conflict handling, transaction ownership, financial
+      permissions, concurrent edits, transfer integrity, audit history.
+      Deliberately separate from backup.
+
 ## V2.1 — Family communication
 
 - [ ] Activity feed backed by a real audit log (replacing the derived

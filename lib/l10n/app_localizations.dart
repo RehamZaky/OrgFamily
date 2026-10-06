@@ -2714,6 +2714,137 @@ abstract class AppLocalizations {
   /// **'Responsibilities'**
   String get responsibilitiesTitle;
 
+  /// No description provided for @moneyBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money backup'**
+  String get moneyBackupTitle;
+
+  /// No description provided for @moneyBackupSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup of your family\'s money records'**
+  String get moneyBackupSettingsHint;
+
+  /// No description provided for @moneyBackupLastBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {when}'**
+  String moneyBackupLastBackup(Object when);
+
+  /// No description provided for @moneyBackupNever.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get moneyBackupNever;
+
+  /// No description provided for @moneyBackupAutoInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.'**
+  String get moneyBackupAutoInfo;
+
+  /// No description provided for @moneyBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get moneyBackupNow;
+
+  /// No description provided for @moneyBackupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get moneyBackupDone;
+
+  /// No description provided for @moneyBackupLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep up to 3 manual backups. Delete one to make room.'**
+  String get moneyBackupLimit;
+
+  /// No description provided for @moneyBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t complete that. Check your connection and try again.'**
+  String get moneyBackupFailed;
+
+  /// No description provided for @moneyBackupAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get moneyBackupAutomatic;
+
+  /// No description provided for @moneyBackupManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get moneyBackupManual;
+
+  /// No description provided for @moneyBackupSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Before restore'**
+  String get moneyBackupSafety;
+
+  /// No description provided for @moneyBackupCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{transactions} transactions · {goals} savings goals'**
+  String moneyBackupCounts(int transactions, int goals);
+
+  /// No description provided for @moneyBackupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get moneyBackupRestore;
+
+  /// No description provided for @moneyBackupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get moneyBackupRestoreTitle;
+
+  /// No description provided for @moneyBackupRestoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {when}: {transactions} transactions, {limits} category budgets and {goals} savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.'**
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  );
+
+  /// No description provided for @moneyBackupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Money records restored'**
+  String get moneyBackupRestored;
+
+  /// No description provided for @moneyBackupDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this backup?'**
+  String get moneyBackupDeleteTitle;
+
+  /// No description provided for @moneyBackupDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get moneyBackupDelete;
+
+  /// No description provided for @moneyBackupOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the family Owner can back up and restore money records.'**
+  String get moneyBackupOwnerOnly;
+
+  /// No description provided for @moneyBackupNeedsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the family Owner\'s account to back up money records.'**
+  String get moneyBackupNeedsAccount;
+
   /// No description provided for @responsibilitiesEmpty.
   ///
   /// In en, this message translates to:

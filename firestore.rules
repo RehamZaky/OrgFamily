@@ -33,6 +33,15 @@ service cloud.firestore {
     // of the very document it's evaluating — used only by the family doc's
     // own read/update rules below, which is why it takes memberUids
     // directly instead of looking the doc up itself.
+    // The family's Owner specifically — for data only the Owner may touch
+    // (Money backups). ownerUid is immutable after creation (see the
+    // family doc's update rule), so this can't be claimed by anyone else.
+    function isFamilyOwner(familyId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid
+          == request.auth.uid;
+    }
+
     function isDirectOrJoinedMember(memberUids, familyId) {
       return isSignedIn() && (
         request.auth.uid in memberUids
@@ -196,6 +205,20 @@ service cloud.firestore {
       // accounts of their own yet, so the rules can't tell them apart.
       match /responsibilities/{responsibilityId} {
         allow read, write: if isFamilyMember(familyId);
+      }
+
+      // Money backups (docs/roadmap.md "Money backup") — Owner only, read
+      // and write, including the encryption key. Adults and children never
+      // see the family's financial backups or the key that opens them.
+      match /moneyBackupKey/{doc} {
+        allow read, write: if isFamilyOwner(familyId);
+      }
+      match /moneyBackups/{backupId} {
+        allow read, write: if isFamilyOwner(familyId);
+
+        match /chunks/{chunkId} {
+          allow read, write: if isFamilyOwner(familyId);
+        }
       }
     }
   }

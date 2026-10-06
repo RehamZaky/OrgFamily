@@ -1469,6 +1469,86 @@ class AppLocalizationsEn extends AppLocalizations {
   String get responsibilitiesTitle => 'Responsibilities';
 
   @override
+  String get moneyBackupTitle => 'Money backup';
+
+  @override
+  String get moneyBackupSettingsHint =>
+      'Encrypted backup of your family\'s money records';
+
+  @override
+  String moneyBackupLastBackup(Object when) {
+    return 'Last backup: $when';
+  }
+
+  @override
+  String get moneyBackupNever => 'No backup yet';
+
+  @override
+  String get moneyBackupAutoInfo =>
+      'Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.';
+
+  @override
+  String get moneyBackupNow => 'Back up now';
+
+  @override
+  String get moneyBackupDone => 'Backup saved';
+
+  @override
+  String get moneyBackupLimit =>
+      'You can keep up to 3 manual backups. Delete one to make room.';
+
+  @override
+  String get moneyBackupFailed =>
+      'Couldn\'t complete that. Check your connection and try again.';
+
+  @override
+  String get moneyBackupAutomatic => 'Automatic';
+
+  @override
+  String get moneyBackupManual => 'Manual';
+
+  @override
+  String get moneyBackupSafety => 'Before restore';
+
+  @override
+  String moneyBackupCounts(int transactions, int goals) {
+    return '$transactions transactions · $goals savings goals';
+  }
+
+  @override
+  String get moneyBackupRestore => 'Restore';
+
+  @override
+  String get moneyBackupRestoreTitle => 'Restore this backup?';
+
+  @override
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  ) {
+    return 'Backup from $when: $transactions transactions, $limits category budgets and $goals savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.';
+  }
+
+  @override
+  String get moneyBackupRestored => 'Money records restored';
+
+  @override
+  String get moneyBackupDeleteTitle => 'Delete this backup?';
+
+  @override
+  String get moneyBackupDelete => 'Delete';
+
+  @override
+  String get moneyBackupOwnerOnly =>
+      'Only the family Owner can back up and restore money records.';
+
+  @override
+  String get moneyBackupNeedsAccount =>
+      'Connect the family Owner\'s account to back up money records.';
+
+  @override
   String get responsibilitiesEmpty => 'No responsibilities yet';
 
   @override

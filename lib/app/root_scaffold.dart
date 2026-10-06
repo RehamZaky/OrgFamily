@@ -8,6 +8,7 @@ import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/banner_ad_widget.dart';
+import '../data/backup/money_backup_providers.dart';
 import '../data/providers.dart';
 import '../features/budget/screens/money_overview_screen.dart';
 import '../features/budget/widgets/add_transaction_sheet.dart';
@@ -44,6 +45,7 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
       final sync = ref.read(syncEngineProvider);
       if (next != null) {
         sync.start(next.familyId, next.uid);
+        _maybeBackUpMoney();
       } else {
         sync.stop();
       }
@@ -72,7 +74,19 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
       final sync = ref.read(syncEngineProvider);
       unawaited(sync.drainNow());
       sync.reconnectNow();
+      _maybeBackUpMoney();
     }
+  }
+
+  /// The automatic daily Money backup — the Owner's phone only, and only
+  /// while syncing as them (see MoneyAutoBackup).
+  void _maybeBackUpMoney() {
+    final active = ref.read(activeSyncProvider);
+    final ownerUid = ref.read(familyProfileStreamProvider).valueOrNull?.ownerUid;
+    if (active == null || ownerUid != active.uid) return;
+    unawaited(ref
+        .read(moneyAutoBackupProvider)
+        .runIfDue(familyId: active.familyId, uid: active.uid));
   }
 
   Widget _buildScreen(int index) {

@@ -14,6 +14,7 @@ import '../../auth/screens/sign_in_screen.dart';
 import '../../family/providers/family_providers.dart';
 import '../../family/screens/invite_family_member_screen.dart';
 import '../widgets/sync_review_sheet.dart';
+import 'money_backup_screen.dart';
 import 'money_guide_screen.dart';
 
 /// A sentinel distinct from any real [Locale] to represent "follow system"
@@ -293,6 +294,19 @@ class SettingsScreen extends ConsumerWidget {
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const MoneyGuideScreen()),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.backup_outlined, color: AppColors.primary),
+                    title: Text(l10n.moneyBackupTitle),
+                    subtitle: Text(l10n.moneyBackupSettingsHint),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MoneyBackupScreen()),
                     ),
                   ),
                 ),

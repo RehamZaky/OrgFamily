@@ -391,6 +391,21 @@ needed, and onboarding never offers to create a duplicate family while
 the download is in flight. A failed lookup is shown with a retry rather
 than treated as "no family".
 
+## Money backup (V2)
+
+Money (transactions, category limits, budget settings, savings goals)
+stays **local-only** — Drift is its only source of truth and it is not
+synced. It is instead *backed up*: `MoneyBackupCodec` turns the source
+tables into a versioned, gzipped, AES-256-GCM-encrypted snapshot, and
+`MoneyBackupRepository` stores it as Firestore `Bytes` chunks behind an
+`uploading` → `complete` manifest, Owner-only (see `firestore.rules`).
+Restoring replaces this device's Money tables in one transaction, after
+downloading, checksumming, decrypting and validating the whole backup
+and saving a safety backup of the current data first. `MoneyAutoBackup`
+runs from `RootScaffold` on the Owner's phone at most daily, skipping the
+upload when the content hash is unchanged. Key handling is a documented
+temporary trade-off — see docs/roadmap.md "Money backup".
+
 ## Testing
 
 `test/widget_test.dart` overrides `databaseProvider` with

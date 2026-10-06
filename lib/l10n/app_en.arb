@@ -672,6 +672,46 @@
   "syncReviewFamily": "Family settings",
   "syncReviewResponsibility": "Responsibility",
   "responsibilitiesTitle": "Responsibilities",
+  "moneyBackupTitle": "Money backup",
+  "moneyBackupSettingsHint": "Encrypted backup of your family's money records",
+  "moneyBackupLastBackup": "Last backup: {when}",
+  "@moneyBackupLastBackup": {
+    "placeholders": {
+      "when": {}
+    }
+  },
+  "moneyBackupNever": "No backup yet",
+  "moneyBackupAutoInfo": "Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.",
+  "moneyBackupNow": "Back up now",
+  "moneyBackupDone": "Backup saved",
+  "moneyBackupLimit": "You can keep up to 3 manual backups. Delete one to make room.",
+  "moneyBackupFailed": "Couldn't complete that. Check your connection and try again.",
+  "moneyBackupAutomatic": "Automatic",
+  "moneyBackupManual": "Manual",
+  "moneyBackupSafety": "Before restore",
+  "moneyBackupCounts": "{transactions} transactions · {goals} savings goals",
+  "@moneyBackupCounts": {
+    "placeholders": {
+      "transactions": {"type": "int"},
+      "goals": {"type": "int"}
+    }
+  },
+  "moneyBackupRestore": "Restore",
+  "moneyBackupRestoreTitle": "Restore this backup?",
+  "moneyBackupRestoreBody": "Backup from {when}: {transactions} transactions, {limits} category budgets and {goals} savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.",
+  "@moneyBackupRestoreBody": {
+    "placeholders": {
+      "when": {},
+      "transactions": {"type": "int"},
+      "limits": {"type": "int"},
+      "goals": {"type": "int"}
+    }
+  },
+  "moneyBackupRestored": "Money records restored",
+  "moneyBackupDeleteTitle": "Delete this backup?",
+  "moneyBackupDelete": "Delete",
+  "moneyBackupOwnerOnly": "Only the family Owner can back up and restore money records.",
+  "moneyBackupNeedsAccount": "Connect the family Owner's account to back up money records.",
   "responsibilitiesEmpty": "No responsibilities yet",
   "responsibilityNew": "New responsibility",
   "responsibilityTitleHint": "e.g. Make bed",
