@@ -1511,6 +1511,60 @@ class AppLocalizationsAr extends AppLocalizations {
   String get syncReviewFamily => 'إعدادات العائلة';
 
   @override
+  String get syncReviewResponsibility => 'مسؤولية';
+
+  @override
+  String get responsibilitiesTitle => 'المسؤوليات';
+
+  @override
+  String get responsibilitiesEmpty => 'لا توجد مسؤوليات بعد';
+
+  @override
+  String get responsibilityNew => 'مسؤولية جديدة';
+
+  @override
+  String get responsibilityTitleHint => 'مثال: ترتيب السرير';
+
+  @override
+  String get responsibilityRepeats => 'التكرار';
+
+  @override
+  String get responsibilityDaily => 'يوميًا';
+
+  @override
+  String get responsibilitySchoolDays => 'أيام الدراسة (الأحد–الخميس)';
+
+  @override
+  String get responsibilityCustom => 'مخصص';
+
+  @override
+  String get responsibilityAdd => 'إضافة';
+
+  @override
+  String responsibilityEvery(Object days) {
+    return 'كل $days';
+  }
+
+  @override
+  String responsibilityNext(Object day) {
+    return 'التالي: $day';
+  }
+
+  @override
+  String get responsibilityDeleteTitle => 'حذف المسؤولية؟';
+
+  @override
+  String responsibilityDeleteBody(Object title) {
+    return 'سيتم حذف \"$title\" لجميع أفراد العائلة.';
+  }
+
+  @override
+  String get responsibilityDelete => 'حذف';
+
+  @override
+  String get homeMyResponsibilities => 'مسؤولياتي';
+
+  @override
   String get syncReviewDeleted => '(لم يعد موجودًا على هذا الهاتف)';
 
   @override

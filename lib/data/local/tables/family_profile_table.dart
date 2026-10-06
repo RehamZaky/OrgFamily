@@ -24,6 +24,14 @@ class FamilyProfile extends Table {
   // See `activeSyncFamilyIdProvider` and docs/architecture.md "Family
   // invitations".
   TextColumn get joinedUid => text().nullable()();
+
+  /// Comma-separated `SyncEntityType` names whose one-time initial
+  /// reconciliation has completed. Per collection, so a collection that
+  /// starts syncing after the family first linked (e.g. responsibilities)
+  /// still gets its own first pass — uploading what was only local until
+  /// then — without re-running (and risking resurrections in) collections
+  /// that finished theirs long ago. Local-only, never synced.
+  TextColumn get reconciledEntityTypes => text().nullable()();
   /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt` doc
   /// comment. No `deletedAt`: this singleton row is never deleted, only
   /// ever upserted.

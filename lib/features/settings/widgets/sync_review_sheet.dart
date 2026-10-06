@@ -76,6 +76,9 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
       SyncEntityType.familyMember =>
         (await (db.select(db.familyMembers)..where((m) => m.id.equals(id))).getSingleOrNull())
             ?.name,
+      SyncEntityType.responsibility =>
+        (await (db.select(db.responsibilities)..where((r) => r.id.equals(id))).getSingleOrNull())
+            ?.title,
       SyncEntityType.familyProfile => '',
     };
   }
@@ -86,6 +89,7 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
         SyncEntityType.shoppingItem => l10n.syncReviewShoppingItem,
         SyncEntityType.shoppingList => l10n.syncReviewShoppingList,
         SyncEntityType.familyMember => l10n.syncReviewMember,
+        SyncEntityType.responsibility => l10n.syncReviewResponsibility,
         SyncEntityType.familyProfile => l10n.syncReviewFamily,
       };
 

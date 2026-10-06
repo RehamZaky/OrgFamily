@@ -2702,6 +2702,102 @@ abstract class AppLocalizations {
   /// **'Family settings'**
   String get syncReviewFamily;
 
+  /// No description provided for @syncReviewResponsibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibility'**
+  String get syncReviewResponsibility;
+
+  /// No description provided for @responsibilitiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get responsibilitiesTitle;
+
+  /// No description provided for @responsibilitiesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No responsibilities yet'**
+  String get responsibilitiesEmpty;
+
+  /// No description provided for @responsibilityNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New responsibility'**
+  String get responsibilityNew;
+
+  /// No description provided for @responsibilityTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Make bed'**
+  String get responsibilityTitleHint;
+
+  /// No description provided for @responsibilityRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats'**
+  String get responsibilityRepeats;
+
+  /// No description provided for @responsibilityDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get responsibilityDaily;
+
+  /// No description provided for @responsibilitySchoolDays.
+  ///
+  /// In en, this message translates to:
+  /// **'School days (Sun–Thu)'**
+  String get responsibilitySchoolDays;
+
+  /// No description provided for @responsibilityCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get responsibilityCustom;
+
+  /// No description provided for @responsibilityAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get responsibilityAdd;
+
+  /// No description provided for @responsibilityEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days}'**
+  String responsibilityEvery(Object days);
+
+  /// No description provided for @responsibilityNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {day}'**
+  String responsibilityNext(Object day);
+
+  /// No description provided for @responsibilityDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete responsibility?'**
+  String get responsibilityDeleteTitle;
+
+  /// No description provided for @responsibilityDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" will be removed for everyone in the family.'**
+  String responsibilityDeleteBody(Object title);
+
+  /// No description provided for @responsibilityDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get responsibilityDelete;
+
+  /// No description provided for @homeMyResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'My responsibilities'**
+  String get homeMyResponsibilities;
+
   /// No description provided for @syncReviewDeleted.
   ///
   /// In en, this message translates to:

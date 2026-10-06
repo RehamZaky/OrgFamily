@@ -670,6 +670,37 @@
   "syncReviewShoppingList": "Shopping list",
   "syncReviewMember": "Family member",
   "syncReviewFamily": "Family settings",
+  "syncReviewResponsibility": "Responsibility",
+  "responsibilitiesTitle": "Responsibilities",
+  "responsibilitiesEmpty": "No responsibilities yet",
+  "responsibilityNew": "New responsibility",
+  "responsibilityTitleHint": "e.g. Make bed",
+  "responsibilityRepeats": "Repeats",
+  "responsibilityDaily": "Daily",
+  "responsibilitySchoolDays": "School days (Sun–Thu)",
+  "responsibilityCustom": "Custom",
+  "responsibilityAdd": "Add",
+  "responsibilityEvery": "Every {days}",
+  "@responsibilityEvery": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "responsibilityNext": "Next: {day}",
+  "@responsibilityNext": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "responsibilityDeleteTitle": "Delete responsibility?",
+  "responsibilityDeleteBody": "\"{title}\" will be removed for everyone in the family.",
+  "@responsibilityDeleteBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "responsibilityDelete": "Delete",
+  "homeMyResponsibilities": "My responsibilities",
   "syncReviewDeleted": "(no longer on this phone)",
   "restoreFamilyChecking": "Looking for your family…",
   "restoreFamilyError": "Couldn't check for an existing family. Check your connection and try again.",

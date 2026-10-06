@@ -9,6 +9,7 @@ enum SyncEntityType {
   event,
   shoppingList,
   shoppingItem,
+  responsibility,
 }
 
 enum SyncOperation { upsert, delete }

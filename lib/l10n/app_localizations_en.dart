@@ -1463,6 +1463,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncReviewFamily => 'Family settings';
 
   @override
+  String get syncReviewResponsibility => 'Responsibility';
+
+  @override
+  String get responsibilitiesTitle => 'Responsibilities';
+
+  @override
+  String get responsibilitiesEmpty => 'No responsibilities yet';
+
+  @override
+  String get responsibilityNew => 'New responsibility';
+
+  @override
+  String get responsibilityTitleHint => 'e.g. Make bed';
+
+  @override
+  String get responsibilityRepeats => 'Repeats';
+
+  @override
+  String get responsibilityDaily => 'Daily';
+
+  @override
+  String get responsibilitySchoolDays => 'School days (Sun–Thu)';
+
+  @override
+  String get responsibilityCustom => 'Custom';
+
+  @override
+  String get responsibilityAdd => 'Add';
+
+  @override
+  String responsibilityEvery(Object days) {
+    return 'Every $days';
+  }
+
+  @override
+  String responsibilityNext(Object day) {
+    return 'Next: $day';
+  }
+
+  @override
+  String get responsibilityDeleteTitle => 'Delete responsibility?';
+
+  @override
+  String responsibilityDeleteBody(Object title) {
+    return '\"$title\" will be removed for everyone in the family.';
+  }
+
+  @override
+  String get responsibilityDelete => 'Delete';
+
+  @override
+  String get homeMyResponsibilities => 'My responsibilities';
+
+  @override
   String get syncReviewDeleted => '(no longer on this phone)';
 
   @override

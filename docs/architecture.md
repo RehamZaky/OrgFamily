@@ -136,9 +136,18 @@ exists — see "Firestore sync" § security rules for why).
 ## Firestore sync (V2 Family Cloud)
 
 Once the local Owner links a Firebase account, `FamilyMembers`,
-`FamilyProfile`, `Tasks`, `Events`, `ShoppingLists`, and `ShoppingItems`
-sync to `families/{familyId}/...` in Firestore. Budget/Notes/
-Responsibilities/SavingsGoals are still local-only. Drift stays the
+`FamilyProfile`, `Tasks`, `Events`, `ShoppingLists`, `ShoppingItems`
+and `Responsibilities` sync to `families/{familyId}/...` in Firestore.
+Budget/Notes/SavingsGoals are still local-only.
+
+The one-time initial reconciliation is tracked **per collection**
+(`FamilyProfile.reconciledEntityTypes`), so a collection that starts
+syncing after the family first linked — Responsibilities, in schema 17 —
+gets its own first pass (uploading what was only ever local) while
+collections that finished theirs are never re-reconciled, which would
+re-upload rows deleted elsewhere. A family that finished the original
+all-at-once pass is treated as having reconciled every collection that
+pass covered (`legacyReconciledEntityTypes`). Drift stays the
 source of truth throughout — the app reads/writes Drift exactly as
 before; Firestore is a mirror kept in sync underneath, invisible to
 every screen above the repository layer (per "Why local-first" and

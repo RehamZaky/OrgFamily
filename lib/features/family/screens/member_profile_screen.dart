@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
+import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/avatar_photo_store.dart';
@@ -13,8 +16,10 @@ import '../../../core/widgets/member_avatar.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/responsibilities_table.dart';
 import '../../../data/providers.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/family_providers.dart';
 import '../providers/responsibility_providers.dart';
+import '../responsibility_schedule.dart';
 import 'add_member_screen.dart';
 
 class MemberProfileScreen extends ConsumerStatefulWidget {
@@ -47,6 +52,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
   }
 
   Future<void> _addResponsibility() async {
+    if (!checkPermission(context, ref, FamilyAction.manageResponsibilities)) return;
     final result = await showModalBottomSheet<_NewResponsibility>(
       context: context,
       isScrollControlled: true,
@@ -62,6 +68,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
           title: result.title,
           recurrence: result.recurrence,
           customWeekdays: result.customWeekdays,
+          actingRole: ref.read(activeRoleProvider),
         );
   }
 
@@ -254,19 +261,22 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Responsibility',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline,
-                      color: AppColors.primary),
-                  onPressed: _addResponsibility,
-                ),
+                Text(AppLocalizations.of(context)!.responsibilitiesTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                if (canPerform(ref.watch(activeRoleProvider),
+                    FamilyAction.manageResponsibilities))
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline,
+                        color: AppColors.primary),
+                    onPressed: _addResponsibility,
+                  ),
               ],
             ),
             if (responsibilities.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: Text('No responsibilities yet')),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                    child: Text(AppLocalizations.of(context)!.responsibilitiesEmpty)),
               )
             else
               Card(
@@ -382,34 +392,87 @@ class _StatTile extends StatelessWidget {
   }
 }
 
+/// One responsibility on a member's profile. Shows every responsibility
+/// (this is where they're managed), but only one due today can be ticked;
+/// on other days it says when it's next due instead.
 class _ResponsibilityRow extends ConsumerWidget {
   const _ResponsibilityRow({required this.responsibility});
 
   final Responsibility responsibility;
 
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    if (!checkPermission(context, ref, FamilyAction.manageResponsibilities)) return;
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.responsibilityDeleteTitle),
+        content: Text(l10n.responsibilityDeleteBody(responsibility.title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.priorityUrgent),
+            child: Text(l10n.responsibilityDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(responsibilityRepositoryProvider).deleteResponsibility(
+          responsibility.id,
+          actingRole: ref.read(activeRoleProvider),
+        );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doneToday = responsibility.lastCompletedDate?.isToday ?? false;
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final today = DateTime.now();
+    final dueToday = isDueOn(responsibility, today);
+    final doneToday = dueToday && isDoneOn(responsibility, today);
+    final role = ref.watch(activeRoleProvider);
+    final isMine = responsibility.memberId == ref.watch(actingMemberIdProvider);
+    final canTick = canPerform(
+      role,
+      isMine ? FamilyAction.completeOwnResponsibility : FamilyAction.completeAnyResponsibility,
+    );
+    final next = dueToday ? null : nextDueAfter(responsibility, today);
+    final schedule = responsibilityScheduleLabel(responsibility, l10n, locale);
     return ListTile(
       leading: Checkbox(
         value: doneToday,
-        onChanged: (checked) => ref
-            .read(responsibilityRepositoryProvider)
-            .setCompletedToday(responsibility.id, checked ?? false),
+        onChanged: dueToday && canTick
+            ? (checked) => ref.read(responsibilityRepositoryProvider).setCompletedToday(
+                  responsibility.id,
+                  checked ?? false,
+                  actingRole: role,
+                  actingMemberId: ref.read(actingMemberIdProvider),
+                )
+            : null,
       ),
       title: Text(
         responsibility.title,
         style: TextStyle(
           decoration: doneToday ? TextDecoration.lineThrough : null,
+          color: dueToday ? null : context.colors.textSecondary,
         ),
       ),
-      subtitle: Text(responsibilityScheduleLabel(responsibility)),
-      trailing: IconButton(
-        icon: Icon(Icons.delete_outline, color: context.colors.textSecondary),
-        onPressed: () => ref
-            .read(responsibilityRepositoryProvider)
-            .deleteResponsibility(responsibility.id),
+      subtitle: Text(
+        next == null
+            ? schedule
+            : '$schedule · ${l10n.responsibilityNext(weekdayName(next.weekday, locale))}',
       ),
+      trailing: canPerform(role, FamilyAction.manageResponsibilities)
+          ? IconButton(
+              icon: Icon(Icons.delete_outline, color: context.colors.textSecondary),
+              onPressed: () => _confirmDelete(context, ref),
+            )
+          : null,
     );
   }
 }
@@ -442,6 +505,8 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -464,35 +529,35 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
               ),
             ),
           ),
-          const Text('New responsibility',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(l10n.responsibilityNew,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           TextField(
             controller: _titleController,
             autofocus: true,
-            decoration: const InputDecoration(hintText: 'e.g. Make bed'),
+            decoration: InputDecoration(hintText: l10n.responsibilityTitleHint),
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 16),
-          const Text('Repeats', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(l10n.responsibilityRepeats, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
               ChoiceChip(
-                label: const Text('Daily'),
+                label: Text(l10n.responsibilityDaily),
                 selected: _recurrence == ResponsibilityRecurrence.daily,
                 onSelected: (_) =>
                     setState(() => _recurrence = ResponsibilityRecurrence.daily),
               ),
               ChoiceChip(
-                label: const Text('Every school day'),
+                label: Text(l10n.responsibilitySchoolDays),
                 selected: _recurrence == ResponsibilityRecurrence.schoolDays,
                 onSelected: (_) => setState(
                     () => _recurrence = ResponsibilityRecurrence.schoolDays),
               ),
               ChoiceChip(
-                label: const Text('Custom'),
+                label: Text(l10n.responsibilityCustom),
                 selected: _recurrence == ResponsibilityRecurrence.custom,
                 onSelected: (_) =>
                     setState(() => _recurrence = ResponsibilityRecurrence.custom),
@@ -504,20 +569,20 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _weekdayNames.entries.map((e) {
-                final selected = _customWeekdays.contains(e.key);
-                return FilterChip(
-                  label: Text(e.value.substring(0, 3)),
-                  selected: selected,
-                  onSelected: (checked) => setState(() {
-                    if (checked) {
-                      _customWeekdays.add(e.key);
-                    } else {
-                      _customWeekdays.remove(e.key);
-                    }
-                  }),
-                );
-              }).toList(),
+              children: [
+                for (final day in weekdaysSundayFirst)
+                  FilterChip(
+                    label: Text(weekdayShortName(day, locale)),
+                    selected: _customWeekdays.contains(day),
+                    onSelected: (checked) => setState(() {
+                      if (checked) {
+                        _customWeekdays.add(day);
+                      } else {
+                        _customWeekdays.remove(day);
+                      }
+                    }),
+                  ),
+              ],
             ),
           ],
           const SizedBox(height: 20),
@@ -538,23 +603,13 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
               ));
             },
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-            child: const Text('Add'),
+            child: Text(l10n.responsibilityAdd),
           ),
         ],
       ),
     );
   }
 }
-
-const _weekdayNames = {
-  DateTime.monday: 'Monday',
-  DateTime.tuesday: 'Tuesday',
-  DateTime.wednesday: 'Wednesday',
-  DateTime.thursday: 'Thursday',
-  DateTime.friday: 'Friday',
-  DateTime.saturday: 'Saturday',
-  DateTime.sunday: 'Sunday',
-};
 
 /// A lightweight read-only view of this member's upcoming tasks and events —
 /// event editing doesn't exist yet (see roadmap V1.1), so rows here aren't

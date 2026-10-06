@@ -49,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   /// Whether [table] already has [column] — lets a migration step check
   /// before altering, so it's safe to resume after a partial failure (see
@@ -233,6 +233,34 @@ class AppDatabase extends _$AppDatabase {
             }
             await customStatement(
               'UPDATE sync_outbox SET status = ${SyncOutboxStatus.held.index}',
+            );
+          }
+          if (from < 17) {
+            // Responsibilities join Firestore sync, and initial
+            // reconciliation becomes per collection (see
+            // family_profile_table.dart's reconciledEntityTypes).
+            if (!await _columnExists('responsibilities', 'updated_at')) {
+              await customStatement(
+                'ALTER TABLE responsibilities ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0',
+              );
+              await customStatement(
+                "UPDATE responsibilities SET updated_at = strftime('%s', 'now')",
+              );
+            }
+            if (!await _columnExists('responsibilities', 'deleted_at')) {
+              await m.addColumn(responsibilities, responsibilities.deletedAt);
+            }
+            if (!await _columnExists('family_profile', 'reconciled_entity_types')) {
+              await m.addColumn(familyProfile, familyProfile.reconciledEntityTypes);
+            }
+            // Families that already finished their (then all-at-once) first
+            // pass have reconciled every collection that existed at the
+            // time — record those, so only responsibilities gets a first
+            // pass now.
+            await customStatement(
+              "UPDATE family_profile SET reconciled_entity_types = "
+              "'familyProfile,familyMember,task,event,shoppingList,shoppingItem' "
+              'WHERE initial_cloud_migration_completed_at IS NOT NULL',
             );
           }
         },

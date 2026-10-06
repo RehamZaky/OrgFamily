@@ -80,9 +80,10 @@ The point where Firebase actually earns its place.
       nothing to configure in code for it).
 - [x] Firestore sync behind the existing repository interfaces — screens
       needed zero changes, per plan. FamilyMembers/FamilyProfile/Tasks/
-      Events/ShoppingLists/ShoppingItems sync to `families/{familyId}/...`
-      once the local Owner links; Budget/Notes/Responsibilities/
-      SavingsGoals stay local-only (own future pass). See
+      Events/ShoppingLists/ShoppingItems/Responsibilities sync to
+      `families/{familyId}/...` once the local Owner links (Responsibilities
+      added 2026-10-06); Budget/Notes/SavingsGoals stay local-only (own
+      future pass). See
       [architecture.md](architecture.md)'s "Firestore sync" for the full
       design — `SyncEngine`, the `SyncOutbox` durable push queue, the
       outbox failure/backoff policy, and the lifecycle wiring
@@ -184,6 +185,31 @@ V1 has no permissions system, every device sees the same database).
 Also depends on the Finance/expenses feature above, which doesn't
 exist yet either. Came up when scoping the Add Member screen redesign
 (2026-09-01) and was deliberately left out rather than half-built.
+
+**Responsibilities (chores) — staged plan** (agreed 2026-10-05). Kept
+deliberately separate from Tasks, never converted into recurring tasks:
+a *task* has a deadline, reminders, overdue state and completion
+history ("finish science homework by 7 PM"); a *responsibility* is a
+recurring everyday expectation that's simply done today or not ("make
+your bed").
+  - **V2 (in progress)**: sync through Firestore
+    (`families/{id}/responsibilities`); enforce the schedule (school
+    days = Sunday–Thursday; Today/Home show only what's due today, the
+    member's profile shows "Next: Monday" on off-days); permissions
+    (Owner/Adult create, edit, reassign and delete; a Child can tick
+    only their own "done today"); delete confirmation; localized
+    strings; "My responsibilities" on Home, visually distinct from
+    "My tasks". Edit/reassign has its permission but no UI yet.
+  - **V2.1**: completions become Family Activity events ("Mariam
+    completed Feed the cat" — `entityType: responsibility` in the V2.1
+    activity schema); an optional **single daily reminder** per member
+    at a chosen time ("You have 3 responsibilities today 💜 Feed the
+    cat, make your bed +1 more") — never one notification per chore.
+  - **V3**: completion **history** — per-occurrence completion records
+    instead of only `lastCompletedDate`, which can't answer "6 of 7
+    days this week" — enabling weekly progress, points, streaks,
+    parental approval where appropriate, rewards, and child-device
+    behavior.
 
 **Smart organization** (part of Brain Dump / AI assistant): free-text
 capture that auto-routes to the right entity instead of requiring the

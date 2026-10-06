@@ -23,6 +23,7 @@ import 'repositories/task_repository.dart';
 import 'sync/adapters/event_sync_adapter.dart';
 import 'sync/adapters/family_member_sync_adapter.dart';
 import 'sync/adapters/family_profile_sync_adapter.dart';
+import 'sync/adapters/responsibility_sync_adapter.dart';
 import 'sync/adapters/shopping_item_sync_adapter.dart';
 import 'sync/adapters/shopping_list_sync_adapter.dart';
 import 'sync/adapters/task_sync_adapter.dart';
@@ -72,6 +73,7 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
     EventSyncAdapter(db),
     ShoppingListSyncAdapter(db),
     ShoppingItemSyncAdapter(db),
+    ResponsibilitySyncAdapter(db),
   ]);
 });
 
@@ -292,7 +294,7 @@ final shoppingRepositoryProvider = Provider<ShoppingRepository>((ref) {
 });
 
 final responsibilityRepositoryProvider = Provider<ResponsibilityRepository>((ref) {
-  return ResponsibilityRepository(ref.watch(databaseProvider));
+  return ResponsibilityRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
 });
 
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {

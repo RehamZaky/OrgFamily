@@ -294,33 +294,54 @@ class SyncEngine {
     if (_firestore == null) return;
     final profile =
         await (_db.select(_db.familyProfile)..where((p) => p.id.equals(1))).getSingleOrNull();
-    if (profile?.initialCloudMigrationCompletedAt != null) return;
+    // Per collection (FamilyProfile.reconciledEntityTypes): a collection
+    // that joins sync after the family first linked still gets its own
+    // first pass, while collections that finished theirs are never
+    // re-reconciled — "missing remotely" must not mean "upload me" again
+    // for them, or deletions made elsewhere would resurrect.
+    final recorded = profile?.reconciledEntityTypes;
+    final done = recorded != null
+        ? {...recorded.split(',').where((s) => s.isNotEmpty)}
+        // Finished the old all-at-once first pass but has no per-collection
+        // record: every collection that pass covered counts as done. Never
+        // treat a missing record as "nothing reconciled" — that would
+        // re-upload everything local and resurrect deletions.
+        : profile?.initialCloudMigrationCompletedAt != null
+            ? {...legacyReconciledEntityTypes}
+            : <String>{};
+    final pending = _adapters.values.where((a) => !done.contains(a.entityType.name)).toList();
+    if (pending.isEmpty && profile?.initialCloudMigrationCompletedAt != null) return;
     try {
-      for (final adapter in _adapters.values) {
+      for (final adapter in pending) {
         // A stop()/different start() may have run while a previous
         // adapter's pass awaited — bail out rather than keep reconciling
-        // (and, worse, eventually marking migration-complete for) a family
-        // that's no longer the active one. See the final check below for
-        // why this alone isn't sufficient.
+        // (and, worse, recording as reconciled) for a session that's no
+        // longer the active one. Re-checked again right before each write
+        // below, since the switch could just as easily have happened during
+        // the adapter's own awaits.
         if (_session != session) return;
         await _reconcileAdapterFully(adapter, familyId);
+        if (_session != session) return;
+        done.add(adapter.entityType.name);
+        await _db.into(_db.familyProfile).insertOnConflictUpdate(
+              FamilyProfileCompanion.insert(
+                id: const Value(1),
+                reconciledEntityTypes: Value(done.join(',')),
+              ),
+            );
       }
-      // The loop above can only ever *return early* on a family switch,
-      // never race past this final check — but re-check anyway right
-      // before the write, since the switch could just as easily have
-      // happened during the very last adapter's own await. Writing this
-      // flag for a family that isn't [familyId] anymore would wrongly mark
-      // *this* family's migration complete without ever having reconciled
-      // it (this single-row table has no per-family scoping of its own).
       if (_session != session) return;
-      await _db.into(_db.familyProfile).insertOnConflictUpdate(
-            FamilyProfileCompanion.insert(
-              id: const Value(1),
-              initialCloudMigrationCompletedAt: Value(DateTime.now()),
-            ),
-          );
+      if (profile?.initialCloudMigrationCompletedAt == null) {
+        await _db.into(_db.familyProfile).insertOnConflictUpdate(
+              FamilyProfileCompanion.insert(
+                id: const Value(1),
+                initialCloudMigrationCompletedAt: Value(DateTime.now()),
+              ),
+            );
+      }
     } catch (_) {
-      // Leave the flag unset — retried the next time start() runs.
+      // Whatever didn't finish stays unrecorded — retried the next time
+      // start() runs.
     }
   }
 
@@ -779,3 +800,15 @@ ReviewState compareForReview({DateTime? localUpdatedAt, DateTime? remoteUpdatedA
   if (diff.abs() < const Duration(seconds: 1)) return ReviewState.inSync;
   return diff.isNegative ? ReviewState.cloudNewer : ReviewState.phoneNewer;
 }
+
+/// The collections the original (pre-schema-17) first pass covered — what a
+/// family that finished it has reconciled. Must match the schema-17
+/// migration in database.dart.
+const legacyReconciledEntityTypes = [
+  'familyProfile',
+  'familyMember',
+  'task',
+  'event',
+  'shoppingList',
+  'shoppingItem',
+];

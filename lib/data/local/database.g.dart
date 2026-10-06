@@ -4057,6 +4057,29 @@ class $ResponsibilitiesTable extends Responsibilities
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4066,6 +4089,8 @@ class $ResponsibilitiesTable extends Responsibilities
     customWeekdays,
     lastCompletedDate,
     createdAt,
+    updatedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4124,6 +4149,18 @@ class $ResponsibilitiesTable extends Responsibilities
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -4163,6 +4200,14 @@ class $ResponsibilitiesTable extends Responsibilities
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -4192,6 +4237,15 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
   /// per-occurrence completion log is needed.
   final DateTime? lastCompletedDate;
   final DateTime createdAt;
+
+  /// Firestore sync bookkeeping — see tasks_table.dart's `updatedAt` doc
+  /// comment. Every write path stamps it explicitly (its SQL default is a
+  /// constant placeholder, see database.dart's `from < 17` step).
+  final DateTime updatedAt;
+
+  /// Soft-delete tombstone, so a deletion syncs instead of looking like
+  /// "never uploaded" — see tasks_table.dart's `deletedAt`.
+  final DateTime? deletedAt;
   const Responsibility({
     required this.id,
     required this.memberId,
@@ -4200,6 +4254,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
     this.customWeekdays,
     this.lastCompletedDate,
     required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4219,6 +4275,10 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
       map['last_completed_date'] = Variable<DateTime>(lastCompletedDate);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -4235,6 +4295,10 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
           ? const Value.absent()
           : Value(lastCompletedDate),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -4255,6 +4319,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
         json['lastCompletedDate'],
       ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -4270,6 +4336,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
       'customWeekdays': serializer.toJson<String?>(customWeekdays),
       'lastCompletedDate': serializer.toJson<DateTime?>(lastCompletedDate),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -4281,6 +4349,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
     Value<String?> customWeekdays = const Value.absent(),
     Value<DateTime?> lastCompletedDate = const Value.absent(),
     DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => Responsibility(
     id: id ?? this.id,
     memberId: memberId ?? this.memberId,
@@ -4293,6 +4363,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
         ? lastCompletedDate.value
         : this.lastCompletedDate,
     createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   Responsibility copyWithCompanion(ResponsibilitiesCompanion data) {
     return Responsibility(
@@ -4309,6 +4381,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
           ? data.lastCompletedDate.value
           : this.lastCompletedDate,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -4321,7 +4395,9 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
           ..write('recurrence: $recurrence, ')
           ..write('customWeekdays: $customWeekdays, ')
           ..write('lastCompletedDate: $lastCompletedDate, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -4335,6 +4411,8 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
     customWeekdays,
     lastCompletedDate,
     createdAt,
+    updatedAt,
+    deletedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -4346,7 +4424,9 @@ class Responsibility extends DataClass implements Insertable<Responsibility> {
           other.recurrence == this.recurrence &&
           other.customWeekdays == this.customWeekdays &&
           other.lastCompletedDate == this.lastCompletedDate &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
@@ -4357,6 +4437,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
   final Value<String?> customWeekdays;
   final Value<DateTime?> lastCompletedDate;
   final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const ResponsibilitiesCompanion({
     this.id = const Value.absent(),
@@ -4366,6 +4448,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
     this.customWeekdays = const Value.absent(),
     this.lastCompletedDate = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ResponsibilitiesCompanion.insert({
@@ -4376,6 +4460,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
     this.customWeekdays = const Value.absent(),
     this.lastCompletedDate = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        memberId = Value(memberId),
@@ -4388,6 +4474,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
     Expression<String>? customWeekdays,
     Expression<DateTime>? lastCompletedDate,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4398,6 +4486,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
       if (customWeekdays != null) 'custom_weekdays': customWeekdays,
       if (lastCompletedDate != null) 'last_completed_date': lastCompletedDate,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4410,6 +4500,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
     Value<String?>? customWeekdays,
     Value<DateTime?>? lastCompletedDate,
     Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return ResponsibilitiesCompanion(
@@ -4420,6 +4512,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
       customWeekdays: customWeekdays ?? this.customWeekdays,
       lastCompletedDate: lastCompletedDate ?? this.lastCompletedDate,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4450,6 +4544,12 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4466,6 +4566,8 @@ class ResponsibilitiesCompanion extends UpdateCompanion<Responsibility> {
           ..write('customWeekdays: $customWeekdays, ')
           ..write('lastCompletedDate: $lastCompletedDate, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4891,6 +4993,17 @@ class $FamilyProfileTable extends FamilyProfile
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _reconciledEntityTypesMeta =
+      const VerificationMeta('reconciledEntityTypes');
+  @override
+  late final GeneratedColumn<String> reconciledEntityTypes =
+      GeneratedColumn<String>(
+        'reconciled_entity_types',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -4921,6 +5034,7 @@ class $FamilyProfileTable extends FamilyProfile
     familyId,
     ownerUid,
     joinedUid,
+    reconciledEntityTypes,
     updatedAt,
     initialCloudMigrationCompletedAt,
   ];
@@ -4961,6 +5075,15 @@ class $FamilyProfileTable extends FamilyProfile
       context.handle(
         _joinedUidMeta,
         joinedUid.isAcceptableOrUnknown(data['joined_uid']!, _joinedUidMeta),
+      );
+    }
+    if (data.containsKey('reconciled_entity_types')) {
+      context.handle(
+        _reconciledEntityTypesMeta,
+        reconciledEntityTypes.isAcceptableOrUnknown(
+          data['reconciled_entity_types']!,
+          _reconciledEntityTypesMeta,
+        ),
       );
     }
     if (data.containsKey('updated_at')) {
@@ -5007,6 +5130,10 @@ class $FamilyProfileTable extends FamilyProfile
         DriftSqlType.string,
         data['${effectivePrefix}joined_uid'],
       ),
+      reconciledEntityTypes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reconciled_entity_types'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -5032,6 +5159,14 @@ class FamilyProfileData extends DataClass
   final String? ownerUid;
   final String? joinedUid;
 
+  /// Comma-separated `SyncEntityType` names whose one-time initial
+  /// reconciliation has completed. Per collection, so a collection that
+  /// starts syncing after the family first linked (e.g. responsibilities)
+  /// still gets its own first pass — uploading what was only local until
+  /// then — without re-running (and risking resurrections in) collections
+  /// that finished theirs long ago. Local-only, never synced.
+  final String? reconciledEntityTypes;
+
   /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt` doc
   /// comment. No `deletedAt`: this singleton row is never deleted, only
   /// ever upserted.
@@ -5051,6 +5186,7 @@ class FamilyProfileData extends DataClass
     this.familyId,
     this.ownerUid,
     this.joinedUid,
+    this.reconciledEntityTypes,
     required this.updatedAt,
     this.initialCloudMigrationCompletedAt,
   });
@@ -5069,6 +5205,9 @@ class FamilyProfileData extends DataClass
     }
     if (!nullToAbsent || joinedUid != null) {
       map['joined_uid'] = Variable<String>(joinedUid);
+    }
+    if (!nullToAbsent || reconciledEntityTypes != null) {
+      map['reconciled_entity_types'] = Variable<String>(reconciledEntityTypes);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || initialCloudMigrationCompletedAt != null) {
@@ -5094,6 +5233,9 @@ class FamilyProfileData extends DataClass
       joinedUid: joinedUid == null && nullToAbsent
           ? const Value.absent()
           : Value(joinedUid),
+      reconciledEntityTypes: reconciledEntityTypes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reconciledEntityTypes),
       updatedAt: Value(updatedAt),
       initialCloudMigrationCompletedAt:
           initialCloudMigrationCompletedAt == null && nullToAbsent
@@ -5113,6 +5255,9 @@ class FamilyProfileData extends DataClass
       familyId: serializer.fromJson<String?>(json['familyId']),
       ownerUid: serializer.fromJson<String?>(json['ownerUid']),
       joinedUid: serializer.fromJson<String?>(json['joinedUid']),
+      reconciledEntityTypes: serializer.fromJson<String?>(
+        json['reconciledEntityTypes'],
+      ),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       initialCloudMigrationCompletedAt: serializer.fromJson<DateTime?>(
         json['initialCloudMigrationCompletedAt'],
@@ -5128,6 +5273,9 @@ class FamilyProfileData extends DataClass
       'familyId': serializer.toJson<String?>(familyId),
       'ownerUid': serializer.toJson<String?>(ownerUid),
       'joinedUid': serializer.toJson<String?>(joinedUid),
+      'reconciledEntityTypes': serializer.toJson<String?>(
+        reconciledEntityTypes,
+      ),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'initialCloudMigrationCompletedAt': serializer.toJson<DateTime?>(
         initialCloudMigrationCompletedAt,
@@ -5141,6 +5289,7 @@ class FamilyProfileData extends DataClass
     Value<String?> familyId = const Value.absent(),
     Value<String?> ownerUid = const Value.absent(),
     Value<String?> joinedUid = const Value.absent(),
+    Value<String?> reconciledEntityTypes = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> initialCloudMigrationCompletedAt = const Value.absent(),
   }) => FamilyProfileData(
@@ -5149,6 +5298,9 @@ class FamilyProfileData extends DataClass
     familyId: familyId.present ? familyId.value : this.familyId,
     ownerUid: ownerUid.present ? ownerUid.value : this.ownerUid,
     joinedUid: joinedUid.present ? joinedUid.value : this.joinedUid,
+    reconciledEntityTypes: reconciledEntityTypes.present
+        ? reconciledEntityTypes.value
+        : this.reconciledEntityTypes,
     updatedAt: updatedAt ?? this.updatedAt,
     initialCloudMigrationCompletedAt: initialCloudMigrationCompletedAt.present
         ? initialCloudMigrationCompletedAt.value
@@ -5161,6 +5313,9 @@ class FamilyProfileData extends DataClass
       familyId: data.familyId.present ? data.familyId.value : this.familyId,
       ownerUid: data.ownerUid.present ? data.ownerUid.value : this.ownerUid,
       joinedUid: data.joinedUid.present ? data.joinedUid.value : this.joinedUid,
+      reconciledEntityTypes: data.reconciledEntityTypes.present
+          ? data.reconciledEntityTypes.value
+          : this.reconciledEntityTypes,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       initialCloudMigrationCompletedAt:
           data.initialCloudMigrationCompletedAt.present
@@ -5177,6 +5332,7 @@ class FamilyProfileData extends DataClass
           ..write('familyId: $familyId, ')
           ..write('ownerUid: $ownerUid, ')
           ..write('joinedUid: $joinedUid, ')
+          ..write('reconciledEntityTypes: $reconciledEntityTypes, ')
           ..write('updatedAt: $updatedAt, ')
           ..write(
             'initialCloudMigrationCompletedAt: $initialCloudMigrationCompletedAt',
@@ -5192,6 +5348,7 @@ class FamilyProfileData extends DataClass
     familyId,
     ownerUid,
     joinedUid,
+    reconciledEntityTypes,
     updatedAt,
     initialCloudMigrationCompletedAt,
   );
@@ -5204,6 +5361,7 @@ class FamilyProfileData extends DataClass
           other.familyId == this.familyId &&
           other.ownerUid == this.ownerUid &&
           other.joinedUid == this.joinedUid &&
+          other.reconciledEntityTypes == this.reconciledEntityTypes &&
           other.updatedAt == this.updatedAt &&
           other.initialCloudMigrationCompletedAt ==
               this.initialCloudMigrationCompletedAt);
@@ -5215,6 +5373,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
   final Value<String?> familyId;
   final Value<String?> ownerUid;
   final Value<String?> joinedUid;
+  final Value<String?> reconciledEntityTypes;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> initialCloudMigrationCompletedAt;
   const FamilyProfileCompanion({
@@ -5223,6 +5382,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     this.familyId = const Value.absent(),
     this.ownerUid = const Value.absent(),
     this.joinedUid = const Value.absent(),
+    this.reconciledEntityTypes = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.initialCloudMigrationCompletedAt = const Value.absent(),
   });
@@ -5232,6 +5392,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     this.familyId = const Value.absent(),
     this.ownerUid = const Value.absent(),
     this.joinedUid = const Value.absent(),
+    this.reconciledEntityTypes = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.initialCloudMigrationCompletedAt = const Value.absent(),
   });
@@ -5241,6 +5402,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     Expression<String>? familyId,
     Expression<String>? ownerUid,
     Expression<String>? joinedUid,
+    Expression<String>? reconciledEntityTypes,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? initialCloudMigrationCompletedAt,
   }) {
@@ -5250,6 +5412,8 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
       if (familyId != null) 'family_id': familyId,
       if (ownerUid != null) 'owner_uid': ownerUid,
       if (joinedUid != null) 'joined_uid': joinedUid,
+      if (reconciledEntityTypes != null)
+        'reconciled_entity_types': reconciledEntityTypes,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (initialCloudMigrationCompletedAt != null)
         'initial_cloud_migration_completed_at':
@@ -5263,6 +5427,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     Value<String?>? familyId,
     Value<String?>? ownerUid,
     Value<String?>? joinedUid,
+    Value<String?>? reconciledEntityTypes,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? initialCloudMigrationCompletedAt,
   }) {
@@ -5272,6 +5437,8 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
       familyId: familyId ?? this.familyId,
       ownerUid: ownerUid ?? this.ownerUid,
       joinedUid: joinedUid ?? this.joinedUid,
+      reconciledEntityTypes:
+          reconciledEntityTypes ?? this.reconciledEntityTypes,
       updatedAt: updatedAt ?? this.updatedAt,
       initialCloudMigrationCompletedAt:
           initialCloudMigrationCompletedAt ??
@@ -5297,6 +5464,11 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
     if (joinedUid.present) {
       map['joined_uid'] = Variable<String>(joinedUid.value);
     }
+    if (reconciledEntityTypes.present) {
+      map['reconciled_entity_types'] = Variable<String>(
+        reconciledEntityTypes.value,
+      );
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -5316,6 +5488,7 @@ class FamilyProfileCompanion extends UpdateCompanion<FamilyProfileData> {
           ..write('familyId: $familyId, ')
           ..write('ownerUid: $ownerUid, ')
           ..write('joinedUid: $joinedUid, ')
+          ..write('reconciledEntityTypes: $reconciledEntityTypes, ')
           ..write('updatedAt: $updatedAt, ')
           ..write(
             'initialCloudMigrationCompletedAt: $initialCloudMigrationCompletedAt',
@@ -11659,6 +11832,8 @@ typedef $$ResponsibilitiesTableCreateCompanionBuilder =
       Value<String?> customWeekdays,
       Value<DateTime?> lastCompletedDate,
       Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$ResponsibilitiesTableUpdateCompanionBuilder =
@@ -11670,6 +11845,8 @@ typedef $$ResponsibilitiesTableUpdateCompanionBuilder =
       Value<String?> customWeekdays,
       Value<DateTime?> lastCompletedDate,
       Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -11745,6 +11922,16 @@ class $$ResponsibilitiesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$FamilyMembersTableFilterComposer get memberId {
     final $$FamilyMembersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -11808,6 +11995,16 @@ class $$ResponsibilitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$FamilyMembersTableOrderingComposer get memberId {
     final $$FamilyMembersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11865,6 +12062,12 @@ class $$ResponsibilitiesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   $$FamilyMembersTableAnnotationComposer get memberId {
     final $$FamilyMembersTableAnnotationComposer composer = $composerBuilder(
@@ -11928,6 +12131,8 @@ class $$ResponsibilitiesTableTableManager
                 Value<String?> customWeekdays = const Value.absent(),
                 Value<DateTime?> lastCompletedDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ResponsibilitiesCompanion(
                 id: id,
@@ -11937,6 +12142,8 @@ class $$ResponsibilitiesTableTableManager
                 customWeekdays: customWeekdays,
                 lastCompletedDate: lastCompletedDate,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11949,6 +12156,8 @@ class $$ResponsibilitiesTableTableManager
                 Value<String?> customWeekdays = const Value.absent(),
                 Value<DateTime?> lastCompletedDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ResponsibilitiesCompanion.insert(
                 id: id,
@@ -11958,6 +12167,8 @@ class $$ResponsibilitiesTableTableManager
                 customWeekdays: customWeekdays,
                 lastCompletedDate: lastCompletedDate,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12231,6 +12442,7 @@ typedef $$FamilyProfileTableCreateCompanionBuilder =
       Value<String?> familyId,
       Value<String?> ownerUid,
       Value<String?> joinedUid,
+      Value<String?> reconciledEntityTypes,
       Value<DateTime> updatedAt,
       Value<DateTime?> initialCloudMigrationCompletedAt,
     });
@@ -12241,6 +12453,7 @@ typedef $$FamilyProfileTableUpdateCompanionBuilder =
       Value<String?> familyId,
       Value<String?> ownerUid,
       Value<String?> joinedUid,
+      Value<String?> reconciledEntityTypes,
       Value<DateTime> updatedAt,
       Value<DateTime?> initialCloudMigrationCompletedAt,
     });
@@ -12276,6 +12489,11 @@ class $$FamilyProfileTableFilterComposer
 
   ColumnFilters<String> get joinedUid => $composableBuilder(
     column: $table.joinedUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reconciledEntityTypes => $composableBuilder(
+    column: $table.reconciledEntityTypes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12325,6 +12543,11 @@ class $$FamilyProfileTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get reconciledEntityTypes => $composableBuilder(
+    column: $table.reconciledEntityTypes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12360,6 +12583,11 @@ class $$FamilyProfileTableAnnotationComposer
 
   GeneratedColumn<String> get joinedUid =>
       $composableBuilder(column: $table.joinedUid, builder: (column) => column);
+
+  GeneratedColumn<String> get reconciledEntityTypes => $composableBuilder(
+    column: $table.reconciledEntityTypes,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -12411,6 +12639,7 @@ class $$FamilyProfileTableTableManager
                 Value<String?> familyId = const Value.absent(),
                 Value<String?> ownerUid = const Value.absent(),
                 Value<String?> joinedUid = const Value.absent(),
+                Value<String?> reconciledEntityTypes = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> initialCloudMigrationCompletedAt =
                     const Value.absent(),
@@ -12420,6 +12649,7 @@ class $$FamilyProfileTableTableManager
                 familyId: familyId,
                 ownerUid: ownerUid,
                 joinedUid: joinedUid,
+                reconciledEntityTypes: reconciledEntityTypes,
                 updatedAt: updatedAt,
                 initialCloudMigrationCompletedAt:
                     initialCloudMigrationCompletedAt,
@@ -12431,6 +12661,7 @@ class $$FamilyProfileTableTableManager
                 Value<String?> familyId = const Value.absent(),
                 Value<String?> ownerUid = const Value.absent(),
                 Value<String?> joinedUid = const Value.absent(),
+                Value<String?> reconciledEntityTypes = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> initialCloudMigrationCompletedAt =
                     const Value.absent(),
@@ -12440,6 +12671,7 @@ class $$FamilyProfileTableTableManager
                 familyId: familyId,
                 ownerUid: ownerUid,
                 joinedUid: joinedUid,
+                reconciledEntityTypes: reconciledEntityTypes,
                 updatedAt: updatedAt,
                 initialCloudMigrationCompletedAt:
                     initialCloudMigrationCompletedAt,

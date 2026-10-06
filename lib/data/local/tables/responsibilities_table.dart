@@ -24,6 +24,15 @@ class Responsibilities extends Table {
   DateTimeColumn get lastCompletedDate => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
+  /// Firestore sync bookkeeping — see tasks_table.dart's `updatedAt` doc
+  /// comment. Every write path stamps it explicitly (its SQL default is a
+  /// constant placeholder, see database.dart's `from < 17` step).
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// Soft-delete tombstone, so a deletion syncs instead of looking like
+  /// "never uploaded" — see tasks_table.dart's `deletedAt`.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

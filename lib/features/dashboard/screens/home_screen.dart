@@ -25,6 +25,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../calendar/providers/event_providers.dart';
 import '../../calendar/screens/event_form_screen.dart';
 import '../../family/providers/family_providers.dart';
+import '../../family/providers/responsibility_providers.dart';
+import '../../family/responsibility_schedule.dart';
 import '../../family/widgets/family_activity_feed.dart';
 import '../../notes/providers/note_providers.dart';
 import '../../notes/screens/note_form_screen.dart';
@@ -148,6 +150,7 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const _MyResponsibilitiesSection(),
                   SectionHeader(title: l10n.sectionTodaysPriorities, onViewAll: onViewTasks),
                   const SizedBox(height: 10),
                   Card(
@@ -957,6 +960,59 @@ class _NoteCard extends StatelessWidget {
           style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
         ),
       ),
+    );
+  }
+}
+
+/// Home's "My responsibilities": the acting member's chores due today,
+/// shown above their tasks but as a separate card — a responsibility is a
+/// recurring expectation ("make your bed"), not a task with a deadline.
+/// Hidden when there's nothing due, so it never adds an empty section.
+class _MyResponsibilitiesSection extends ConsumerWidget {
+  const _MyResponsibilitiesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final due = ref.watch(myResponsibilitiesDueTodayProvider);
+    if (due.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+    final today = DateTime.now();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(title: l10n.homeMyResponsibilities),
+        const SizedBox(height: 10),
+        Card(
+          child: Column(
+            children: [
+              for (final r in due)
+                CheckboxListTile(
+                  value: isDoneOn(r, today),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(
+                    r.title,
+                    style: TextStyle(
+                      decoration: isDoneOn(r, today) ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  onChanged: (checked) {
+                    if (!checkPermission(
+                        context, ref, FamilyAction.completeOwnResponsibility)) {
+                      return;
+                    }
+                    ref.read(responsibilityRepositoryProvider).setCompletedToday(
+                          r.id,
+                          checked ?? false,
+                          actingRole: ref.read(activeRoleProvider),
+                          actingMemberId: ref.read(actingMemberIdProvider),
+                        );
+                  },
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
