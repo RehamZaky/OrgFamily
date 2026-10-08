@@ -150,7 +150,6 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _MyResponsibilitiesSection(),
                   SectionHeader(title: l10n.sectionTodaysPriorities, onViewAll: onViewTasks),
                   const SizedBox(height: 10),
                   Card(
@@ -195,6 +194,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                   ),
                   const SizedBox(height: 20),
+                  const _MyResponsibilitiesSection(),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -964,10 +964,10 @@ class _NoteCard extends StatelessWidget {
   }
 }
 
-/// Home's "My responsibilities": the acting member's chores due today,
-/// shown above their tasks but as a separate card — a responsibility is a
-/// recurring expectation ("make your bed"), not a task with a deadline.
-/// Hidden when there's nothing due, so it never adds an empty section.
+/// Home's "My responsibilities": the acting member's chores due today, as
+/// a compact progress card right after Today's tasks — separate from them,
+/// since a responsibility is a recurring expectation ("make your bed"), not
+/// a task with a deadline. Hidden when nothing is due.
 class _MyResponsibilitiesSection extends ConsumerWidget {
   const _MyResponsibilitiesSection();
 
@@ -977,42 +977,154 @@ class _MyResponsibilitiesSection extends ConsumerWidget {
     if (due.isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
     final today = DateTime.now();
+    final doneCount = due.where((r) => isDoneOn(r, today)).length;
+    final allDone = doneCount == due.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.homeMyResponsibilities),
         const SizedBox(height: 10),
         Card(
-          child: Column(
-            children: [
-              for (final r in due)
-                CheckboxListTile(
-                  value: isDoneOn(r, today),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(
-                    r.title,
-                    style: TextStyle(
-                      decoration: isDoneOn(r, today) ? TextDecoration.lineThrough : null,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        allDone
+                            ? l10n.homeResponsibilitiesAllDone
+                            : l10n.homeResponsibilitiesProgress(doneCount, due.length),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: allDone ? context.colors.success : context.colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$doneCount/${due.length}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: allDone ? context.colors.success : context.colors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: doneCount / due.length),
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 6,
+                      backgroundColor: context.colors.track,
+                      valueColor: AlwaysStoppedAnimation(
+                        allDone ? context.colors.success : context.colors.accent,
+                      ),
                     ),
                   ),
-                  onChanged: (checked) {
-                    if (!checkPermission(
-                        context, ref, FamilyAction.completeOwnResponsibility)) {
-                      return;
-                    }
-                    ref.read(responsibilityRepositoryProvider).setCompletedToday(
-                          r.id,
-                          checked ?? false,
-                          actingRole: ref.read(activeRoleProvider),
-                          actingMemberId: ref.read(actingMemberIdProvider),
-                        );
-                  },
                 ),
-            ],
+                const SizedBox(height: 6),
+                for (final r in due)
+                  _ResponsibilityTile(responsibility: r, done: isDoneOn(r, today)),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 20),
       ],
+    );
+  }
+}
+
+/// One chore on Home: a round check that fills green when done, the title
+/// (struck through and faded once done) and its schedule underneath.
+class _ResponsibilityTile extends ConsumerWidget {
+  const _ResponsibilityTile({required this.responsibility, required this.done});
+
+  final Responsibility responsibility;
+  final bool done;
+
+  void _toggle(BuildContext context, WidgetRef ref) {
+    if (!checkPermission(context, ref, FamilyAction.completeOwnResponsibility)) return;
+    ref.read(responsibilityRepositoryProvider).setCompletedToday(
+          responsibility.id,
+          !done,
+          actingRole: ref.read(activeRoleProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final success = context.colors.success;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _toggle(context, ref),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: done ? success : Colors.transparent,
+                border: Border.all(
+                  color: done ? success : context.colors.border,
+                  width: 2,
+                ),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: done
+                    ? const Icon(Icons.check_rounded, key: ValueKey(true), size: 16, color: Colors.white)
+                    : const SizedBox(key: ValueKey(false)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: done ? context.colors.textSecondary : context.colors.textPrimary,
+                      decoration: done ? TextDecoration.lineThrough : null,
+                      decorationColor: context.colors.textSecondary,
+                    ),
+                    child: Text(responsibility.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    responsibilityScheduleLabel(responsibility, l10n, locale),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

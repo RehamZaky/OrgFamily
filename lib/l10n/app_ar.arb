@@ -600,6 +600,8 @@
   "responsibilityDeleteBody": "سيتم حذف \"{title}\" لجميع أفراد العائلة.",
   "responsibilityDelete": "حذف",
   "homeMyResponsibilities": "مسؤولياتي",
+  "homeResponsibilitiesProgress": "تم {done} من {total}",
+  "homeResponsibilitiesAllDone": "أنجزت كل مسؤوليات اليوم 🎉",
   "syncReviewDeleted": "(لم يعد موجودًا على هذا الهاتف)",
   "restoreFamilyChecking": "جارٍ البحث عن عائلتك…",
   "restoreFamilyError": "تعذّر التحقق من وجود عائلة. تحقق من الاتصال وحاول مرة أخرى.",

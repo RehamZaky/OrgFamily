@@ -1705,6 +1705,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMyResponsibilities => 'My responsibilities';
 
   @override
+  String homeResponsibilitiesProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get homeResponsibilitiesAllDone => 'All done for today 🎉';
+
+  @override
   String get syncReviewDeleted => '(no longer on this phone)';
 
   @override

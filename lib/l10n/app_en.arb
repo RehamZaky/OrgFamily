@@ -783,6 +783,14 @@
   },
   "responsibilityDelete": "Delete",
   "homeMyResponsibilities": "My responsibilities",
+  "homeResponsibilitiesProgress": "{done} of {total} done",
+  "@homeResponsibilitiesProgress": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeResponsibilitiesAllDone": "All done for today 🎉",
   "syncReviewDeleted": "(no longer on this phone)",
   "restoreFamilyChecking": "Looking for your family…",
   "restoreFamilyError": "Couldn't check for an existing family. Check your connection and try again.",

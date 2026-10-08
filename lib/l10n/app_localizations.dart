@@ -3091,6 +3091,18 @@ abstract class AppLocalizations {
   /// **'My responsibilities'**
   String get homeMyResponsibilities;
 
+  /// No description provided for @homeResponsibilitiesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String homeResponsibilitiesProgress(int done, int total);
+
+  /// No description provided for @homeResponsibilitiesAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done for today 🎉'**
+  String get homeResponsibilitiesAllDone;
+
   /// No description provided for @syncReviewDeleted.
   ///
   /// In en, this message translates to:

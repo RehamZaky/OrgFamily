@@ -1752,6 +1752,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeMyResponsibilities => 'مسؤولياتي';
 
   @override
+  String homeResponsibilitiesProgress(int done, int total) {
+    return 'تم $done من $total';
+  }
+
+  @override
+  String get homeResponsibilitiesAllDone => 'أنجزت كل مسؤوليات اليوم 🎉';
+
+  @override
   String get syncReviewDeleted => '(لم يعد موجودًا على هذا الهاتف)';
 
   @override
