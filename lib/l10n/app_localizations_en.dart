@@ -1058,8 +1058,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String goalsSavedSummary(Object amount, Object count) {
-    return '$amount saved across $count goals';
+  String goalsSavedSummary(Object amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'goals',
+      one: 'goal',
+    );
+    return '$amount saved across $count $_temp0';
   }
 
   @override
@@ -1572,6 +1578,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncReviewResponsibility => 'Responsibility';
+
+  @override
+  String get roleOwner => 'Owner';
+
+  @override
+  String get roleAdult => 'Adult';
+
+  @override
+  String get roleChild => 'Child';
+
+  @override
+  String ageYearsOld(int years) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: 'years',
+      one: 'year',
+    );
+    return '$years $_temp0 old';
+  }
+
+  @override
+  String get profileEdit => 'Edit';
+
+  @override
+  String get profilePoints => 'Points';
+
+  @override
+  String get profileSchedule => 'Schedule';
+
+  @override
+  String profileAbout(Object name) {
+    return 'About $name';
+  }
+
+  @override
+  String get profileRole => 'Role';
+
+  @override
+  String get profileBirthday => 'Birthday';
+
+  @override
+  String get profileNotSet => 'Not set';
+
+  @override
+  String get profileGrade => 'Grade';
+
+  @override
+  String get profileSchool => 'School';
+
+  @override
+  String get profileFavoriteColor => 'Favorite color';
+
+  @override
+  String get profileNotes => 'Notes';
+
+  @override
+  String get profileThisWeek => 'This week';
+
+  @override
+  String get profileTasksDone => 'Tasks done';
+
+  @override
+  String get profileTasksPending => 'Tasks pending';
+
+  @override
+  String get profileGoalContributed => 'Goal contributed';
+
+  @override
+  String memberScheduleTitle(Object name) {
+    return '$name\'s schedule';
+  }
+
+  @override
+  String get comingSoon => 'Coming soon';
 
   @override
   String get responsibilitiesTitle => 'Responsibilities';

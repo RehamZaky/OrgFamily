@@ -370,7 +370,7 @@ class _MemberCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(member.role.label,
+                    Text(member.role.labelIn(context),
                         style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                     const SizedBox(height: 3),
                     Text(

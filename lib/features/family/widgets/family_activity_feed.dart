@@ -42,7 +42,9 @@ List<ActivityEntry> buildFamilyActivity({
   for (final t in tasks) {
     if (t.isCompleted && t.completedAt != null) {
       entries.add(ActivityEntry(
-        member: membersById[t.assigneeId],
+        // Whoever ticked it, not whoever it was assigned to — falling back to
+        // the assignee only for tasks completed before completers were recorded.
+        member: membersById[t.completedByMemberId] ?? membersById[t.assigneeId],
         text: l10n.activityCompleted(t.title),
         time: t.completedAt!,
         icon: Icons.check_circle,

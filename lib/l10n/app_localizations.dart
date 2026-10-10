@@ -1967,8 +1967,8 @@ abstract class AppLocalizations {
   /// No description provided for @goalsSavedSummary.
   ///
   /// In en, this message translates to:
-  /// **'{amount} saved across {count} goals'**
-  String goalsSavedSummary(Object amount, Object count);
+  /// **'{amount} saved across {count} {count, plural, one{goal} other{goals}}'**
+  String goalsSavedSummary(Object amount, int count);
 
   /// No description provided for @spendingByCategory.
   ///
@@ -2869,6 +2869,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Responsibility'**
   String get syncReviewResponsibility;
+
+  /// No description provided for @roleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get roleOwner;
+
+  /// No description provided for @roleAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'Adult'**
+  String get roleAdult;
+
+  /// No description provided for @roleChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get roleChild;
+
+  /// No description provided for @ageYearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} {years, plural, one{year} other{years}} old'**
+  String ageYearsOld(int years);
+
+  /// No description provided for @profileEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get profileEdit;
+
+  /// No description provided for @profilePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get profilePoints;
+
+  /// No description provided for @profileSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get profileSchedule;
+
+  /// No description provided for @profileAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About {name}'**
+  String profileAbout(Object name);
+
+  /// No description provided for @profileRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get profileRole;
+
+  /// No description provided for @profileBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get profileBirthday;
+
+  /// No description provided for @profileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profileNotSet;
+
+  /// No description provided for @profileGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get profileGrade;
+
+  /// No description provided for @profileSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get profileSchool;
+
+  /// No description provided for @profileFavoriteColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite color'**
+  String get profileFavoriteColor;
+
+  /// No description provided for @profileNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get profileNotes;
+
+  /// No description provided for @profileThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get profileThisWeek;
+
+  /// No description provided for @profileTasksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks done'**
+  String get profileTasksDone;
+
+  /// No description provided for @profileTasksPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks pending'**
+  String get profileTasksPending;
+
+  /// No description provided for @profileGoalContributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal contributed'**
+  String get profileGoalContributed;
+
+  /// No description provided for @memberScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s schedule'**
+  String memberScheduleTitle(Object name);
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
 
   /// No description provided for @responsibilitiesTitle.
   ///

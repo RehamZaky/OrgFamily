@@ -103,7 +103,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
       context: context,
       title: 'Role',
       options: FamilyRole.values,
-      labelBuilder: (r) => r.label,
+      labelBuilder: (r) => r.labelIn(context),
       selected: _role,
     );
     if (role != null) setState(() => _role = role);
@@ -296,7 +296,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                 onTap: _pickRole,
                 child: Row(
                   children: [
-                    Expanded(child: Text(_role.label)),
+                    Expanded(child: Text(_role.labelIn(context))),
                     Icon(Icons.keyboard_arrow_down,
                         color: context.colors.textSecondary),
                   ],

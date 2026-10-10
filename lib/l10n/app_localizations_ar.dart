@@ -1105,8 +1105,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String goalsSavedSummary(Object amount, Object count) {
-    return 'تم ادخار $amount عبر $count أهداف';
+  String goalsSavedSummary(Object amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count هدف',
+      many: '$count هدفًا',
+      few: '$count أهداف',
+      two: 'هدفين',
+      one: 'هدف واحد',
+    );
+    return 'تم ادخار $amount عبر $_temp0';
   }
 
   @override
@@ -1619,6 +1628,84 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get syncReviewResponsibility => 'مسؤولية';
+
+  @override
+  String get roleOwner => 'المالك';
+
+  @override
+  String get roleAdult => 'بالغ';
+
+  @override
+  String get roleChild => 'طفل';
+
+  @override
+  String ageYearsOld(int years) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: 'عمره $years سنة',
+      many: 'عمره $years سنة',
+      few: 'عمره $years سنوات',
+      two: 'عمره سنتان',
+      one: 'عمره سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEdit => 'تعديل';
+
+  @override
+  String get profilePoints => 'النقاط';
+
+  @override
+  String get profileSchedule => 'الجدول';
+
+  @override
+  String profileAbout(Object name) {
+    return 'عن $name';
+  }
+
+  @override
+  String get profileRole => 'الدور';
+
+  @override
+  String get profileBirthday => 'تاريخ الميلاد';
+
+  @override
+  String get profileNotSet => 'غير محدد';
+
+  @override
+  String get profileGrade => 'الصف الدراسي';
+
+  @override
+  String get profileSchool => 'المدرسة';
+
+  @override
+  String get profileFavoriteColor => 'اللون المفضل';
+
+  @override
+  String get profileNotes => 'ملاحظات';
+
+  @override
+  String get profileThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get profileTasksDone => 'مهام منجزة';
+
+  @override
+  String get profileTasksPending => 'مهام متبقية';
+
+  @override
+  String get profileGoalContributed => 'مساهمة في الأهداف';
+
+  @override
+  String memberScheduleTitle(Object name) {
+    return 'جدول $name';
+  }
+
+  @override
+  String get comingSoon => 'قريبًا';
 
   @override
   String get responsibilitiesTitle => 'المسؤوليات';

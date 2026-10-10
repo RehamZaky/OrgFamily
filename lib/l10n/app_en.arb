@@ -473,11 +473,11 @@
       "amount": {}
     }
   },
-  "goalsSavedSummary": "{amount} saved across {count} goals",
+  "goalsSavedSummary": "{amount} saved across {count} {count, plural, one{goal} other{goals}}",
   "@goalsSavedSummary": {
     "placeholders": {
       "amount": {},
-      "count": {}
+      "count": {"type": "int"}
     }
   },
   "spendingByCategory": "Spending by Category",
@@ -713,6 +713,42 @@
   "syncReviewMember": "Family member",
   "syncReviewFamily": "Family settings",
   "syncReviewResponsibility": "Responsibility",
+  "roleOwner": "Owner",
+  "roleAdult": "Adult",
+  "roleChild": "Child",
+  "ageYearsOld": "{years} {years, plural, one{year} other{years}} old",
+  "@ageYearsOld": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "profileEdit": "Edit",
+  "profilePoints": "Points",
+  "profileSchedule": "Schedule",
+  "profileAbout": "About {name}",
+  "@profileAbout": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "profileRole": "Role",
+  "profileBirthday": "Birthday",
+  "profileNotSet": "Not set",
+  "profileGrade": "Grade",
+  "profileSchool": "School",
+  "profileFavoriteColor": "Favorite color",
+  "profileNotes": "Notes",
+  "profileThisWeek": "This week",
+  "profileTasksDone": "Tasks done",
+  "profileTasksPending": "Tasks pending",
+  "profileGoalContributed": "Goal contributed",
+  "memberScheduleTitle": "{name}'s schedule",
+  "@memberScheduleTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "comingSoon": "Coming soon",
   "responsibilitiesTitle": "Responsibilities",
   "moneyBackupTitle": "Money backup",
   "moneyBackupSettingsHint": "Encrypted backup of your family's money records",

@@ -29,7 +29,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _pageCount = _imagePageCount + 1;
 
   final _controller = PageController();
-  int _page = 0;
 
   @override
   void dispose() {
@@ -108,38 +107,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
     final lang =
         Localizations.localeOf(context).languageCode == 'ar' ? 'ar' : 'en';
-    final isLastPage = _page == _pageCount - 1;
 
     return Scaffold(
       body: Stack(
         children: [
           PageView(
             controller: _controller,
-            onPageChanged: (i) => setState(() => _page = i),
             children: [
               for (var i = 1; i <= _imagePageCount; i++)
                 _OnboardingImagePage(
                   assetPath: 'assets/onboarding/$lang/page$i.webp',
                   onTap: _next,
+                  onSkip: _goToLastPage,
                 ),
               _SetupPage(l10n: l10n, onAddYourself: _addYourself, onJoinFamily: _joinFamily),
             ],
           ),
-          if (!isLastPage)
-            PositionedDirectional(
-              top: 0,
-              end: 0,
-              child: SafeArea(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    key: const Key('onboardingSkip'),
-                    onTap: _goToLastPage,
-                    child: const SizedBox(width: 88, height: 64),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -151,25 +134,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 /// "Next"/"Get Started" graphic drawn in, so the whole page acting as that
 /// button means it works regardless of exactly where that graphic sits.
 class _OnboardingImagePage extends StatelessWidget {
-  const _OnboardingImagePage({required this.assetPath, required this.onTap});
+  const _OnboardingImagePage({
+    required this.assetPath,
+    required this.onTap,
+    required this.onSkip,
+  });
 
   final String assetPath;
   final VoidCallback onTap;
+
+  /// The artwork has a "Skip" drawn in its top corner; this invisible tap
+  /// area sits over it. It lives inside the artwork's own frame (not over
+  /// the whole screen) so it moves with the artwork and always lines up.
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
+      child: ColoredBox(
         color: context.colors.background,
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.contain,
-          width: double.infinity,
-          height: double.infinity,
+        // Kept clear of the status bar and given breathing room top and
+        // bottom — edge-to-edge, the drawn "Skip" sat against the status bar.
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 20, 8, 16),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    assetPath,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.topCenter,
+                  ),
+                ),
+                PositionedDirectional(
+                  top: 0,
+                  end: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: const Key('onboardingSkip'),
+                      onTap: onSkip,
+                      child: const SizedBox(width: 120, height: 88),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -170,6 +170,17 @@ extension FamilyRoleX on FamilyRole {
         FamilyRole.adult => 'Adult',
         FamilyRole.child => 'Child',
       };
+
+  /// The role's name in the app's current language — for anything shown to
+  /// the user. ([label] stays English for logs and exception messages.)
+  String labelIn(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (this) {
+      FamilyRole.owner => l10n.roleOwner,
+      FamilyRole.adult => l10n.roleAdult,
+      FamilyRole.child => l10n.roleChild,
+    };
+  }
 }
 
 extension TransactionTypeX on TransactionType {

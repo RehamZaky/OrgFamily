@@ -59,7 +59,7 @@ bool _checkDeletePermission(BuildContext context, WidgetRef ref, Task task) {
   if (canDeleteTask(task, role, memberId)) return true;
   final l10n = AppLocalizations.of(context)!;
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(l10n.permissionDenied(role.label))),
+    SnackBar(content: Text(l10n.permissionDenied(role.labelIn(context)))),
   );
   return false;
 }

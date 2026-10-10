@@ -55,7 +55,7 @@ class AppDrawer extends ConsumerWidget {
             ...members.map((m) => ListTile(
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
-                  subtitle: Text(m.role.label),
+                  subtitle: Text(m.role.labelIn(context)),
                   trailing: m.id == currentId
                       ? Icon(Icons.check, color: context.colors.accent)
                       : null,
@@ -136,7 +136,7 @@ class AppDrawer extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            me.role.label,
+                            me.role.labelIn(context),
                             style: const TextStyle(fontSize: 13, color: Colors.white70),
                           ),
                           const SizedBox(width: 4),

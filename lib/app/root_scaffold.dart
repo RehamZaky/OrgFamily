@@ -82,11 +82,16 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
   /// while syncing as them (see MoneyAutoBackup).
   void _maybeBackUpMoney() {
     final active = ref.read(activeSyncProvider);
-    final ownerUid = ref.read(familyProfileStreamProvider).valueOrNull?.ownerUid;
+    final ownerUid = ref
+        .read(familyProfileStreamProvider)
+        .valueOrNull
+        ?.ownerUid;
     if (active == null || ownerUid != active.uid) return;
-    unawaited(ref
-        .read(moneyAutoBackupProvider)
-        .runIfDue(familyId: active.familyId, uid: active.uid));
+    unawaited(
+      ref
+          .read(moneyAutoBackupProvider)
+          .runIfDue(familyId: active.familyId, uid: active.uid),
+    );
   }
 
   Widget _buildScreen(int index) {
@@ -161,24 +166,35 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
     // instead of pinned here.
     final showBanner = _index == 2 || _index == 4 || _index == 5;
 
-    Widget navItem(int index, IconData icon, String label) => Expanded(
-          child: _NavItem(
-            icon: icon,
-            label: label,
-            selected: _index == index,
-            onTap: () => setState(() => _index = index),
-          ),
-        );
-    final navItems = [
-      navItem(0, Icons.home_rounded, l10n.navHome),
-      navItem(1, Icons.check_circle_outline, l10n.navTasks),
-      navItem(2, Icons.calendar_today_outlined, l10n.navCalendar),
-      navItem(3, Icons.checklist_rounded, l10n.navLists),
-      navItem(4, Icons.people_alt_outlined, l10n.navFamily),
-      if (canViewFinances)
-        navItem(5, Icons.account_balance_wallet_outlined, l10n.navBudget),
+    final navLabels = [
+      l10n.navHome,
+      l10n.navTasks,
+      l10n.navCalendar,
+      l10n.navLists,
+      l10n.navFamily,
+      if (canViewFinances) l10n.navBudget,
     ];
-    final split = navItems.length ~/ 2;
+
+    List<Widget> navItems(double labelSize) {
+      Widget item(int index, IconData icon, String label) => Expanded(
+        child: _NavItem(
+          icon: icon,
+          label: label,
+          selected: _index == index,
+          fontSize: labelSize,
+          onTap: () => setState(() => _index = index),
+        ),
+      );
+      return [
+        item(0, Icons.home_rounded, l10n.navHome),
+        item(1, Icons.check_circle_outline, l10n.navTasks),
+        item(2, Icons.calendar_today_outlined, l10n.navCalendar),
+        item(3, Icons.checklist_rounded, l10n.navLists),
+        item(4, Icons.people_alt_outlined, l10n.navFamily),
+        if (canViewFinances)
+          item(5, Icons.account_balance_wallet_outlined, l10n.navBudget),
+      ];
+    }
 
     return Scaffold(
       body: Column(
@@ -217,12 +233,27 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
           // the docked FAB, so the gap — and the FAB's notch — stays centered
           // whether Money is shown (3 + 3) or not (2 + 3). A single row with
           // a gap after the second tab put the FAB on top of Calendar.
-          child: Row(
-            children: [
-              Expanded(child: Row(children: navItems.sublist(0, split))),
-              const SizedBox(width: _fabGapWidth),
-              Expanded(child: Row(children: navItems.sublist(split))),
-            ],
+          // Measured here, inside the bar: its real width and the text style
+          // it actually applies, so the uniform label size really fits.
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final items = navItems(
+                _NavItem.uniformLabelSize(
+                  context,
+                  navLabels,
+                  itemWidth:
+                      (constraints.maxWidth - _fabGapWidth) / navLabels.length,
+                ),
+              );
+              final split = items.length ~/ 2;
+              return Row(
+                children: [
+                  Expanded(child: Row(children: items.sublist(0, split))),
+                  const SizedBox(width: _fabGapWidth),
+                  Expanded(child: Row(children: items.sublist(split))),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -238,13 +269,54 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.selected,
+    required this.fontSize,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
+  final double fontSize;
   final VoidCallback onTap;
+
+  static const _maxLabelSize = 11.0;
+  static const _minLabelSize = 8.0;
+  static const _horizontalPadding = 4.0;
+
+  /// One label size for every tab: the largest that fits the longest
+  /// label in [itemWidth]. Scaling each label separately (FittedBox) made
+  /// a long one like "Calendar" visibly smaller than its neighbours.
+  static double uniformLabelSize(
+    BuildContext context,
+    List<String> labels, {
+    required double itemWidth,
+  }) {
+    // A little slack for rounding and the selected tab's bolder weight.
+    final available = (itemWidth - _horizontalPadding) * 0.95;
+    // Measure with the style the label actually renders in — the bottom
+    // bar is a Material, which applies the theme's bodyMedium (letter
+    // spacing included). Measuring a bare style here, outside that
+    // Material, came out narrower than the real label, which then clipped.
+    final style = (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
+        .merge(
+          const TextStyle(fontSize: _maxLabelSize, fontWeight: FontWeight.w600),
+        );
+    var widest = 0.0;
+    for (final label in labels) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      if (painter.width > widest) widest = painter.width;
+    }
+    if (widest <= available) return _maxLabelSize;
+    return (_maxLabelSize * available / widest).clamp(
+      _minLabelSize,
+      _maxLabelSize,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -255,24 +327,27 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+          horizontal: _horizontalPadding / 2,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+              style: TextStyle(
+                color: color,
+                fontSize: fontSize,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

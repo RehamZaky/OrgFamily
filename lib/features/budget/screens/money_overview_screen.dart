@@ -541,7 +541,7 @@ class _BudgetMiniCard extends ConsumerWidget {
               Text(
                 '${formatCents(spent, currencyCode: currencyCode)} / '
                 '${formatCents(totalLimit, currencyCode: currencyCode)}',
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
               ),

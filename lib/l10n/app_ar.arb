@@ -355,11 +355,11 @@
       "amount": {}
     }
   },
-  "goalsSavedSummary": "تم ادخار {amount} عبر {count} أهداف",
+  "goalsSavedSummary": "تم ادخار {amount} عبر {count, plural, one{هدف واحد} two{هدفين} few{{count} أهداف} many{{count} هدفًا} other{{count} هدف}}",
   "@goalsSavedSummary": {
     "placeholders": {
       "amount": {},
-      "count": {}
+      "count": {"type": "int"}
     }
   },
   "spendingByCategory": "الإنفاق حسب الفئة",
@@ -564,6 +564,27 @@
   "syncReviewMember": "فرد من العائلة",
   "syncReviewFamily": "إعدادات العائلة",
   "syncReviewResponsibility": "مسؤولية",
+  "roleOwner": "المالك",
+  "roleAdult": "بالغ",
+  "roleChild": "طفل",
+  "ageYearsOld": "{years, plural, one{عمره سنة واحدة} two{عمره سنتان} few{عمره {years} سنوات} many{عمره {years} سنة} other{عمره {years} سنة}}",
+  "profileEdit": "تعديل",
+  "profilePoints": "النقاط",
+  "profileSchedule": "الجدول",
+  "profileAbout": "عن {name}",
+  "profileRole": "الدور",
+  "profileBirthday": "تاريخ الميلاد",
+  "profileNotSet": "غير محدد",
+  "profileGrade": "الصف الدراسي",
+  "profileSchool": "المدرسة",
+  "profileFavoriteColor": "اللون المفضل",
+  "profileNotes": "ملاحظات",
+  "profileThisWeek": "هذا الأسبوع",
+  "profileTasksDone": "مهام منجزة",
+  "profileTasksPending": "مهام متبقية",
+  "profileGoalContributed": "مساهمة في الأهداف",
+  "memberScheduleTitle": "جدول {name}",
+  "comingSoon": "قريبًا",
   "responsibilitiesTitle": "المسؤوليات",
   "moneyBackupTitle": "النسخ الاحتياطي للأموال",
   "moneyBackupSettingsHint": "نسخة احتياطية مشفّرة من سجلات أموال عائلتك",
