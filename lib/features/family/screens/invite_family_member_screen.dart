@@ -169,14 +169,14 @@ class _InviteFamilyMemberScreenState
                     Divider(color: colors.textSecondary.withValues(alpha: 0.2)),
                     ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.group_rounded,
-                        color: AppColors.primary,
+                        color: context.colors.accent,
                       ),
                       title: Text(
                         l10n.manageInvites,
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          color: context.colors.accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -294,7 +294,7 @@ class _InviteCodeCard extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.10),
+              color: context.colors.accent.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(14),
             ),
             child: failed
@@ -335,10 +335,10 @@ class _InviteCodeCard extends StatelessWidget {
                   label: Text(l10n.inviteCopyCode),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
-                    foregroundColor: AppColors.primary,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                    foregroundColor: context.colors.accent,
+                    backgroundColor: context.colors.accent.withValues(alpha: 0.08),
                     side: BorderSide(
-                      color: AppColors.primary.withValues(alpha: 0.35),
+                      color: context.colors.accent.withValues(alpha: 0.35),
                     ),
                     shape: buttonShape,
                     textStyle: const TextStyle(

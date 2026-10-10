@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/permissions/active_profile_provider.dart';
 import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
-import '../core/theme/app_colors.dart';
 import '../core/widgets/banner_ad_widget.dart';
 import '../data/backup/money_backup_providers.dart';
 import '../data/providers.dart';
@@ -30,7 +29,8 @@ class RootScaffold extends ConsumerStatefulWidget {
   ConsumerState<RootScaffold> createState() => _RootScaffoldState();
 }
 
-class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBindingObserver {
+class _RootScaffoldState extends ConsumerState<RootScaffold>
+    with WidgetsBindingObserver {
   int _index = 0;
 
   @override
@@ -82,20 +82,25 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
   /// while syncing as them (see MoneyAutoBackup).
   void _maybeBackUpMoney() {
     final active = ref.read(activeSyncProvider);
-    final ownerUid = ref.read(familyProfileStreamProvider).valueOrNull?.ownerUid;
+    final ownerUid = ref
+        .read(familyProfileStreamProvider)
+        .valueOrNull
+        ?.ownerUid;
     if (active == null || ownerUid != active.uid) return;
-    unawaited(ref
-        .read(moneyAutoBackupProvider)
-        .runIfDue(familyId: active.familyId, uid: active.uid));
+    unawaited(
+      ref
+          .read(moneyAutoBackupProvider)
+          .runIfDue(familyId: active.familyId, uid: active.uid),
+    );
   }
 
   Widget _buildScreen(int index) {
     return switch (index) {
       0 => HomeScreen(
-          onViewTasks: () => setState(() => _index = 1),
-          onViewEvents: () => setState(() => _index = 2),
-          onViewLists: () => setState(() => _index = 3),
-        ),
+        onViewTasks: () => setState(() => _index = 1),
+        onViewEvents: () => setState(() => _index = 2),
+        onViewLists: () => setState(() => _index = 3),
+      ),
       1 => const TasksScreen(),
       2 => const CalendarScreen(),
       3 => const ShoppingScreen(),
@@ -145,8 +150,10 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
     // tab. If the active profile switches to Child while it's open, fall
     // back to Home rather than leaving a Child looking at a screen it can
     // no longer navigate to.
-    final canViewFinances =
-        canPerform(ref.watch(activeRoleProvider), FamilyAction.viewFinances);
+    final canViewFinances = canPerform(
+      ref.watch(activeRoleProvider),
+      FamilyAction.viewFinances,
+    );
     if (_index == 5 && !canViewFinances) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _index = 0);
@@ -155,9 +162,39 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
 
     // Ads sit above the bottom nav on the browsing-heavy tabs — not on
     // Tasks/Lists, which are already dense with actionable content. Home
-    // shows its own banner inline (between Upcoming and Family Activity)
+    // shows its own banner inline (just below Family Activity)
     // instead of pinned here.
     final showBanner = _index == 2 || _index == 4 || _index == 5;
+
+    final navLabels = [
+      l10n.navHome,
+      l10n.navTasks,
+      l10n.navCalendar,
+      l10n.navLists,
+      l10n.navFamily,
+      if (canViewFinances) l10n.navBudget,
+    ];
+
+    List<Widget> navItems(double labelSize) {
+      Widget item(int index, IconData icon, String label) => Expanded(
+        child: _NavItem(
+          icon: icon,
+          label: label,
+          selected: _index == index,
+          fontSize: labelSize,
+          onTap: () => setState(() => _index = index),
+        ),
+      );
+      return [
+        item(0, Icons.home_rounded, l10n.navHome),
+        item(1, Icons.check_circle_outline, l10n.navTasks),
+        item(2, Icons.calendar_today_outlined, l10n.navCalendar),
+        item(3, Icons.checklist_rounded, l10n.navLists),
+        item(4, Icons.people_alt_outlined, l10n.navFamily),
+        if (canViewFinances)
+          item(5, Icons.account_balance_wallet_outlined, l10n.navBudget),
+      ];
+    }
 
     return Scaffold(
       body: Column(
@@ -181,107 +218,136 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBinding
         child: const Icon(Icons.add, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        color: context.colors.surface,
-        child: Row(
-          children: [
-            Expanded(
-              child: _NavItem(
-                icon: Icons.home_rounded,
-                label: l10n.navHome,
-                selected: _index == 0,
-                onTap: () => setState(() => _index = 0),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.check_circle_outline,
-                label: l10n.navTasks,
-                selected: _index == 1,
-                onTap: () => setState(() => _index = 1),
-              ),
-            ),
-            const SizedBox(width: 40),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.calendar_today_outlined,
-                label: l10n.navCalendar,
-                selected: _index == 2,
-                onTap: () => setState(() => _index = 2),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.checklist_rounded,
-                label: l10n.navLists,
-                selected: _index == 3,
-                onTap: () => setState(() => _index = 3),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.people_alt_outlined,
-                label: l10n.navFamily,
-                selected: _index == 4,
-                onTap: () => setState(() => _index = 4),
-              ),
-            ),
-            if (canViewFinances)
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: l10n.navBudget,
-                  selected: _index == 5,
-                  onTap: () => setState(() => _index = 5),
+      bottomNavigationBar: DecoratedBox(
+        // Transparent in light; a hairline in dark, where the bar shares the
+        // page background instead of standing out as its own surface.
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: context.colors.navDivider)),
+        ),
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          color: context.colors.navBackground,
+          surfaceTintColor: Colors.transparent,
+          // Tabs split into two equal-width halves around a gap the size of
+          // the docked FAB, so the gap — and the FAB's notch — stays centered
+          // whether Money is shown (3 + 3) or not (2 + 3). A single row with
+          // a gap after the second tab put the FAB on top of Calendar.
+          // Measured here, inside the bar: its real width and the text style
+          // it actually applies, so the uniform label size really fits.
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final items = navItems(
+                _NavItem.uniformLabelSize(
+                  context,
+                  navLabels,
+                  itemWidth:
+                      (constraints.maxWidth - _fabGapWidth) / navLabels.length,
                 ),
-              ),
-          ],
+              );
+              final split = items.length ~/ 2;
+              return Row(
+                children: [
+                  Expanded(child: Row(children: items.sublist(0, split))),
+                  const SizedBox(width: _fabGapWidth),
+                  Expanded(child: Row(children: items.sublist(split))),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
 }
 
+/// Docked FAB diameter (56) plus `notchMargin` (8) on each side.
+const double _fabGapWidth = 72;
+
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.icon,
     required this.label,
     required this.selected,
+    required this.fontSize,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
+  final double fontSize;
   final VoidCallback onTap;
+
+  static const _maxLabelSize = 11.0;
+  static const _minLabelSize = 8.0;
+  static const _horizontalPadding = 4.0;
+
+  /// One label size for every tab: the largest that fits the longest
+  /// label in [itemWidth]. Scaling each label separately (FittedBox) made
+  /// a long one like "Calendar" visibly smaller than its neighbours.
+  static double uniformLabelSize(
+    BuildContext context,
+    List<String> labels, {
+    required double itemWidth,
+  }) {
+    // A little slack for rounding and the selected tab's bolder weight.
+    final available = (itemWidth - _horizontalPadding) * 0.95;
+    // Measure with the style the label actually renders in — the bottom
+    // bar is a Material, which applies the theme's bodyMedium (letter
+    // spacing included). Measuring a bare style here, outside that
+    // Material, came out narrower than the real label, which then clipped.
+    final style = (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
+        .merge(
+          const TextStyle(fontSize: _maxLabelSize, fontWeight: FontWeight.w600),
+        );
+    var widest = 0.0;
+    for (final label in labels) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      if (painter.width > widest) widest = painter.width;
+    }
+    if (widest <= available) return _maxLabelSize;
+    return (_maxLabelSize * available / widest).clamp(
+      _minLabelSize,
+      _maxLabelSize,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : context.colors.textSecondary;
+    final color = selected
+        ? context.colors.accent
+        : context.colors.textSecondary;
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+          horizontal: _horizontalPadding / 2,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+              style: TextStyle(
+                color: color,
+                fontSize: fontSize,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

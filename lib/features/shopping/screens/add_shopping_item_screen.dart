@@ -4,7 +4,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
 import '../../../data/local/database.dart';
 import '../../../data/providers.dart';
@@ -94,11 +93,11 @@ class _AddShoppingItemScreenState extends ConsumerState<AddShoppingItemScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: context.colors.accent.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_cart_outlined,
-                  size: 18, color: AppColors.primary),
+              child: Icon(Icons.shopping_cart_outlined,
+                  size: 18, color: context.colors.accent),
             ),
             const SizedBox(width: 10),
             Text(l10n.addItemScreenTitle),
@@ -145,7 +144,7 @@ class _AddShoppingItemScreenState extends ConsumerState<AddShoppingItemScreen> {
             ),
             child: PickerRow(
               icon: Icons.list_alt_outlined,
-              iconColor: AppColors.primary,
+              iconColor: context.colors.accent,
               label: l10n.addItemAddToListLabel,
               value: selectedList == null
                   ? l10n.addItemNewListValue

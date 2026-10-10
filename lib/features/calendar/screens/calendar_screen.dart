@@ -83,7 +83,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     leading: const Icon(Icons.apps),
                     title: Text(l10n.allCategories),
                     trailing: _categoryFilter == null
-                        ? const Icon(Icons.check, color: AppColors.primary)
+                        ? Icon(Icons.check, color: context.colors.accent)
                         : null,
                     onTap: () =>
                         Navigator.of(sheetContext).pop(_allCategoriesSentinel),
@@ -92,7 +92,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         leading: Icon(c.icon),
                         title: Text(c.label(l10n)),
                         trailing: c == _categoryFilter
-                            ? const Icon(Icons.check, color: AppColors.primary)
+                            ? Icon(Icons.check, color: context.colors.accent)
                             : null,
                         onTap: () => Navigator.of(sheetContext).pop(c.name),
                       )),
@@ -137,7 +137,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               leading: const Icon(Icons.people_outline),
               title: Text(l10n.everyone),
               trailing: _memberFilter == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
@@ -145,7 +145,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               leading: const MemberAvatar(),
               title: Text(l10n.unassigned),
               trailing: _memberFilter == _unassignedSentinel
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(_unassignedSentinel),
             ),
@@ -153,7 +153,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
                   trailing: m.id == _memberFilter
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -201,7 +201,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
           IconButton(
             icon: Icon(_hasFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
-                color: _hasFilters ? AppColors.primary : null),
+                color: _hasFilters ? context.colors.accent : null),
             tooltip: l10n.filter,
             onPressed: () => showModalBottomSheet(
               context: context,
@@ -323,6 +323,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: TableCalendar<Event>(
+                    // This family's week: Sunday–Thursday school days, so
+                    // the weekend shaded in the grid is Friday–Saturday.
+                    weekendDays: const [DateTime.friday, DateTime.saturday],
                     firstDay: DateTime.now().subtract(const Duration(days: 365)),
                     lastDay: DateTime.now().add(const Duration(days: 365 * 3)),
                     focusedDay: _focusedDay,
@@ -457,7 +460,7 @@ class _MemberAvatarsStack extends StatelessWidget {
               left: overlap * shown,
               child: CircleAvatar(
                 radius: radius,
-                backgroundColor: Colors.grey.shade300,
+                backgroundColor: context.colors.border,
                 child: Text(
                   '+${members.length - shown}',
                   style: TextStyle(fontSize: radius * 0.65, fontWeight: FontWeight.w700),
@@ -503,14 +506,20 @@ class _DayMemberSections extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    Widget emptyState() => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const NoResultsAnimation(),
-              Text(l10n.noEventsThisDay,
-                  style: TextStyle(color: context.colors.textSecondary)),
-            ],
+    // Compact and at the top of the space below the calendar: that space is
+    // short, and a full-size, centered empty state ran into the floating
+    // "Event" button. Scrollable, so a very short screen never overflows.
+    Widget emptyState() => SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const NoResultsAnimation(size: 96),
+                Text(l10n.noEventsThisDay,
+                    style: TextStyle(color: context.colors.textSecondary)),
+              ],
+            ),
           ),
         );
 
@@ -521,7 +530,7 @@ class _DayMemberSections extends StatelessWidget {
         ..sort((a, b) => a.startAt.compareTo(b.startAt));
       if (events.isEmpty) return emptyState();
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
         children: [_MemberSection(member: null, events: events)],
       );
     }
@@ -548,7 +557,7 @@ class _DayMemberSections extends StatelessWidget {
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
       itemCount: sections.length + (sharedEvents.isNotEmpty ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, i) {

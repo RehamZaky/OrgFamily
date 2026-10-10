@@ -7,7 +7,6 @@ import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/permissions/family_permissions.dart';
 import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
 import '../../../core/utils/enum_display.dart';
 import '../../../core/widgets/member_avatar.dart';
@@ -232,7 +231,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
               leading: const MemberAvatar(),
               title: Text(l10n.unassigned),
               trailing: _assigneeId == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(unassignedSentinel),
             ),
@@ -240,7 +239,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
                   trailing: m.id == _assigneeId
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -321,7 +320,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: context.colors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -416,7 +415,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                 const SizedBox(height: 8),
                 Text(
                   _reminderError!,
-                  style: const TextStyle(color: AppColors.priorityUrgent, fontSize: 12),
+                  style: TextStyle(color: context.colors.danger, fontSize: 12),
                 ),
               ],
               const SizedBox(height: 16),
@@ -426,12 +425,12 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                     onPressed: _toggleListening,
                     icon: Icon(
                       _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                      color: _isListening ? AppColors.priorityHigh : Colors.amber.shade800,
+                      color: _isListening ? context.colors.danger : Colors.amber.shade800,
                     ),
                     label: Text(
                       l10n.quickAddTaskVoiceInput,
                       style: TextStyle(
-                        color: _isListening ? AppColors.priorityHigh : Colors.amber.shade800,
+                        color: _isListening ? context.colors.danger : Colors.amber.shade800,
                       ),
                     ),
                   ),
@@ -474,7 +473,7 @@ PopupMenuItem<_MoreAction> _buildMoreMenuItem(
           const SizedBox(width: 8),
           Text(
             valueLabel,
-            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+            style: TextStyle(color: context.colors.accent, fontWeight: FontWeight.w600),
           ),
         ],
       ],
@@ -502,8 +501,8 @@ class _DropdownChip extends StatelessWidget {
     final pill = Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       decoration: BoxDecoration(
-        color: active ? AppColors.primary.withValues(alpha: 0.12) : context.colors.background,
-        border: Border.all(color: active ? AppColors.primary : Colors.grey.shade300),
+        color: active ? context.colors.accent.withValues(alpha: 0.12) : context.colors.background,
+        border: Border.all(color: active ? context.colors.accent : context.colors.border),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -517,7 +516,7 @@ class _DropdownChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: active ? AppColors.primary : context.colors.textPrimary,
+                color: active ? context.colors.accent : context.colors.textPrimary,
               ),
             ),
           ),
@@ -525,7 +524,7 @@ class _DropdownChip extends StatelessWidget {
           Icon(
             Icons.expand_more_rounded,
             size: 16,
-            color: active ? AppColors.primary : context.colors.textSecondary,
+            color: active ? context.colors.accent : context.colors.textSecondary,
           ),
         ],
       ),

@@ -153,8 +153,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         BarChartRodData(
                           toY: values[i].toDouble(),
                           color: i == values.length - 1
-                              ? AppColors.primary
-                              : AppColors.primary.withValues(alpha: 0.25),
+                              ? context.colors.accent
+                              : context.colors.accent.withValues(alpha: 0.25),
                           width: 18,
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -272,7 +272,7 @@ class _TabChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : context.colors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: selected ? null : Border.all(color: Colors.grey.shade300),
+          border: selected ? null : Border.all(color: context.colors.border),
         ),
         child: Text(
           label,

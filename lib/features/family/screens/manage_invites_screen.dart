@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../data/providers.dart';
 import '../../../data/repositories/family_invite_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -55,7 +54,7 @@ class _ManageInvitesScreenState extends ConsumerState<ManageInvitesScreen> {
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.priorityUrgent,
+              foregroundColor: context.colors.danger,
             ),
             child: Text(l10n.inviteRevoke),
           ),
@@ -118,7 +117,7 @@ class _ManageInvitesScreenState extends ConsumerState<ManageInvitesScreen> {
                           ? Icons.mail_outline_rounded
                           : Icons.mark_email_read_outlined,
                       color: invite.isUsable
-                          ? AppColors.primary
+                          ? context.colors.accent
                           : colors.textSecondary,
                     ),
                     title: Text(
@@ -136,7 +135,7 @@ class _ManageInvitesScreenState extends ConsumerState<ManageInvitesScreen> {
                         ? TextButton(
                             onPressed: () => _revoke(invite),
                             style: TextButton.styleFrom(
-                              foregroundColor: AppColors.priorityUrgent,
+                              foregroundColor: context.colors.danger,
                             ),
                             child: Text(l10n.inviteRevoke),
                           )

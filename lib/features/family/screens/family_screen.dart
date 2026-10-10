@@ -76,7 +76,7 @@ class FamilyScreen extends ConsumerWidget {
                     radius: 20,
                     backgroundColor: const Color(0x14000000),
                     child: IconButton(
-                      icon: const Icon(Icons.menu, color: AppColors.primary),
+                      icon: Icon(Icons.menu, color: context.colors.accent),
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
@@ -98,11 +98,11 @@ class FamilyScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 20,
                   backgroundColor: Color(0x14000000),
                   child: Icon(Icons.notifications_none,
-                      color: AppColors.primary),
+                      color: context.colors.accent),
                 ),
               ],
             ),
@@ -130,8 +130,8 @@ class FamilyScreen extends ConsumerWidget {
                     ),
                     child: CircleAvatar(
                       radius: 28,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                      child: const Icon(Icons.add, color: AppColors.primary, size: 26),
+                      backgroundColor: context.colors.accent.withValues(alpha: 0.12),
+                      child: Icon(Icons.add, color: context.colors.accent, size: 26),
                     ),
                   ),
                 ],
@@ -146,13 +146,13 @@ class FamilyScreen extends ConsumerWidget {
                   children: [
                     _SummaryTile(
                       icon: Icons.groups_outlined,
-                      color: AppColors.primary,
+                      color: context.colors.accent,
                       value: '${members.length}',
                       label: l10n.familySummaryMembers,
                     ),
                     _SummaryTile(
                       icon: Icons.check_circle_outline,
-                      color: AppColors.success,
+                      color: context.colors.success,
                       value: '$tasksDoneThisWeek',
                       label: l10n.familySummaryDoneThisWeek,
                     ),
@@ -273,7 +273,7 @@ class _AvatarStripItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isYou ? FontWeight.w700 : FontWeight.w500,
-                color: isYou ? AppColors.primary : context.colors.textSecondary,
+                color: isYou ? context.colors.accent : context.colors.textSecondary,
               ),
             ),
           ],
@@ -370,13 +370,13 @@ class _MemberCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(member.role.label,
+                    Text(member.role.labelIn(context),
                         style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                     const SizedBox(height: 3),
                     Text(
                       points > 0 ? '$taskLine • ${l10n.pointsShort(points)}' : taskLine,
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600, color: context.colors.accent),
                     ),
                   ],
                 ),

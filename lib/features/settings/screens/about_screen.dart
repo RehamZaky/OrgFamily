@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -20,10 +19,10 @@ class AboutScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primaryLight, AppColors.primary],
+                colors: context.colors.heroGradient,
               ),
               borderRadius: BorderRadius.circular(24),
             ),
@@ -84,7 +83,7 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.code_rounded, size: 18, color: AppColors.primary),
+                      Icon(Icons.code_rounded, size: 18, color: context.colors.accent),
                       const SizedBox(width: 8),
                       Text(l10n.aboutBuiltWith,
                           style: const TextStyle(fontWeight: FontWeight.w600)),

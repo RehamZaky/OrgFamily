@@ -104,7 +104,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                       builder: (_) => AddMemberScreen(existing: member),
                     ),
                   ),
-                  child: const Text('Edit'),
+                  child: Text(AppLocalizations.of(context)!.profileEdit),
                 ),
               ],
             ),
@@ -142,7 +142,9 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
             ),
             Center(
               child: Text(
-                birthday != null ? '${birthday.ageInYears} years old' : member.role.label,
+                birthday != null
+                    ? AppLocalizations.of(context)!.ageYearsOld(birthday.ageInYears)
+                    : member.role.labelIn(context),
                 style: TextStyle(color: context.colors.textSecondary),
               ),
             ),
@@ -152,7 +154,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: Icons.star_rounded,
-                    label: 'Points',
+                    label: AppLocalizations.of(context)!.profilePoints,
                     onTap: _scrollToStats,
                   ),
                 ),
@@ -160,7 +162,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: Icons.event_note_outlined,
-                    label: 'Schedule',
+                    label: AppLocalizations.of(context)!.profileSchedule,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => _MemberScheduleScreen(member: member),
@@ -180,7 +182,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('About ${member.name}',
+                        Text(AppLocalizations.of(context)!.profileAbout(member.name),
                             style: const TextStyle(
                                 fontSize: 15, fontWeight: FontWeight.w700)),
                         IconButton(
@@ -193,35 +195,35 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                         ),
                       ],
                     ),
-                    _AboutRow(icon: Icons.badge_outlined, label: 'Role', value: member.role.label),
+                    _AboutRow(icon: Icons.badge_outlined, label: AppLocalizations.of(context)!.profileRole, value: member.role.labelIn(context)),
                     _AboutRow(
                       icon: Icons.cake_outlined,
-                      label: 'Birthday',
+                      label: AppLocalizations.of(context)!.profileBirthday,
                       value: birthday != null
-                          ? DateFormat('MMM d, y').format(birthday)
-                          : 'Not set',
+                          ? DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(birthday)
+                          : AppLocalizations.of(context)!.profileNotSet,
                     ),
                     if ((member.grade ?? '').isNotEmpty)
-                      _AboutRow(icon: Icons.school_outlined, label: 'Grade', value: member.grade!),
+                      _AboutRow(icon: Icons.school_outlined, label: AppLocalizations.of(context)!.profileGrade, value: member.grade!),
                     if ((member.school ?? '').isNotEmpty)
-                      _AboutRow(icon: Icons.apartment_outlined, label: 'School', value: member.school!),
+                      _AboutRow(icon: Icons.apartment_outlined, label: AppLocalizations.of(context)!.profileSchool, value: member.school!),
                     _AboutRow(
                       icon: Icons.palette_outlined,
-                      label: 'Favorite color',
+                      label: AppLocalizations.of(context)!.profileFavoriteColor,
                       value: '',
                       trailing: CircleAvatar(
                           radius: 9, backgroundColor: Color(member.colorValue)),
                     ),
                     if ((member.notes ?? '').isNotEmpty)
-                      _AboutRow(icon: Icons.notes_outlined, label: 'Notes', value: member.notes!),
+                      _AboutRow(icon: Icons.notes_outlined, label: AppLocalizations.of(context)!.profileNotes, value: member.notes!),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
             Container(key: _statsKey),
-            const Text('This Week',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(AppLocalizations.of(context)!.profileThisWeek,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Card(
               child: Padding(
@@ -231,27 +233,27 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                   children: [
                     _StatTile(
                       icon: Icons.check_circle_outline,
-                      color: AppColors.success,
+                      color: context.colors.success,
                       value: '$tasksDone',
-                      label: 'Tasks Done',
+                      label: AppLocalizations.of(context)!.profileTasksDone,
                     ),
                     _StatTile(
                       icon: Icons.pending_actions_outlined,
                       color: AppColors.priorityNormal,
                       value: '$tasksPending',
-                      label: 'Task Pending',
+                      label: AppLocalizations.of(context)!.profileTasksPending,
                     ),
                     _StatTile(
                       icon: Icons.star_rounded,
                       color: AppColors.info,
                       value: '$points',
-                      label: 'Points',
+                      label: AppLocalizations.of(context)!.profilePoints,
                     ),
-                    const _StatTile(
+                    _StatTile(
                       icon: Icons.flag_outlined,
-                      color: AppColors.primary,
+                      color: context.colors.accent,
                       value: '—',
-                      label: 'Goal Contributed',
+                      label: AppLocalizations.of(context)!.profileGoalContributed,
                     ),
                   ],
                 ),
@@ -266,8 +268,8 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                 if (canPerform(ref.watch(activeRoleProvider),
                     FamilyAction.manageResponsibilities))
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline,
-                        color: AppColors.primary),
+                    icon: Icon(Icons.add_circle_outline,
+                        color: context.colors.accent),
                     onPressed: _addResponsibility,
                   ),
               ],
@@ -314,13 +316,13 @@ class _QuickActionButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: context.colors.border),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
+          Icon(icon, size: 20, color: context.colors.accent),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],
@@ -415,7 +417,7 @@ class _ResponsibilityRow extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.priorityUrgent),
+            style: FilledButton.styleFrom(backgroundColor: context.colors.danger),
             child: Text(l10n.responsibilityDelete),
           ),
         ],
@@ -443,16 +445,35 @@ class _ResponsibilityRow extends ConsumerWidget {
     );
     final next = dueToday ? null : nextDueAfter(responsibility, today);
     final schedule = responsibilityScheduleLabel(responsibility, l10n, locale);
+    final success = context.colors.success;
+    final enabled = dueToday && canTick;
     return ListTile(
-      leading: Checkbox(
-        value: doneToday,
-        onChanged: dueToday && canTick
-            ? (checked) => ref.read(responsibilityRepositoryProvider).setCompletedToday(
-                  responsibility.id,
-                  checked ?? false,
-                  actingRole: role,
-                  actingMemberId: ref.read(actingMemberIdProvider),
-                )
+      onTap: enabled
+          ? () => ref.read(responsibilityRepositoryProvider).setCompletedToday(
+                responsibility.id,
+                !doneToday,
+                actingRole: role,
+                actingMemberId: ref.read(actingMemberIdProvider),
+              )
+          : null,
+      leading: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 26,
+        height: 26,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: doneToday ? success : Colors.transparent,
+          border: Border.all(
+            color: doneToday
+                ? success
+                : enabled
+                    ? context.colors.border
+                    : context.colors.border.withValues(alpha: 0.4),
+            width: 2,
+          ),
+        ),
+        child: doneToday
+            ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
             : null,
       ),
       title: Text(
@@ -524,7 +545,7 @@ class _AddResponsibilitySheetState extends State<_AddResponsibilitySheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -622,8 +643,8 @@ class _MemberScheduleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: Text("${member.name}'s Schedule")),
-      body: const Center(child: Text('Coming soon')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.memberScheduleTitle(member.name))),
+      body: Center(child: Text(AppLocalizations.of(context)!.comingSoon)),
     );
   }
 }

@@ -36,7 +36,7 @@ class SpendingDonutChart extends StatelessWidget {
         ? [
             PieChartSectionData(
               value: 1,
-              color: Colors.grey.shade200,
+              color: context.colors.track,
               showTitle: false,
               radius: size * 0.15,
             ),

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/sync_outbox_table.dart';
 import '../../../data/providers.dart';
@@ -178,12 +177,12 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
                   const SizedBox(height: 8),
                   Text(l10n.syncReviewConflicts(conflicts),
                       style: TextStyle(
-                          color: AppColors.priorityNormal, fontWeight: FontWeight.w600)),
+                          color: context.colors.warning, fontWeight: FontWeight.w600)),
                 ],
                 const SizedBox(height: 12),
                 if (failed) ...[
                   Text(l10n.syncReviewCheckFailed,
-                      style: TextStyle(color: AppColors.priorityUrgent)),
+                      style: TextStyle(color: context.colors.danger)),
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
@@ -221,7 +220,7 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
                             subtitle: Text(
                               _stateLabel(l10n, entry.item, locale),
                               style: entry.item.state == ReviewState.cloudNewer
-                                  ? TextStyle(color: AppColors.priorityNormal)
+                                  ? TextStyle(color: context.colors.warning)
                                   : null,
                             ),
                             trailing: DropdownButton<ReviewChoice>(

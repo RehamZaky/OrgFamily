@@ -191,10 +191,66 @@ The point where Firebase actually earns its place.
       permissions, concurrent edits, transfer integrity, audit history.
       Deliberately separate from backup.
 
+## Sequence (agreed 2026-10-04, revised 2026-10-06)
+
+1. **V2 — Family Cloud**: authentication, invitations, core family sync,
+   offline sync, Responsibilities sync, Money backup, then final
+   real-device testing.
+2. **V2.1 — Family Activity**: seven-day timeline, weekly summary,
+   filters (below).
+3. **V2.x / V3 — Family Money Cloud**: live multi-device Money sync,
+   financial permissions, conflict handling, audit trail.
+4. **V3 — Children & rewards**: child devices, chore history, points,
+   approvals, rewards.
+
 ## V2.1 — Family communication
 
 - [ ] Activity feed backed by a real audit log (replacing the derived
-      "recent completions/additions" heuristic in V1)
+      "recent completions/additions" heuristic in V1) — scoped 2026-10-04,
+      deliberately deferred behind hardening. Planned shape:
+  - **Screen**: a dedicated Family Activity screen — a 7-day timeline
+    grouped Today / Yesterday / Earlier this week, a weekly summary (tasks
+    done, events, list updates), filters by member and activity type, and
+    older activity loaded on demand.
+  - **What's recorded** (meaningful actions only, never screen opens or
+    tab changes): tasks created/assigned/completed; events created/
+    changed/cancelled; shopping items added/purchased/removed; a member
+    joined. No financial amounts in the general feed — money activity
+    would get its own permission-gated history.
+  - **Storage**: a Drift table for offline reading plus
+    `families/{familyId}/activities/{activityId}`. Idempotent creation
+    (deterministic activity ids, so an outbox retry can't duplicate an
+    entry) and server timestamps for ordering.
+  - **Requirement: V3's child activities must not need a schema change.**
+    So the V2.1 shape already carries everything V3 adds, as optional
+    data rather than new columns:
+    - `type` is an open string (`task.completed`, later
+      `task.submitted_for_approval`, `device.paired`, `reward.redeemed`
+      …), never an enum index; clients skip types they don't know rather
+      than failing, so older app versions keep working.
+    - Actor: `actorKind` (`adult` | `child` | `system`), `actorUid`,
+      `actorMemberId`, and a nullable `actorDeviceId` — V2.1 only ever
+      writes `adult`/`system` with no device; V3 child devices fill in
+      the rest.
+    - Lifecycle: a nullable `state` (e.g. `pending` → `approved` /
+      `rejected`) and nullable `relatedActivityId`, so an approval links
+      to the action it approves instead of needing its own table.
+    - `entityType`/`entityId` as open strings too (rewards become just
+      another entity type).
+    - Everything type-specific in `metadata` (a map in Firestore, JSON
+      text in Drift), plus a per-document `schemaVersion` for evolving
+      what a given `type`'s metadata contains.
+    - Rules validate the fixed envelope (actor, type, timestamps) and
+      leave `metadata` open within a size bound.
+  - **Identity**: rules can enforce `actorUid == request.auth.uid`, but
+    `actorMemberId` can't be verified while children have no accounts —
+    on a shared parent device it's whichever profile the drawer has
+    selected. Treat it as "on behalf of" until child devices exist; their
+    actions should then be attributed from the child's own credentials,
+    never from a client-supplied member id.
+  - **Depends on features that don't exist yet**: task approval
+    ("awaiting approval" entries) and child-device pairing ("device
+    connected" entries) — add those activity types when those land.
 - [ ] Comments/reactions on tasks and events
 
 ## V3+ — Everything else from the original concept

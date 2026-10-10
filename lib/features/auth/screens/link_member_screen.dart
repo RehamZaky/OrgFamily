@@ -60,7 +60,7 @@ class _LinkMemberScreenState extends ConsumerState<LinkMemberScreen> {
                 child: ListTile(
                   leading: MemberAvatar(member: member),
                   title: Text(member.name),
-                  subtitle: Text(member.role.label),
+                  subtitle: Text(member.role.labelIn(context)),
                   trailing: const Icon(Icons.chevron_right),
                   enabled: !_linking,
                   onTap: () => _link(member),

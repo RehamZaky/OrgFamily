@@ -94,7 +94,7 @@ class _GoalsHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: context.colors.accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -124,7 +124,7 @@ class _GoalsHero extends StatelessWidget {
             errorBuilder: (_, _, _) => Icon(
               Icons.emoji_events_outlined,
               size: 80,
-              color: AppColors.primary.withValues(alpha: 0.4),
+              color: context.colors.accent.withValues(alpha: 0.4),
             ),
           ),
         ],
@@ -293,7 +293,7 @@ class _GoalCard extends ConsumerWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
-                      color: isCompleted ? AppColors.success : context.colors.textSecondary,
+                      color: isCompleted ? context.colors.success : context.colors.textSecondary,
                     ),
                   ),
                 ],
@@ -304,9 +304,9 @@ class _GoalCard extends ConsumerWidget {
                 child: LinearProgressIndicator(
                   value: fraction,
                   minHeight: 8,
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor: context.colors.track,
                   valueColor: AlwaysStoppedAnimation(
-                    isCompleted ? AppColors.success : AppColors.primary,
+                    isCompleted ? context.colors.success : context.colors.accent,
                   ),
                 ),
               ),
@@ -332,20 +332,20 @@ class _GoalCard extends ConsumerWidget {
                     ? Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.15),
+                          color: context.colors.success.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.check_circle, size: 14, color: AppColors.success),
+                            Icon(Icons.check_circle, size: 14, color: context.colors.success),
                             const SizedBox(width: 4),
                             Text(
                               l10n.goalCompleted,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,
-                                color: AppColors.success,
+                                color: context.colors.success,
                               ),
                             ),
                           ],

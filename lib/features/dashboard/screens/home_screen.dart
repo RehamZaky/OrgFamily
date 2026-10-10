@@ -150,7 +150,6 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _MyResponsibilitiesSection(),
                   SectionHeader(title: l10n.sectionTodaysPriorities, onViewAll: onViewTasks),
                   const SizedBox(height: 10),
                   Card(
@@ -195,6 +194,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                   ),
                   const SizedBox(height: 20),
+                  const _MyResponsibilitiesSection(),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -312,7 +312,7 @@ class HomeScreen extends ConsumerWidget {
                                               padding: const EdgeInsets.symmetric(
                                                   vertical: 6, horizontal: 10),
                                               decoration: BoxDecoration(
-                                                color: AppColors.success
+                                                color: context.colors.success
                                                     .withValues(alpha: 0.12),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
@@ -320,16 +320,16 @@ class HomeScreen extends ConsumerWidget {
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  const Icon(Icons.shopping_cart,
+                                                  Icon(Icons.shopping_cart,
                                                       size: 14,
-                                                      color: AppColors.success),
+                                                      color: context.colors.success),
                                                   const SizedBox(width: 6),
                                                   Text(
                                                     l10n.itemsCount(primaryItems.length),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 12,
                                                       fontWeight: FontWeight.w600,
-                                                      color: AppColors.success,
+                                                      color: context.colors.success,
                                                     ),
                                                   ),
                                                 ],
@@ -346,8 +346,6 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const BannerAdWidget(),
-                  const SizedBox(height: 20),
                   SectionHeader(title: l10n.sectionFamilyActivity),
                   const SizedBox(height: 10),
                   Card(
@@ -356,6 +354,8 @@ class HomeScreen extends ConsumerWidget {
                       child: FamilyActivityFeed(tasks: allTasks, lists: lists),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  const BannerAdWidget(),
                   if (notes.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Padding(
@@ -365,10 +365,10 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.sectionNotes.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: context.colors.accent,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -376,7 +376,7 @@ class HomeScreen extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+                                icon: Icon(Icons.add, size: 18, color: context.colors.accent),
                                 visualDensity: VisualDensity.compact,
                                 tooltip: l10n.quickAddNote,
                                 onPressed: () => Navigator.of(context).push(
@@ -385,7 +385,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               PopupMenuButton<NoteSort>(
                                 icon:
-                                    const Icon(Icons.sort, size: 18, color: AppColors.primary),
+                                    Icon(Icons.sort, size: 18, color: context.colors.accent),
                                 initialValue: noteSort,
                                 onSelected: (sort) =>
                                     ref.read(noteSortProvider.notifier).state = sort,
@@ -477,11 +477,11 @@ class _Header extends ConsumerWidget {
           child: Container(
             height: 210,
             width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primaryLight, AppColors.primary],
+                colors: context.colors.heroGradient,
               ),
             ),
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -530,7 +530,7 @@ class _Header extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             DateFormat('EEEE, MMMM d', locale).format(DateTime.now()),
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(color: context.colors.onHeroSecondary),
                           ),
                         ],
                       ),
@@ -593,7 +593,7 @@ class _Header extends ConsumerWidget {
                 children: [
                   _StatChip(
                     icon: Icons.assignment_turned_in_outlined,
-                    color: AppColors.primary,
+                    color: context.colors.accent,
                     value: taskCount,
                     label: l10n.statTasksToday,
                   ),
@@ -607,7 +607,7 @@ class _Header extends ConsumerWidget {
                   const _StatDivider(),
                   _StatChip(
                     icon: Icons.shopping_cart_outlined,
-                    color: AppColors.success,
+                    color: context.colors.success,
                     value: listCount,
                     label: listCount == 1 ? l10n.statList : l10n.statLists,
                   ),
@@ -626,7 +626,7 @@ class _StatDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(height: 32, width: 1, color: Colors.grey.shade200);
+    return Container(height: 32, width: 1, color: context.colors.border);
   }
 }
 
@@ -681,15 +681,15 @@ class _NeedsAttentionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, size: 14, color: AppColors.priorityHigh),
+          Icon(Icons.error_outline, size: 14, color: context.colors.danger),
           const SizedBox(width: 6),
           Text(
             '${l10n.needsAttention.toUpperCase()} ($count)',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: AppColors.priorityHigh,
+              color: context.colors.danger,
             ),
           ),
         ],
@@ -715,9 +715,9 @@ class _PriorityRow extends StatelessWidget {
     final isHighPriority =
         task.priority == TaskPriority.high || task.priority == TaskPriority.urgent;
     final statusColor = task.isCompleted
-        ? AppColors.success
+        ? context.colors.success
         : isHighPriority
-            ? AppColors.priorityUrgent
+            ? context.colors.danger
             : AppColors.priorityNormal;
 
     return InkWell(
@@ -772,7 +772,7 @@ class _PriorityRow extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: overdue ? FontWeight.w700 : null,
                             color: overdue
-                                ? AppColors.priorityHigh
+                                ? context.colors.danger
                                 : context.colors.textSecondary,
                           ),
                         ),
@@ -795,7 +795,7 @@ class _PriorityRow extends StatelessWidget {
                 ),
               )
             else if (overdue)
-              const Icon(Icons.error_outline, size: 18, color: AppColors.priorityHigh)
+              Icon(Icons.error_outline, size: 18, color: context.colors.danger)
             else if (isHighPriority)
               Icon(Icons.flag_rounded, size: 18, color: statusColor)
             else
@@ -925,7 +925,7 @@ class _EmptyCard extends StatelessWidget {
               label: Text(actionLabel!),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                foregroundColor: AppColors.primary,
+                foregroundColor: context.colors.accent,
               ),
             ),
           ],
@@ -964,10 +964,10 @@ class _NoteCard extends StatelessWidget {
   }
 }
 
-/// Home's "My responsibilities": the acting member's chores due today,
-/// shown above their tasks but as a separate card — a responsibility is a
-/// recurring expectation ("make your bed"), not a task with a deadline.
-/// Hidden when there's nothing due, so it never adds an empty section.
+/// Home's "My responsibilities": the acting member's chores due today, as
+/// a compact progress card right after Today's tasks — separate from them,
+/// since a responsibility is a recurring expectation ("make your bed"), not
+/// a task with a deadline. Hidden when nothing is due.
 class _MyResponsibilitiesSection extends ConsumerWidget {
   const _MyResponsibilitiesSection();
 
@@ -977,42 +977,154 @@ class _MyResponsibilitiesSection extends ConsumerWidget {
     if (due.isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
     final today = DateTime.now();
+    final doneCount = due.where((r) => isDoneOn(r, today)).length;
+    final allDone = doneCount == due.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.homeMyResponsibilities),
         const SizedBox(height: 10),
         Card(
-          child: Column(
-            children: [
-              for (final r in due)
-                CheckboxListTile(
-                  value: isDoneOn(r, today),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(
-                    r.title,
-                    style: TextStyle(
-                      decoration: isDoneOn(r, today) ? TextDecoration.lineThrough : null,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        allDone
+                            ? l10n.homeResponsibilitiesAllDone
+                            : l10n.homeResponsibilitiesProgress(doneCount, due.length),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: allDone ? context.colors.success : context.colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$doneCount/${due.length}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: allDone ? context.colors.success : context.colors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: doneCount / due.length),
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 6,
+                      backgroundColor: context.colors.track,
+                      valueColor: AlwaysStoppedAnimation(
+                        allDone ? context.colors.success : context.colors.accent,
+                      ),
                     ),
                   ),
-                  onChanged: (checked) {
-                    if (!checkPermission(
-                        context, ref, FamilyAction.completeOwnResponsibility)) {
-                      return;
-                    }
-                    ref.read(responsibilityRepositoryProvider).setCompletedToday(
-                          r.id,
-                          checked ?? false,
-                          actingRole: ref.read(activeRoleProvider),
-                          actingMemberId: ref.read(actingMemberIdProvider),
-                        );
-                  },
                 ),
-            ],
+                const SizedBox(height: 6),
+                for (final r in due)
+                  _ResponsibilityTile(responsibility: r, done: isDoneOn(r, today)),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 20),
       ],
+    );
+  }
+}
+
+/// One chore on Home: a round check that fills green when done, the title
+/// (struck through and faded once done) and its schedule underneath.
+class _ResponsibilityTile extends ConsumerWidget {
+  const _ResponsibilityTile({required this.responsibility, required this.done});
+
+  final Responsibility responsibility;
+  final bool done;
+
+  void _toggle(BuildContext context, WidgetRef ref) {
+    if (!checkPermission(context, ref, FamilyAction.completeOwnResponsibility)) return;
+    ref.read(responsibilityRepositoryProvider).setCompletedToday(
+          responsibility.id,
+          !done,
+          actingRole: ref.read(activeRoleProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final success = context.colors.success;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _toggle(context, ref),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: done ? success : Colors.transparent,
+                border: Border.all(
+                  color: done ? success : context.colors.border,
+                  width: 2,
+                ),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: done
+                    ? const Icon(Icons.check_rounded, key: ValueKey(true), size: 16, color: Colors.white)
+                    : const SizedBox(key: ValueKey(false)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: done ? context.colors.textSecondary : context.colors.textPrimary,
+                      decoration: done ? TextDecoration.lineThrough : null,
+                      decorationColor: context.colors.textSecondary,
+                    ),
+                    child: Text(responsibility.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    responsibilityScheduleLabel(responsibility, l10n, locale),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

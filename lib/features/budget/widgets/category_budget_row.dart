@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_format_x.dart';
 import '../../../core/utils/enum_display.dart';
 import '../../../data/local/tables/budget_table.dart';
@@ -27,10 +26,10 @@ class CategoryBudgetRow extends StatelessWidget {
   final String currencyCode;
   final VoidCallback? onTap;
 
-  Color _barColor(BudgetWarningLevel level) => switch (level) {
-        BudgetWarningLevel.ok => AppColors.success,
-        BudgetWarningLevel.approaching => AppColors.taskPriorityHigh,
-        BudgetWarningLevel.exceeded => AppColors.priorityUrgent,
+  Color _barColor(BuildContext context, BudgetWarningLevel level) => switch (level) {
+        BudgetWarningLevel.ok => context.colors.success,
+        BudgetWarningLevel.approaching => context.colors.warning,
+        BudgetWarningLevel.exceeded => context.colors.danger,
       };
 
   @override
@@ -81,8 +80,8 @@ class CategoryBudgetRow extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: limit == null ? null : fraction,
                       minHeight: 6,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation(_barColor(level)),
+                      backgroundColor: context.colors.track,
+                      valueColor: AlwaysStoppedAnimation(_barColor(context, level)),
                     ),
                   ),
                   if (limit != null && level != BudgetWarningLevel.ok) ...[
@@ -94,7 +93,7 @@ class CategoryBudgetRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: _barColor(level),
+                        color: _barColor(context, level),
                       ),
                     ),
                   ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_format_x.dart';
 import '../../../data/local/tables/tasks_table.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task_status_calculator.dart';
+import '../../../core/theme/app_color_scheme.dart';
 
 /// What the reminder picker sheet returned — mirrors the three
 /// [Tasks.reminderType]/[Tasks.reminderOffsetMinutes]/[Tasks.reminderAt]
@@ -179,7 +179,7 @@ class _ReminderPickerSheetState extends State<_ReminderPickerSheet> {
     }) {
       return ListTile(
         title: Text(label),
-        trailing: selected ? const Icon(Icons.check, color: AppColors.primary) : null,
+        trailing: selected ? Icon(Icons.check, color: context.colors.accent) : null,
         onTap: onTap,
       );
     }
@@ -195,7 +195,7 @@ class _ReminderPickerSheetState extends State<_ReminderPickerSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -215,7 +215,7 @@ class _ReminderPickerSheetState extends State<_ReminderPickerSheet> {
                     Expanded(
                       child: Text(
                         _error!,
-                        style: const TextStyle(color: AppColors.priorityUrgent, fontSize: 12),
+                        style: TextStyle(color: context.colors.danger, fontSize: 12),
                       ),
                     ),
                     TextButton(

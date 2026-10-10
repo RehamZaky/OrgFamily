@@ -33,6 +33,17 @@ android {
         versionName = flutter.versionName
     }
 
+    // Compress native libraries inside the APK. Android's default stores
+    // them uncompressed (so they can be loaded straight from the APK), which
+    // makes a directly shared APK ~40% bigger; with this they're extracted
+    // at install instead. Irrelevant for Play Store app bundles, which are
+    // split and compressed per device anyway.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

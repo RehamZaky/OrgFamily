@@ -267,18 +267,18 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: context.colors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_fieldRadius),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_fieldRadius),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_fieldRadius),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: BorderSide(color: context.colors.accent, width: 1.5),
       ),
     );
   }
@@ -307,10 +307,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
+                color: context.colors.accent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.event_outlined, color: AppColors.primary),
+              child: Icon(Icons.event_outlined, color: context.colors.accent),
             ),
           ),
         ],
@@ -368,13 +368,13 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: context.colors.border),
                         borderRadius: BorderRadius.circular(_fieldRadius),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today_outlined,
-                              size: 16, color: AppColors.primary),
+                          Icon(Icons.calendar_today_outlined,
+                              size: 16, color: context.colors.accent),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -383,10 +383,10 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                             ),
                           ),
                           Container(
-                              width: 1, height: 20, color: Colors.grey.shade300),
+                              width: 1, height: 20, color: context.colors.border),
                           const SizedBox(width: 12),
-                          const Icon(Icons.access_time_rounded,
-                              size: 16, color: AppColors.primary),
+                          Icon(Icons.access_time_rounded,
+                              size: 16, color: context.colors.accent),
                           const SizedBox(width: 8),
                           Text(TimeOfDay.fromDateTime(_startAt).format(context),
                               style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -407,7 +407,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: context.colors.border),
                         borderRadius: BorderRadius.circular(_fieldRadius),
                       ),
                       child: Row(
@@ -438,7 +438,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: context.colors.border),
                         borderRadius: BorderRadius.circular(_fieldRadius),
                       ),
                       child: Row(
@@ -473,7 +473,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                           icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
                           label: Text(l10n.eventFormAddAttachment),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.grey.shade300),
+                            side: BorderSide(color: context.colors.border),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(_fieldRadius),
                             ),
@@ -536,8 +536,8 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                             child: CircleAvatar(
                               radius: 20,
                               backgroundColor: _memberIds.isEmpty
-                                  ? AppColors.primary.withValues(alpha: 0.15)
-                                  : Colors.grey.shade100,
+                                  ? context.colors.accent.withValues(alpha: 0.15)
+                                  : context.colors.surfaceElevated,
                               child: const Icon(Icons.people_outline, size: 18),
                             ),
                           ),
@@ -555,7 +555,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: selected
-                                      ? Border.all(color: AppColors.primary, width: 2)
+                                      ? Border.all(color: context.colors.accent, width: 2)
                                       : null,
                                 ),
                                 padding: const EdgeInsets.all(2),
@@ -610,10 +610,10 @@ class _FieldRow extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.12),
+            color: context.colors.accent.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 18, color: AppColors.primary),
+          child: Icon(icon, size: 18, color: context.colors.accent),
         ),
         const SizedBox(width: 14),
         Expanded(

@@ -6,7 +6,6 @@ import '../../../core/permissions/active_profile_provider.dart';
 import '../../../core/permissions/family_permissions.dart';
 import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_format_x.dart';
 import '../../../core/utils/enum_display.dart';
 import '../../../core/widgets/option_picker_sheet.dart';
@@ -226,7 +225,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: context.colors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -306,7 +305,7 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
                         fontSize: 12,
                         fontWeight: unallocated < 0 ? FontWeight.w600 : FontWeight.normal,
                         color:
-                            unallocated < 0 ? AppColors.priorityUrgent : context.colors.textSecondary,
+                            unallocated < 0 ? context.colors.danger : context.colors.textSecondary,
                       ),
                     ),
                   ],
@@ -350,10 +349,10 @@ class _SetBudgetSheetState extends ConsumerState<_SetBudgetSheet> {
                     const SizedBox(height: 4),
                     Text(
                       _categoryError!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.priorityUrgent,
+                        color: context.colors.danger,
                       ),
                     ),
                   ],

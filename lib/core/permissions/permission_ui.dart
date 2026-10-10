@@ -16,7 +16,7 @@ bool checkPermission(BuildContext context, WidgetRef ref, FamilyAction action) {
   if (canPerform(role, action)) return true;
   final l10n = AppLocalizations.of(context)!;
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(l10n.permissionDenied(role.label))),
+    SnackBar(content: Text(l10n.permissionDenied(role.labelIn(context)))),
   );
   return false;
 }

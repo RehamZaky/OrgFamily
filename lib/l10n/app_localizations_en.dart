@@ -410,6 +410,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageSystem => 'System';
 
   @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
+  String get accountSectionTitle => 'Account';
+
+  @override
+  String get accountSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get accountSignOutConfirmBody =>
+      'Your family stays on this phone. Changes made while signed out won\'t be shared until a family member signs in and reviews them.';
+
+  @override
+  String get accountSignedOutTitle => 'Back up and share with your family';
+
+  @override
+  String get accountSignedOutBody =>
+      'Your family is saved on this phone. Connect an account to keep it in sync across everyone\'s devices.';
+
+  @override
+  String get accountConnect => 'Connect';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountStatusSynced => 'Synced';
+
+  @override
+  String get accountStatusSyncing => 'Syncing';
+
+  @override
+  String get accountStatusProblem => 'Sync problem';
+
+  @override
+  String get accountStatusNotSyncing => 'Not syncing';
+
+  @override
+  String get accountStatusWaiting => 'Waiting for owner';
+
+  @override
+  String get accountStatusChecking => 'Checking…';
+
+  @override
+  String get accountSyncRow => 'Cloud sync';
+
+  @override
+  String get accountSyncUpToDate => 'Up to date';
+
+  @override
+  String accountSyncPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 syncing';
+  }
+
+  @override
+  String accountSyncFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 couldn\'t sync';
+  }
+
+  @override
+  String get accountSyncWaiting => 'Starts once the family owner connects';
+
+  @override
+  String get accountRetry => 'Retry';
+
+  @override
+  String get accountReviewHint => 'Choose what to share with the family';
+
+  @override
+  String get accountFamilyRow => 'Family on this phone';
+
+  @override
+  String accountFamilyMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'members',
+      one: 'member',
+    );
+    return '$count $_temp0 · works offline';
+  }
+
+  @override
+  String get accountInviteRow => 'Invite a family member';
+
+  @override
+  String get accountInviteHint => 'Share a code so another adult can join';
+
+  @override
+  String get accountJoinRow => 'Join with an invite code';
+
+  @override
+  String get accountJoinHint =>
+      'This account isn\'t part of this family\'s cloud yet';
+
+  @override
   String get settingsMoneyGuide => 'Income & Accounts Guide';
 
   @override
@@ -480,7 +588,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutLocalNote =>
-      'This is a local-only V1 — your family\'s data stays on this device. Cloud sync across devices is planned for a later version.';
+      'Your family\'s data is saved on this phone and works offline. Connect an account to keep it up to date on every family member\'s device.';
 
   @override
   String get taskPriorityLow => 'Low';
@@ -950,8 +1058,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String goalsSavedSummary(Object amount, Object count) {
-    return '$amount saved across $count goals';
+  String goalsSavedSummary(Object amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'goals',
+      one: 'goal',
+    );
+    return '$amount saved across $count $_temp0';
   }
 
   @override
@@ -1466,6 +1580,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncReviewResponsibility => 'Responsibility';
 
   @override
+  String get roleOwner => 'Owner';
+
+  @override
+  String get roleAdult => 'Adult';
+
+  @override
+  String get roleChild => 'Child';
+
+  @override
+  String ageYearsOld(int years) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: 'years',
+      one: 'year',
+    );
+    return '$years $_temp0 old';
+  }
+
+  @override
+  String get profileEdit => 'Edit';
+
+  @override
+  String get profilePoints => 'Points';
+
+  @override
+  String get profileSchedule => 'Schedule';
+
+  @override
+  String profileAbout(Object name) {
+    return 'About $name';
+  }
+
+  @override
+  String get profileRole => 'Role';
+
+  @override
+  String get profileBirthday => 'Birthday';
+
+  @override
+  String get profileNotSet => 'Not set';
+
+  @override
+  String get profileGrade => 'Grade';
+
+  @override
+  String get profileSchool => 'School';
+
+  @override
+  String get profileFavoriteColor => 'Favorite color';
+
+  @override
+  String get profileNotes => 'Notes';
+
+  @override
+  String get profileThisWeek => 'This week';
+
+  @override
+  String get profileTasksDone => 'Tasks done';
+
+  @override
+  String get profileTasksPending => 'Tasks pending';
+
+  @override
+  String get profileGoalContributed => 'Goal contributed';
+
+  @override
+  String memberScheduleTitle(Object name) {
+    return '$name\'s schedule';
+  }
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
   String get responsibilitiesTitle => 'Responsibilities';
 
   @override
@@ -1595,6 +1784,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeMyResponsibilities => 'My responsibilities';
+
+  @override
+  String homeResponsibilitiesProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get homeResponsibilitiesAllDone => 'All done for today 🎉';
 
   @override
   String get syncReviewDeleted => '(no longer on this phone)';

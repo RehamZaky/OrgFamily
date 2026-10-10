@@ -59,7 +59,7 @@ bool _checkDeletePermission(BuildContext context, WidgetRef ref, Task task) {
   if (canDeleteTask(task, role, memberId)) return true;
   final l10n = AppLocalizations.of(context)!;
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(l10n.permissionDenied(role.label))),
+    SnackBar(content: Text(l10n.permissionDenied(role.labelIn(context)))),
   );
   return false;
 }
@@ -118,7 +118,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                     leading: const Icon(Icons.apps),
                     title: Text(l10n.allCategories),
                     trailing: _categoryFilter == null
-                        ? const Icon(Icons.check, color: AppColors.primary)
+                        ? Icon(Icons.check, color: context.colors.accent)
                         : null,
                     onTap: () =>
                         Navigator.of(sheetContext).pop(_allCategoriesSentinel),
@@ -127,7 +127,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                         leading: Icon(c.icon, color: c.color),
                         title: Text(c.label(l10n)),
                         trailing: c == _categoryFilter
-                            ? const Icon(Icons.check, color: AppColors.primary)
+                            ? Icon(Icons.check, color: context.colors.accent)
                             : null,
                         onTap: () => Navigator.of(sheetContext).pop(c.name),
                       )),
@@ -164,7 +164,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -180,7 +180,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               leading: const Icon(Icons.people_outline),
               title: Text(l10n.everyone),
               trailing: _assigneeFilter == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
@@ -188,7 +188,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               leading: const MemberAvatar(),
               title: Text(l10n.unassigned),
               trailing: _assigneeFilter == _unassignedSentinel
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(_unassignedSentinel),
             ),
@@ -196,7 +196,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
                   trailing: m.id == _assigneeFilter
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -262,7 +262,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           ),
           IconButton(
             icon: Icon(_hasFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
-                color: _hasFilters ? AppColors.primary : null),
+                color: _hasFilters ? context.colors.accent : null),
             tooltip: l10n.filter,
             onPressed: () => showModalBottomSheet(
               context: context,
@@ -489,7 +489,7 @@ class _TabChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : context.colors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: selected ? null : Border.all(color: Colors.grey.shade300),
+          border: selected ? null : Border.all(color: context.colors.border),
         ),
         child: Text(
           label,
@@ -519,7 +519,7 @@ class _GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = accent ? AppColors.priorityHigh : context.colors.textSecondary;
+    final color = accent ? context.colors.danger : context.colors.textSecondary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
       child: Row(
@@ -707,7 +707,7 @@ class _TaskCard extends ConsumerWidget {
                                 ? Icons.check_circle
                                 : Icons.radio_button_unchecked,
                             color: task.isCompleted
-                                ? AppColors.success
+                                ? context.colors.success
                                 : context.colors.textSecondary,
                             size: 22,
                           ),
@@ -751,7 +751,7 @@ class _TaskCard extends ConsumerWidget {
                                           fontSize: 11.5,
                                           fontWeight: overdue ? FontWeight.w700 : null,
                                           color: overdue
-                                              ? AppColors.priorityHigh
+                                              ? context.colors.danger
                                               : context.colors.textSecondary),
                                     ),
                                   ),
@@ -775,15 +775,15 @@ class _TaskCard extends ConsumerWidget {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.arrow_forward_rounded,
-                                          size: 12, color: AppColors.primary),
+                                      Icon(Icons.arrow_forward_rounded,
+                                          size: 12, color: context.colors.accent),
                                       const SizedBox(width: 3),
                                       Text(
                                         l10n.actionTomorrow,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.primary,
+                                          color: context.colors.accent,
                                         ),
                                       ),
                                     ],
@@ -805,15 +805,15 @@ class _TaskCard extends ConsumerWidget {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.add,
-                                          size: 12, color: AppColors.primary),
+                                      Icon(Icons.add,
+                                          size: 12, color: context.colors.accent),
                                       const SizedBox(width: 2),
                                       Text(
                                         l10n.quickAddTaskAssignShort,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.primary,
+                                          color: context.colors.accent,
                                         ),
                                       ),
                                     ],

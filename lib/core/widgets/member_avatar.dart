@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../data/local/database.dart';
+import '../../core/theme/app_color_scheme.dart';
 
 /// Illustrated avatar art for the emoji options that have one, so members
 /// get the same colorful 3D-illustration style used in onboarding instead
@@ -29,8 +30,8 @@ class MemberAvatar extends StatelessWidget {
     if (m == null) {
       return CircleAvatar(
         radius: radius,
-        backgroundColor: Colors.grey.shade200,
-        child: Icon(Icons.person_outline, size: radius, color: Colors.grey),
+        backgroundColor: context.colors.track,
+        child: Icon(Icons.person_outline, size: radius, color: context.colors.textSecondary),
       );
     }
     final photoPath = m.photoPath;

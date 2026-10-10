@@ -456,6 +456,113 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguageSystem => 'النظام';
 
   @override
+  String get settingsPreferences => 'التفضيلات';
+
+  @override
+  String get accountSectionTitle => 'الحساب';
+
+  @override
+  String get accountSignOutConfirmTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get accountSignOutConfirmBody =>
+      'ستبقى بيانات عائلتك على هذا الهاتف. لن تتم مشاركة التغييرات التي تتم أثناء تسجيل الخروج حتى يسجّل أحد أفراد العائلة الدخول ويراجعها.';
+
+  @override
+  String get accountSignedOutTitle => 'احفظ بيانات عائلتك وشاركها';
+
+  @override
+  String get accountSignedOutBody =>
+      'بيانات عائلتك محفوظة على هذا الهاتف. اربط حسابًا لمزامنتها على أجهزة الجميع.';
+
+  @override
+  String get accountConnect => 'ربط';
+
+  @override
+  String get accountSignOut => 'تسجيل الخروج';
+
+  @override
+  String get accountStatusSynced => 'متزامن';
+
+  @override
+  String get accountStatusSyncing => 'جارٍ المزامنة';
+
+  @override
+  String get accountStatusProblem => 'مشكلة في المزامنة';
+
+  @override
+  String get accountStatusNotSyncing => 'لا تتم المزامنة';
+
+  @override
+  String get accountStatusWaiting => 'بانتظار المالك';
+
+  @override
+  String get accountStatusChecking => 'جارٍ التحقق…';
+
+  @override
+  String get accountSyncRow => 'ربط وتحديث ملفاتك على كل الأجهزة';
+
+  @override
+  String get accountSyncUpToDate => 'محدّث';
+
+  @override
+  String accountSyncPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return '$count $_temp0 قيد المزامنة';
+  }
+
+  @override
+  String accountSyncFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return 'تعذّرت مزامنة $count $_temp0';
+  }
+
+  @override
+  String get accountSyncWaiting => 'تبدأ عندما يربط مالك العائلة حسابه';
+
+  @override
+  String get accountRetry => 'إعادة المحاولة';
+
+  @override
+  String get accountReviewHint => 'اختر ما تريد مشاركته مع العائلة';
+
+  @override
+  String get accountFamilyRow => 'العائلة على هذا الهاتف';
+
+  @override
+  String accountFamilyMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أفراد',
+      one: 'فرد',
+    );
+    return '$count $_temp0 · تعمل دون اتصال';
+  }
+
+  @override
+  String get accountInviteRow => 'دعوة فرد من العائلة';
+
+  @override
+  String get accountInviteHint => 'شارك رمزًا ليتمكن شخص بالغ آخر من الانضمام';
+
+  @override
+  String get accountJoinRow => 'الانضمام برمز دعوة';
+
+  @override
+  String get accountJoinHint => 'هذا الحساب ليس ضمن سحابة هذه العائلة بعد';
+
+  @override
   String get settingsMoneyGuide => 'دليل الدخل والحسابات';
 
   @override
@@ -525,7 +632,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutLocalNote =>
-      'هذه نسخة أولى تعمل محليًا فقط — تبقى بيانات عائلتك على هذا الجهاز. المزامنة السحابية بين الأجهزة مخطط لها في نسخة لاحقة.';
+      'تُحفظ بيانات عائلتك على هذا الهاتف وتعمل دون اتصال. اربط حسابًا لتبقى محدّثة على أجهزة جميع أفراد العائلة.';
 
   @override
   String get taskPriorityLow => 'منخفضة';
@@ -998,8 +1105,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String goalsSavedSummary(Object amount, Object count) {
-    return 'تم ادخار $amount عبر $count أهداف';
+  String goalsSavedSummary(Object amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count هدف',
+      many: '$count هدفًا',
+      few: '$count أهداف',
+      two: 'هدفين',
+      one: 'هدف واحد',
+    );
+    return 'تم ادخار $amount عبر $_temp0';
   }
 
   @override
@@ -1514,6 +1630,84 @@ class AppLocalizationsAr extends AppLocalizations {
   String get syncReviewResponsibility => 'مسؤولية';
 
   @override
+  String get roleOwner => 'المالك';
+
+  @override
+  String get roleAdult => 'بالغ';
+
+  @override
+  String get roleChild => 'طفل';
+
+  @override
+  String ageYearsOld(int years) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: 'عمره $years سنة',
+      many: 'عمره $years سنة',
+      few: 'عمره $years سنوات',
+      two: 'عمره سنتان',
+      one: 'عمره سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEdit => 'تعديل';
+
+  @override
+  String get profilePoints => 'النقاط';
+
+  @override
+  String get profileSchedule => 'الجدول';
+
+  @override
+  String profileAbout(Object name) {
+    return 'عن $name';
+  }
+
+  @override
+  String get profileRole => 'الدور';
+
+  @override
+  String get profileBirthday => 'تاريخ الميلاد';
+
+  @override
+  String get profileNotSet => 'غير محدد';
+
+  @override
+  String get profileGrade => 'الصف الدراسي';
+
+  @override
+  String get profileSchool => 'المدرسة';
+
+  @override
+  String get profileFavoriteColor => 'اللون المفضل';
+
+  @override
+  String get profileNotes => 'ملاحظات';
+
+  @override
+  String get profileThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get profileTasksDone => 'مهام منجزة';
+
+  @override
+  String get profileTasksPending => 'مهام متبقية';
+
+  @override
+  String get profileGoalContributed => 'مساهمة في الأهداف';
+
+  @override
+  String memberScheduleTitle(Object name) {
+    return 'جدول $name';
+  }
+
+  @override
+  String get comingSoon => 'قريبًا';
+
+  @override
   String get responsibilitiesTitle => 'المسؤوليات';
 
   @override
@@ -1643,6 +1837,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeMyResponsibilities => 'مسؤولياتي';
+
+  @override
+  String homeResponsibilitiesProgress(int done, int total) {
+    return 'تم $done من $total';
+  }
+
+  @override
+  String get homeResponsibilitiesAllDone => 'أنجزت كل مسؤوليات اليوم 🎉';
 
   @override
   String get syncReviewDeleted => '(لم يعد موجودًا على هذا الهاتف)';

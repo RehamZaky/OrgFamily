@@ -178,7 +178,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -195,7 +195,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               leading: const MemberAvatar(),
               title: Text(l10n.unassigned),
               trailing: _assigneeId == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: context.colors.accent)
                   : null,
               onTap: () => Navigator.of(sheetContext).pop(unassignedSentinel),
             ),
@@ -203,7 +203,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                   leading: MemberAvatar(member: m),
                   title: Text(m.name),
                   trailing: m.id == _assigneeId
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.colors.accent)
                       : null,
                   onTap: () => Navigator.of(sheetContext).pop(m.id),
                 )),
@@ -341,7 +341,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             children: [
               DetailRow(
                 icon: Icons.people_alt_outlined,
-                iconColor: AppColors.primary,
+                iconColor: context.colors.accent,
                 label: l10n.taskFormAssignTo,
                 valueText: assignee?.name ?? l10n.unassigned,
                 onTap: _pickAssignee,
@@ -369,7 +369,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             children: [
               DetailRow(
                 icon: Icons.calendar_today_outlined,
-                iconColor: AppColors.success,
+                iconColor: context.colors.success,
                 label: l10n.labelDueDate,
                 onTap: _pickDate,
                 child: Row(
@@ -443,11 +443,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.priorityHigh.withValues(alpha: 0.15),
+                    color: context.colors.danger.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.flag_rounded,
-                      size: 16, color: AppColors.priorityHigh),
+                  child: Icon(Icons.flag_rounded,
+                      size: 16, color: context.colors.danger),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -500,11 +500,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
+                    color: context.colors.accent.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.notes_rounded,
-                      size: 16, color: AppColors.primary),
+                  child: Icon(Icons.notes_rounded,
+                      size: 16, color: context.colors.accent),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -611,13 +611,13 @@ class _QuickActionButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: context.colors.border),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.primary),
+          Icon(icon, size: 18, color: context.colors.accent),
           const SizedBox(height: 4),
           Text(label,
               style: const TextStyle(fontSize: 11),
@@ -652,7 +652,7 @@ class _PriorityChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
-          border: Border.all(color: selected ? color : Colors.grey.shade300),
+          border: Border.all(color: selected ? color : context.colors.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

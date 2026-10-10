@@ -195,6 +195,48 @@
   "settingsLanguageEnglish": "English",
   "settingsLanguageArabic": "العربية",
   "settingsLanguageSystem": "System",
+  "settingsPreferences": "Preferences",
+  "accountSectionTitle": "Account",
+  "accountSignOutConfirmTitle": "Sign out?",
+  "accountSignOutConfirmBody": "Your family stays on this phone. Changes made while signed out won't be shared until a family member signs in and reviews them.",
+  "accountSignedOutTitle": "Back up and share with your family",
+  "accountSignedOutBody": "Your family is saved on this phone. Connect an account to keep it in sync across everyone's devices.",
+  "accountConnect": "Connect",
+  "accountSignOut": "Sign out",
+  "accountStatusSynced": "Synced",
+  "accountStatusSyncing": "Syncing",
+  "accountStatusProblem": "Sync problem",
+  "accountStatusNotSyncing": "Not syncing",
+  "accountStatusWaiting": "Waiting for owner",
+  "accountStatusChecking": "Checking…",
+  "accountSyncRow": "Cloud sync",
+  "accountSyncUpToDate": "Up to date",
+  "accountSyncPending": "{count} {count, plural, one{change} other{changes}} syncing",
+  "@accountSyncPending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountSyncFailed": "{count} {count, plural, one{change} other{changes}} couldn't sync",
+  "@accountSyncFailed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountSyncWaiting": "Starts once the family owner connects",
+  "accountRetry": "Retry",
+  "accountReviewHint": "Choose what to share with the family",
+  "accountFamilyRow": "Family on this phone",
+  "accountFamilyMembers": "{count} {count, plural, one{member} other{members}} · works offline",
+  "@accountFamilyMembers": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "accountInviteRow": "Invite a family member",
+  "accountInviteHint": "Share a code so another adult can join",
+  "accountJoinRow": "Join with an invite code",
+  "accountJoinHint": "This account isn't part of this family's cloud yet",
 
   "settingsMoneyGuide": "Income & Accounts Guide",
   "settingsMoneyGuideHint": "What Income Source, Account, and Transfer mean",
@@ -217,7 +259,7 @@
   "aboutDescription": "A shared family organizer: tasks, calendar, and shopping lists that every family member sees and updates together.",
   "aboutBuiltWith": "Built with",
   "aboutTechStack": "Flutter, Riverpod, and Drift (local SQLite).",
-  "aboutLocalNote": "This is a local-only V1 — your family's data stays on this device. Cloud sync across devices is planned for a later version.",
+  "aboutLocalNote": "Your family's data is saved on this phone and works offline. Connect an account to keep it up to date on every family member's device.",
 
   "taskPriorityLow": "Low",
   "taskPriorityNormal": "Normal",
@@ -431,11 +473,11 @@
       "amount": {}
     }
   },
-  "goalsSavedSummary": "{amount} saved across {count} goals",
+  "goalsSavedSummary": "{amount} saved across {count} {count, plural, one{goal} other{goals}}",
   "@goalsSavedSummary": {
     "placeholders": {
       "amount": {},
-      "count": {}
+      "count": {"type": "int"}
     }
   },
   "spendingByCategory": "Spending by Category",
@@ -671,6 +713,42 @@
   "syncReviewMember": "Family member",
   "syncReviewFamily": "Family settings",
   "syncReviewResponsibility": "Responsibility",
+  "roleOwner": "Owner",
+  "roleAdult": "Adult",
+  "roleChild": "Child",
+  "ageYearsOld": "{years} {years, plural, one{year} other{years}} old",
+  "@ageYearsOld": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "profileEdit": "Edit",
+  "profilePoints": "Points",
+  "profileSchedule": "Schedule",
+  "profileAbout": "About {name}",
+  "@profileAbout": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "profileRole": "Role",
+  "profileBirthday": "Birthday",
+  "profileNotSet": "Not set",
+  "profileGrade": "Grade",
+  "profileSchool": "School",
+  "profileFavoriteColor": "Favorite color",
+  "profileNotes": "Notes",
+  "profileThisWeek": "This week",
+  "profileTasksDone": "Tasks done",
+  "profileTasksPending": "Tasks pending",
+  "profileGoalContributed": "Goal contributed",
+  "memberScheduleTitle": "{name}'s schedule",
+  "@memberScheduleTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "comingSoon": "Coming soon",
   "responsibilitiesTitle": "Responsibilities",
   "moneyBackupTitle": "Money backup",
   "moneyBackupSettingsHint": "Encrypted backup of your family's money records",
@@ -741,6 +819,14 @@
   },
   "responsibilityDelete": "Delete",
   "homeMyResponsibilities": "My responsibilities",
+  "homeResponsibilitiesProgress": "{done} of {total} done",
+  "@homeResponsibilitiesProgress": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeResponsibilitiesAllDone": "All done for today 🎉",
   "syncReviewDeleted": "(no longer on this phone)",
   "restoreFamilyChecking": "Looking for your family…",
   "restoreFamilyError": "Couldn't check for an existing family. Check your connection and try again.",

@@ -800,6 +800,168 @@ abstract class AppLocalizations {
   /// **'System'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @settingsPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferences;
+
+  /// No description provided for @accountSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSectionTitle;
+
+  /// No description provided for @accountSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get accountSignOutConfirmTitle;
+
+  /// No description provided for @accountSignOutConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family stays on this phone. Changes made while signed out won\'t be shared until a family member signs in and reviews them.'**
+  String get accountSignOutConfirmBody;
+
+  /// No description provided for @accountSignedOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and share with your family'**
+  String get accountSignedOutTitle;
+
+  /// No description provided for @accountSignedOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family is saved on this phone. Connect an account to keep it in sync across everyone\'s devices.'**
+  String get accountSignedOutBody;
+
+  /// No description provided for @accountConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get accountConnect;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get accountStatusSynced;
+
+  /// No description provided for @accountStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get accountStatusSyncing;
+
+  /// No description provided for @accountStatusProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync problem'**
+  String get accountStatusProblem;
+
+  /// No description provided for @accountStatusNotSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not syncing'**
+  String get accountStatusNotSyncing;
+
+  /// No description provided for @accountStatusWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for owner'**
+  String get accountStatusWaiting;
+
+  /// No description provided for @accountStatusChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get accountStatusChecking;
+
+  /// No description provided for @accountSyncRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get accountSyncRow;
+
+  /// No description provided for @accountSyncUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get accountSyncUpToDate;
+
+  /// No description provided for @accountSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} syncing'**
+  String accountSyncPending(int count);
+
+  /// No description provided for @accountSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} couldn\'t sync'**
+  String accountSyncFailed(int count);
+
+  /// No description provided for @accountSyncWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts once the family owner connects'**
+  String get accountSyncWaiting;
+
+  /// No description provided for @accountRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get accountRetry;
+
+  /// No description provided for @accountReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to share with the family'**
+  String get accountReviewHint;
+
+  /// No description provided for @accountFamilyRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Family on this phone'**
+  String get accountFamilyRow;
+
+  /// No description provided for @accountFamilyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{member} other{members}} · works offline'**
+  String accountFamilyMembers(int count);
+
+  /// No description provided for @accountInviteRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a family member'**
+  String get accountInviteRow;
+
+  /// No description provided for @accountInviteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a code so another adult can join'**
+  String get accountInviteHint;
+
+  /// No description provided for @accountJoinRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with an invite code'**
+  String get accountJoinRow;
+
+  /// No description provided for @accountJoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This account isn\'t part of this family\'s cloud yet'**
+  String get accountJoinHint;
+
   /// No description provided for @settingsMoneyGuide.
   ///
   /// In en, this message translates to:
@@ -923,7 +1085,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutLocalNote.
   ///
   /// In en, this message translates to:
-  /// **'This is a local-only V1 — your family\'s data stays on this device. Cloud sync across devices is planned for a later version.'**
+  /// **'Your family\'s data is saved on this phone and works offline. Connect an account to keep it up to date on every family member\'s device.'**
   String get aboutLocalNote;
 
   /// No description provided for @taskPriorityLow.
@@ -1805,8 +1967,8 @@ abstract class AppLocalizations {
   /// No description provided for @goalsSavedSummary.
   ///
   /// In en, this message translates to:
-  /// **'{amount} saved across {count} goals'**
-  String goalsSavedSummary(Object amount, Object count);
+  /// **'{amount} saved across {count} {count, plural, one{goal} other{goals}}'**
+  String goalsSavedSummary(Object amount, int count);
 
   /// No description provided for @spendingByCategory.
   ///
@@ -2708,6 +2870,132 @@ abstract class AppLocalizations {
   /// **'Responsibility'**
   String get syncReviewResponsibility;
 
+  /// No description provided for @roleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get roleOwner;
+
+  /// No description provided for @roleAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'Adult'**
+  String get roleAdult;
+
+  /// No description provided for @roleChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get roleChild;
+
+  /// No description provided for @ageYearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} {years, plural, one{year} other{years}} old'**
+  String ageYearsOld(int years);
+
+  /// No description provided for @profileEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get profileEdit;
+
+  /// No description provided for @profilePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get profilePoints;
+
+  /// No description provided for @profileSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get profileSchedule;
+
+  /// No description provided for @profileAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About {name}'**
+  String profileAbout(Object name);
+
+  /// No description provided for @profileRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get profileRole;
+
+  /// No description provided for @profileBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get profileBirthday;
+
+  /// No description provided for @profileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profileNotSet;
+
+  /// No description provided for @profileGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get profileGrade;
+
+  /// No description provided for @profileSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get profileSchool;
+
+  /// No description provided for @profileFavoriteColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite color'**
+  String get profileFavoriteColor;
+
+  /// No description provided for @profileNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get profileNotes;
+
+  /// No description provided for @profileThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get profileThisWeek;
+
+  /// No description provided for @profileTasksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks done'**
+  String get profileTasksDone;
+
+  /// No description provided for @profileTasksPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks pending'**
+  String get profileTasksPending;
+
+  /// No description provided for @profileGoalContributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal contributed'**
+  String get profileGoalContributed;
+
+  /// No description provided for @memberScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s schedule'**
+  String memberScheduleTitle(Object name);
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
   /// No description provided for @responsibilitiesTitle.
   ///
   /// In en, this message translates to:
@@ -2928,6 +3216,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My responsibilities'**
   String get homeMyResponsibilities;
+
+  /// No description provided for @homeResponsibilitiesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String homeResponsibilitiesProgress(int done, int total);
+
+  /// No description provided for @homeResponsibilitiesAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done for today 🎉'**
+  String get homeResponsibilitiesAllDone;
 
   /// No description provided for @syncReviewDeleted.
   ///
