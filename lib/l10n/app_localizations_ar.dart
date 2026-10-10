@@ -852,6 +852,42 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get reminderOptionDueTime => 'عند وقت الاستحقاق';
+
+  @override
+  String get reminderOption15MinBefore => 'قبل 15 دقيقة';
+
+  @override
+  String get reminderOption30MinBefore => 'قبل 30 دقيقة';
+
+  @override
+  String get reminderOption1HourBefore => 'قبل ساعة واحدة';
+
+  @override
+  String get reminderOption1DayBefore => 'قبل يوم واحد';
+
+  @override
+  String get reminderOptionCustom => 'تاريخ ووقت مخصص';
+
+  @override
+  String get reminderOptionNone => 'بدون تذكير';
+
+  @override
+  String get reminderSelectDueDateFirst =>
+      'حدد تاريخ استحقاق أولاً لضبط تذكير.';
+
+  @override
+  String get reminderPastError => 'لقد فات موعد هذا التذكير بالفعل.';
+
+  @override
+  String get reminderRemindNow => 'ذكّرني الآن بدلاً من ذلك';
+
+  @override
+  String reminderSummary(Object value) {
+    return 'تذكير: $value';
+  }
+
+  @override
   String get taskFormCreateButton => 'إنشاء المهمة';
 
   @override
@@ -898,7 +934,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quickAddTaskMoreOptions => 'خيارات إضافية';
 
   @override
+  String get quickAddTaskMoreShort => 'المزيد';
+
+  @override
   String get quickAddTaskAdd => 'إضافة مهمة';
+
+  @override
+  String get quickAddTaskVoiceInput => 'الإدخال الصوتي';
 
   @override
   String get quickAddTaskVoiceUnavailable =>
@@ -1251,4 +1293,390 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insightNoChange => 'تقريبًا نفس الشهر الماضي.';
+
+  @override
+  String get inviteTitle => 'دعوة فرد من العائلة';
+
+  @override
+  String get inviteSubtitle => 'أضف شخصًا إلى مساحة عائلتك';
+
+  @override
+  String get inviteYourCode => 'رمز الدعوة الخاص بك';
+
+  @override
+  String get inviteCopyCode => 'نسخ الرمز';
+
+  @override
+  String get inviteShare => 'مشاركة الدعوة';
+
+  @override
+  String get inviteCodeCopied => 'تم نسخ الرمز';
+
+  @override
+  String inviteExpiresInDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتهي خلال $count يوم',
+      many: 'تنتهي خلال $count يومًا',
+      few: 'تنتهي خلال $count أيام',
+      two: 'تنتهي خلال يومين',
+      one: 'تنتهي خلال يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteShareMessage(Object code) {
+    return 'انضم إلى عائلتنا على OrgFamily! افتح التطبيق، واختر الانضمام إلى عائلة موجودة، ثم أدخل هذا الرمز: $code';
+  }
+
+  @override
+  String get inviteShareSubject => 'رمز دعوة OrgFamily';
+
+  @override
+  String get inviteCreateFailed =>
+      'تعذّر إنشاء الدعوة. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String get retry => 'حاول مرة أخرى';
+
+  @override
+  String get manageInvites => 'إدارة الدعوات';
+
+  @override
+  String get manageInvitesEmpty => 'لم تنشئ أي دعوات بعد.';
+
+  @override
+  String get manageInvitesLoadFailed =>
+      'تعذّر تحميل دعواتك. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String get inviteStatusUsed => 'مستخدمة';
+
+  @override
+  String get inviteStatusExpired => 'منتهية';
+
+  @override
+  String get inviteRevoke => 'إبطال';
+
+  @override
+  String get inviteRevokeTitle => 'إبطال هذه الدعوة؟';
+
+  @override
+  String inviteRevokeBody(Object code) {
+    return 'سيتوقف الرمز $code عن العمل فورًا.';
+  }
+
+  @override
+  String get inviteRevokeFailed =>
+      'تعذّر إبطال الدعوة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get joinFamilyTitle => 'الانضمام إلى عائلة';
+
+  @override
+  String get joinEnterCode => 'أدخل رمز الدعوة';
+
+  @override
+  String get joinCodeHelper => 'اطلب الرمز من أحد أفراد العائلة.';
+
+  @override
+  String get joinContinue => 'متابعة';
+
+  @override
+  String get joinErrorNotFound =>
+      'هذا الرمز لا يطابق أي دعوة. تحقق منه وحاول مرة أخرى.';
+
+  @override
+  String get joinErrorUsed => 'تم استخدام هذه الدعوة بالفعل. اطلب دعوة جديدة.';
+
+  @override
+  String get joinErrorExpired => 'انتهت صلاحية هذه الدعوة. اطلب دعوة جديدة.';
+
+  @override
+  String get joinErrorGeneric =>
+      'حدث خطأ ما. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+
+  @override
+  String get joinErrorOtherFamily =>
+      'هذا الجهاز مرتبط بعائلة أخرى بالفعل، لذا لا يمكن استخدام هذه الدعوة هنا.';
+
+  @override
+  String get cloudNotMemberTitle => 'لا تتم مزامنة هذه العائلة';
+
+  @override
+  String get cloudNotMemberBody =>
+      'هذا الحساب ليس عضوًا في سحابة هذه العائلة بعد. اطلب رمز دعوة من أحد أفراد العائلة.';
+
+  @override
+  String get cloudNotMemberAction => 'إدخال الرمز';
+
+  @override
+  String syncListenerError(Object code) {
+    return 'تعذّر استلام تحديثات السحابة ($code)';
+  }
+
+  @override
+  String syncReviewTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات',
+      one: 'تغيير',
+    );
+    return '$count $_temp0 بحاجة إلى مراجعة';
+  }
+
+  @override
+  String get syncReviewBody =>
+      'تمت أثناء توقف المزامنة أو بواسطة حساب آخر. لن تُرفع حتى تختار.';
+
+  @override
+  String get syncReviewAction => 'مراجعة';
+
+  @override
+  String get syncReviewSheetBody =>
+      'تمت هذه التغييرات على هذا الهاتف عندما لم يكن يزامن باسمك، لذلك لم تتم مشاركتها مع العائلة. تمت مقارنة كل تغيير بنسخة العائلة في السحابة — اختر ما تريد فعله به.';
+
+  @override
+  String get syncReviewChecking => 'جارٍ المقارنة مع السحابة…';
+
+  @override
+  String get syncReviewCheckFailed =>
+      'تعذّر الوصول إلى السحابة لمقارنة النسخ. حاول مرة أخرى عند الاتصال، أو احتفظ بهذه التغييرات على هذا الهاتف.';
+
+  @override
+  String syncReviewConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغييرات لها',
+      one: 'تغيير له',
+    );
+    return '$count $_temp0 نسخة أحدث في السحابة — تم اختيار نسخة السحابة.';
+  }
+
+  @override
+  String get syncReviewStateNew => 'غير موجود في السحابة بعد';
+
+  @override
+  String get syncReviewStatePhoneNewer => 'تم تعديله هنا بعد نسخة السحابة';
+
+  @override
+  String get syncReviewStateCloudNewer => 'السحابة بها نسخة أحدث';
+
+  @override
+  String get syncReviewStateInSync => 'مطابق للسحابة بالفعل';
+
+  @override
+  String get syncReviewChoiceUpload => 'رفع';
+
+  @override
+  String get syncReviewChoiceUseCloud => 'نسخة السحابة';
+
+  @override
+  String get syncReviewChoicePhoneOnly => 'الهاتف فقط';
+
+  @override
+  String get syncReviewApply => 'تطبيق';
+
+  @override
+  String syncReviewApplying(int done, int total) {
+    return 'جارٍ التطبيق $done من $total…';
+  }
+
+  @override
+  String get syncReviewUpload => 'رفع';
+
+  @override
+  String get syncReviewKeepLocal => 'الاحتفاظ على هذا الهاتف';
+
+  @override
+  String get syncReviewTask => 'مهمة';
+
+  @override
+  String get syncReviewEvent => 'حدث';
+
+  @override
+  String get syncReviewShoppingItem => 'عنصر تسوق';
+
+  @override
+  String get syncReviewShoppingList => 'قائمة تسوق';
+
+  @override
+  String get syncReviewMember => 'فرد من العائلة';
+
+  @override
+  String get syncReviewFamily => 'إعدادات العائلة';
+
+  @override
+  String get syncReviewResponsibility => 'مسؤولية';
+
+  @override
+  String get responsibilitiesTitle => 'المسؤوليات';
+
+  @override
+  String get moneyBackupTitle => 'النسخ الاحتياطي للأموال';
+
+  @override
+  String get moneyBackupSettingsHint =>
+      'نسخة احتياطية مشفّرة من سجلات أموال عائلتك';
+
+  @override
+  String moneyBackupLastBackup(Object when) {
+    return 'آخر نسخة: $when';
+  }
+
+  @override
+  String get moneyBackupNever => 'لا توجد نسخة بعد';
+
+  @override
+  String get moneyBackupAutoInfo =>
+      'يتم النسخ تلقائيًا مرة يوميًا عند تغيّر سجلات الأموال. الاستعادة تستبدل سجلات الأموال على هذا الهاتف فقط.';
+
+  @override
+  String get moneyBackupNow => 'نسخ احتياطي الآن';
+
+  @override
+  String get moneyBackupDone => 'تم حفظ النسخة';
+
+  @override
+  String get moneyBackupLimit =>
+      'يمكنك الاحتفاظ بثلاث نسخ يدوية كحد أقصى. احذف واحدة لإضافة أخرى.';
+
+  @override
+  String get moneyBackupFailed =>
+      'تعذّر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get moneyBackupAutomatic => 'تلقائية';
+
+  @override
+  String get moneyBackupManual => 'يدوية';
+
+  @override
+  String get moneyBackupSafety => 'قبل الاستعادة';
+
+  @override
+  String moneyBackupCounts(int transactions, int goals) {
+    return '$transactions معاملة · $goals هدف ادخار';
+  }
+
+  @override
+  String get moneyBackupRestore => 'استعادة';
+
+  @override
+  String get moneyBackupRestoreTitle => 'استعادة هذه النسخة؟';
+
+  @override
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  ) {
+    return 'نسخة بتاريخ $when: $transactions معاملة و$limits ميزانية فئات و$goals هدف ادخار.\n\nستحل محل سجلات الأموال على هذا الهاتف. يتم أولًا حفظ نسخة أمان من سجلاتك الحالية، لتتمكن من التراجع.';
+  }
+
+  @override
+  String get moneyBackupRestored => 'تمت استعادة سجلات الأموال';
+
+  @override
+  String get moneyBackupDeleteTitle => 'حذف هذه النسخة؟';
+
+  @override
+  String get moneyBackupDelete => 'حذف';
+
+  @override
+  String get moneyBackupOwnerOnly =>
+      'يمكن لمالك العائلة فقط النسخ الاحتياطي والاستعادة لسجلات الأموال.';
+
+  @override
+  String get moneyBackupNeedsAccount =>
+      'اربط حساب مالك العائلة لعمل نسخة احتياطية لسجلات الأموال.';
+
+  @override
+  String get responsibilitiesEmpty => 'لا توجد مسؤوليات بعد';
+
+  @override
+  String get responsibilityNew => 'مسؤولية جديدة';
+
+  @override
+  String get responsibilityTitleHint => 'مثال: ترتيب السرير';
+
+  @override
+  String get responsibilityRepeats => 'التكرار';
+
+  @override
+  String get responsibilityDaily => 'يوميًا';
+
+  @override
+  String get responsibilitySchoolDays => 'أيام الدراسة (الأحد–الخميس)';
+
+  @override
+  String get responsibilityCustom => 'مخصص';
+
+  @override
+  String get responsibilityAdd => 'إضافة';
+
+  @override
+  String responsibilityEvery(Object days) {
+    return 'كل $days';
+  }
+
+  @override
+  String responsibilityNext(Object day) {
+    return 'التالي: $day';
+  }
+
+  @override
+  String get responsibilityDeleteTitle => 'حذف المسؤولية؟';
+
+  @override
+  String responsibilityDeleteBody(Object title) {
+    return 'سيتم حذف \"$title\" لجميع أفراد العائلة.';
+  }
+
+  @override
+  String get responsibilityDelete => 'حذف';
+
+  @override
+  String get homeMyResponsibilities => 'مسؤولياتي';
+
+  @override
+  String get syncReviewDeleted => '(لم يعد موجودًا على هذا الهاتف)';
+
+  @override
+  String get restoreFamilyChecking => 'جارٍ البحث عن عائلتك…';
+
+  @override
+  String get restoreFamilyError =>
+      'تعذّر التحقق من وجود عائلة. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get restoreFamilyRetry => 'حاول مرة أخرى';
+
+  @override
+  String joinConfirmTitleNamed(Object name) {
+    return 'الانضمام إلى عائلة $name؟';
+  }
+
+  @override
+  String get joinConfirmTitle => 'الانضمام إلى هذه العائلة؟';
+
+  @override
+  String joinFamilyNamed(Object name) {
+    return 'عائلة $name';
+  }
+
+  @override
+  String get joinFamilyUnnamed => 'عائلتك الجديدة';
+
+  @override
+  String get joinConfirmBody =>
+      'ستتم مشاركة المهام والأحداث وقوائم التسوق معك.';
+
+  @override
+  String get joinFamilyButton => 'انضمام إلى العائلة';
 }

@@ -3,6 +3,7 @@ import 'package:org_family/core/widgets/app_drawer.dart';
 import 'package:org_family/data/local/database.dart';
 import 'package:org_family/data/local/tables/family_members_table.dart';
 import 'package:org_family/data/providers.dart';
+import 'package:org_family/data/sync/sync_engine.dart';
 import 'package:org_family/features/tasks/screens/tasks_screen.dart';
 import 'package:org_family/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ void main() {
 
     final container = ProviderContainer(overrides: [
       databaseProvider.overrideWithValue(db),
+      syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
       notificationServiceProvider.overrideWithValue(FakeNotificationService()),
     ]);
     addTearDown(container.dispose);
@@ -61,6 +63,7 @@ void main() {
 
     final container = ProviderContainer(overrides: [
       databaseProvider.overrideWithValue(db),
+      syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
       notificationServiceProvider.overrideWithValue(FakeNotificationService()),
     ]);
     addTearDown(container.dispose);

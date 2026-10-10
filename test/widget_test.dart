@@ -2,22 +2,29 @@ import 'package:drift/native.dart';
 import 'package:org_family/app/app.dart';
 import 'package:org_family/data/local/database.dart';
 import 'package:org_family/data/providers.dart';
+import 'package:org_family/data/sync/sync_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'fakes/fake_auth_repository.dart';
 import 'fakes/fake_notification_service.dart';
 
 void main() {
   testWidgets('shows the onboarding carousel when no family members exist yet',
       (tester) async {
+    // Saving the first member records them as "me" in shared preferences.
+    SharedPreferences.setMockInitialValues({});
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
 
     final container = ProviderContainer(
       overrides: [
         databaseProvider.overrideWithValue(db),
+        syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
         notificationServiceProvider.overrideWithValue(FakeNotificationService()),
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
       ],
     );
 
@@ -69,5 +76,10 @@ void main() {
     // fails the test's "no pending timers" invariant.
     container.dispose();
     await tester.pump(Duration.zero);
-  });
+  },
+      // flutter_test reports Android by default, where "Add yourself"
+      // routes through SignInScreen first (isFirebaseAuthSupportedPlatform)
+      // — this test covers the no-sign-in desktop path straight into
+      // AddMemberScreen, which needs no real Firebase at all.
+      variant: TargetPlatformVariant.only(TargetPlatform.windows));
 }

@@ -6,6 +6,11 @@ enum TaskPriority { low, normal, high, urgent }
 
 enum TaskRecurrence { none, daily, weekly, monthly }
 
+/// How a task's reminder notification time relates to its due date/time —
+/// see [Tasks.reminderType]/[Tasks.reminderOffsetMinutes]/[Tasks.reminderAt]
+/// and `task_status_calculator.dart`'s `taskReminderNotifyAt`.
+enum TaskReminderType { dueTime, offset, custom, none }
+
 enum TaskCategory {
   home,
   shopping,
@@ -57,8 +62,26 @@ class Tasks extends Table {
       text().nullable().references(FamilyMembers, #id)();
   IntColumn get recurrence =>
       intEnum<TaskRecurrence>().withDefault(const Constant(0))();
+  /// Defaults to [TaskReminderType.dueTime] — an existing task with no
+  /// reminder configured (every row from before this column existed)
+  /// notifies at its due time, exactly as it always did.
+  IntColumn get reminderType =>
+      intEnum<TaskReminderType>().withDefault(const Constant(0))();
+  /// Only meaningful when [reminderType] is [TaskReminderType.offset]:
+  /// minutes before the due moment to notify (15/30/60/1440, ...).
+  IntColumn get reminderOffsetMinutes => integer().nullable()();
+  /// Only meaningful when [reminderType] is [TaskReminderType.custom]: the
+  /// exact moment to notify, independent of the due date entirely.
+  DateTimeColumn get reminderAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  /// Soft-delete tombstone for Firestore sync — see `docs/architecture.md`
+  /// "Firestore sync". Null means active; sync propagates the tombstone
+  /// instead of a hard Firestore delete, since "missing remotely" can't
+  /// otherwise be told apart from "never uploaded" during reconciliation.
+  /// `deleteTask` sets this instead of removing the row; every `watchAll`/
+  /// `getById` filters it out so the UI is unaffected.
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

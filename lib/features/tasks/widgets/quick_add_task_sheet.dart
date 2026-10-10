@@ -17,11 +17,14 @@ import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import '../screens/task_form_screen.dart';
+import 'reminder_picker_sheet.dart';
 
-/// The fast path for adding a task: title (+ voice, once wired up) plus
-/// four one-tap shortcuts, with "More options" as the escape hatch into the
-/// full [TaskFormScreen] when a task actually needs assignment, notes, a
-/// repeat schedule, etc.
+/// The fast path for adding a task: a full-width title field (with voice
+/// input below it) plus the two shortcuts most tasks actually need — date
+/// (defaulted to today) and assignee (defaulted to whoever's adding it).
+/// Reminder and priority live under "More" instead of their own chips, and
+/// that same menu's last item is the escape hatch into the full
+/// [TaskFormScreen] when a task needs notes, a repeat schedule, etc.
 Future<void> showQuickAddTaskSheet(BuildContext context) {
   return showModalBottomSheet(
     context: context,
@@ -44,12 +47,28 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   DateTime? _dueDate;
   TaskPriority? _priority;
   String? _assigneeId;
+  TaskReminderType _reminderType = TaskReminderType.dueTime;
+  int? _reminderOffsetMinutes;
+  DateTime? _reminderAt;
+  String? _reminderError;
   bool _speechEnabled = false;
   bool _isListening = false;
 
   @override
   void initState() {
     super.initState();
+    // Default a new task to the person creating it — otherwise it's
+    // silently unassigned, which reads as "someone" in the family activity
+    // feed and never counts toward that member's stats even after they
+    // complete it themselves. Still overridable via the assignee picker.
+    _assigneeId = ref.read(actingMemberProvider)?.id;
+    // Default to today too — a quick-added task is almost always "do this
+    // today", and defaulting it means the Add button only ever waits on
+    // the title, not a second required decision. Still overridable via
+    // the date picker; there's no "no due date" option from this fast
+    // path anymore (the full editor still allows clearing it).
+    final now = DateTime.now();
+    _dueDate = DateTime(now.year, now.month, now.day);
     _initSpeech();
   }
 
@@ -125,13 +144,6 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
   }
 
-  void _comingSoon(String feature) {
-    final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.taskFormComingSoon(feature))),
-    );
-  }
-
   Future<void> _pickDate() async {
     _unfocus();
     final date = await showDatePicker(
@@ -142,7 +154,10 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
     _unfocus();
     if (date == null) return;
-    setState(() => _dueDate = DateTime(date.year, date.month, date.day));
+    setState(() {
+      _dueDate = DateTime(date.year, date.month, date.day);
+      _reminderError = null;
+    });
   }
 
   Future<void> _pickPriority() async {
@@ -158,6 +173,35 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     );
     _unfocus();
     if (priority != null) setState(() => _priority = priority);
+  }
+
+  Future<void> _pickReminder() async {
+    final dueDate = _dueDate;
+    if (dueDate == null) {
+      // A plain SnackBar would attach to the page's Scaffold underneath
+      // this modal bottom sheet and render behind it, invisible to the
+      // user — shown inline in the sheet itself instead.
+      final l10n = AppLocalizations.of(context)!;
+      setState(() => _reminderError = l10n.reminderSelectDueDateFirst);
+      return;
+    }
+    _unfocus();
+    final result = await showReminderPickerSheet(
+      context: context,
+      dueDate: dueDate,
+      dueTimeMinutes: null,
+      currentType: _reminderType,
+      currentOffsetMinutes: _reminderOffsetMinutes,
+      currentReminderAt: _reminderAt,
+    );
+    _unfocus();
+    if (result == null) return;
+    setState(() {
+      _reminderType = result.type;
+      _reminderOffsetMinutes = result.offsetMinutes;
+      _reminderAt = result.reminderAt;
+      _reminderError = null;
+    });
   }
 
   Future<void> _pickAssignee() async {
@@ -220,8 +264,11 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           dueDate: _dueDate,
           priority: _priority ?? TaskPriority.normal,
           assigneeId: _assigneeId,
+          reminderType: _reminderType,
+          reminderOffsetMinutes: _reminderOffsetMinutes,
+          reminderAt: _reminderAt,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -236,6 +283,9 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           initialDueDate: _dueDate,
           initialPriority: _priority,
           initialAssigneeId: _assigneeId,
+          initialReminderType: _reminderType,
+          initialReminderOffsetMinutes: _reminderOffsetMinutes,
+          initialReminderAt: _reminderAt,
         ),
       ),
     );
@@ -276,93 +326,120 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
                   ),
                 ),
               ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: _toggleListening,
-                    child: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: _isListening
-                          ? AppColors.priorityHigh.withValues(alpha: 0.15)
-                          : Colors.amber.shade100,
-                      child: Icon(
-                        _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                        color: _isListening
-                            ? AppColors.priorityHigh
-                            : Colors.amber.shade800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _titleController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: l10n.taskFormTitleHint,
-                        filled: true,
-                        fillColor: context.colors.background,
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
-                      onChanged: (_) => setState(() {}),
-                      onSubmitted: (_) => _save(),
-                    ),
-                  ),
-                ],
+              // The title is the one thing every quick-added task needs, so
+              // it gets the full width of the sheet and room to wrap — not
+              // squeezed beside the mic button the way it used to be.
+              Text(l10n.taskFormQuestion,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _titleController,
+                autofocus: true,
+                minLines: 1,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: l10n.taskFormTitleHint,
+                  filled: true,
+                  fillColor: context.colors.background,
+                  contentPadding: const EdgeInsets.all(16),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(height: 12),
+              // Only the two decisions most tasks actually need are visible
+              // by default — date (defaulted to today) and assignee
+              // (defaulted to whoever's adding it). Reminder and priority
+              // move under "More" instead of claiming their own chip, since
+              // most quick-added tasks never touch either.
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  _ShortcutChip(
-                    icon: Icons.calendar_today_outlined,
-                    color: AppColors.success,
-                    label: _dueDate == null
-                        ? l10n.quickAddTaskDateShort
-                        : _dueDate!.relativeDay,
-                    active: _dueDate != null,
+                  _DropdownChip(
+                    label: _dueDate!.relativeDay,
+                    active: true,
                     onTap: _pickDate,
                   ),
-                  _ShortcutChip(
-                    icon: Icons.notifications_outlined,
-                    color: AppColors.info,
-                    label: l10n.taskFormReminder,
-                    active: false,
-                    onTap: () => _comingSoon(l10n.taskFormReminder),
-                  ),
-                  _ShortcutChip(
-                    icon: (priority ?? TaskPriority.normal).icon,
-                    color: AppColors.priorityHigh,
-                    label: priority == null
-                        ? l10n.labelPriority
-                        : priority.label(l10n),
-                    active: priority != null,
-                    onTap: _pickPriority,
-                  ),
-                  _ShortcutChip(
-                    icon: Icons.people_alt_outlined,
-                    color: AppColors.primary,
+                  _DropdownChip(
                     label: assignee?.name ?? l10n.quickAddTaskAssignShort,
                     active: assignee != null,
                     onTap: _pickAssignee,
                   ),
+                  PopupMenuButton<_MoreAction>(
+                    tooltip: '',
+                    offset: const Offset(0, 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    onSelected: (action) => switch (action) {
+                      _MoreAction.reminder => _pickReminder(),
+                      _MoreAction.priority => _pickPriority(),
+                      _MoreAction.fullEditor => _openFullEditor(),
+                    },
+                    itemBuilder: (context) => [
+                      _buildMoreMenuItem(
+                        context,
+                        value: _MoreAction.reminder,
+                        icon: Icons.notifications_outlined,
+                        label: l10n.taskFormReminder,
+                        valueLabel: _reminderType == TaskReminderType.dueTime
+                            ? null
+                            : reminderSummaryLabel(
+                                l10n,
+                                type: _reminderType,
+                                offsetMinutes: _reminderOffsetMinutes,
+                                reminderAt: _reminderAt,
+                              ),
+                      ),
+                      _buildMoreMenuItem(
+                        context,
+                        value: _MoreAction.priority,
+                        icon: (priority ?? TaskPriority.normal).icon,
+                        label: l10n.labelPriority,
+                        valueLabel: priority?.label(l10n),
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMoreMenuItem(
+                        context,
+                        value: _MoreAction.fullEditor,
+                        icon: Icons.tune_rounded,
+                        label: l10n.quickAddTaskMoreOptions,
+                      ),
+                    ],
+                    child: _DropdownChip(
+                      label: l10n.quickAddTaskMoreShort,
+                      active: _reminderType != TaskReminderType.dueTime || priority != null,
+                    ),
+                  ),
                 ],
               ),
+              if (_reminderError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _reminderError!,
+                  style: const TextStyle(color: AppColors.priorityUrgent, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 children: [
-                  TextButton(
-                    onPressed: _openFullEditor,
-                    child: Text(l10n.quickAddTaskMoreOptions),
+                  TextButton.icon(
+                    onPressed: _toggleListening,
+                    icon: Icon(
+                      _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                      color: _isListening ? AppColors.priorityHigh : Colors.amber.shade800,
+                    ),
+                    label: Text(
+                      l10n.quickAddTaskVoiceInput,
+                      style: TextStyle(
+                        color: _isListening ? AppColors.priorityHigh : Colors.amber.shade800,
+                      ),
+                    ),
                   ),
                   const Spacer(),
-                  FilledButton.icon(
+                  FilledButton(
                     onPressed:
                         _titleController.text.trim().isEmpty ? null : _save,
-                    icon: const Icon(Icons.check_rounded),
-                    label: Text(l10n.quickAddTaskAdd),
+                    child: Text(l10n.quickAddTaskAdd),
                   ),
                 ],
               ),
@@ -374,54 +451,86 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   }
 }
 
-class _ShortcutChip extends StatelessWidget {
-  const _ShortcutChip({
-    required this.icon,
-    required this.color,
+enum _MoreAction { reminder, priority, fullEditor }
+
+/// One row inside the "More" popup menu — an icon, a label, and (when set)
+/// the current value, so reminder/priority aren't just named but show their
+/// state without needing their own chip in the row above.
+PopupMenuItem<_MoreAction> _buildMoreMenuItem(
+  BuildContext context, {
+  required _MoreAction value,
+  required IconData icon,
+  required String label,
+  String? valueLabel,
+}) {
+  return PopupMenuItem(
+    value: value,
+    child: Row(
+      children: [
+        Icon(icon, size: 20, color: context.colors.textSecondary),
+        const SizedBox(width: 12),
+        Expanded(child: Text(label)),
+        if (valueLabel != null) ...[
+          const SizedBox(width: 8),
+          Text(
+            valueLabel,
+            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
+/// A pill-shaped "value + dropdown caret" button — used for the date and
+/// assignee shortcuts, and reused (with [onTap] omitted) as the visible
+/// face of the "More" [PopupMenuButton], which provides its own tap
+/// handling and shouldn't get a second, competing one from here.
+class _DropdownChip extends StatelessWidget {
+  const _DropdownChip({
     required this.label,
     required this.active,
-    required this.onTap,
+    this.onTap,
   });
 
-  final IconData icon;
-  final Color color;
   final String label;
   final bool active;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        width: 74,
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: active ? color.withValues(alpha: 0.15) : Colors.transparent,
-          border: Border.all(color: active ? color : Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                size: 18, color: active ? color : context.colors.textSecondary),
-            const SizedBox(height: 4),
-            Text(
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+      decoration: BoxDecoration(
+        color: active ? AppColors.primary.withValues(alpha: 0.12) : context.colors.background,
+        border: Border.all(color: active ? AppColors.primary : Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: active ? color : context.colors.textSecondary,
+                color: active ? AppColors.primary : context.colors.textPrimary,
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.expand_more_rounded,
+            size: 16,
+            color: active ? AppColors.primary : context.colors.textSecondary,
+          ),
+        ],
       ),
     );
+    if (onTap == null) return pill;
+    return InkWell(borderRadius: BorderRadius.circular(20), onTap: onTap, child: pill);
   }
 }

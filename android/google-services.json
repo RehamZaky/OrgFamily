@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:482713768862:android:f826b0833a58a21abffc8f",
+        "mobilesdk_app_id": "1:482713768862:android:e8768c208d56baa6bffc8f",
         "android_client_info": {
-          "package_name": "com.example.org_family"
+          "package_name": "com.orgfamily.app"
         }
       },
       "oauth_client": [],

@@ -55,7 +55,7 @@ class FamilyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
-    final me = ref.watch(currentMemberProvider);
+    final me = ref.watch(actingMemberProvider);
     final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
     final lists = ref.watch(shoppingListsProvider).valueOrNull ?? [];
     final pointsByMember = ref.watch(familyPointsThisWeekProvider);

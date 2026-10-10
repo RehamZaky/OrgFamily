@@ -361,6 +361,22 @@
       "feature": {}
     }
   },
+  "reminderOptionDueTime": "At the due time",
+  "reminderOption15MinBefore": "15 minutes before",
+  "reminderOption30MinBefore": "30 minutes before",
+  "reminderOption1HourBefore": "1 hour before",
+  "reminderOption1DayBefore": "1 day before",
+  "reminderOptionCustom": "Custom date and time",
+  "reminderOptionNone": "No reminder",
+  "reminderSelectDueDateFirst": "Select a due date first to set a reminder.",
+  "reminderPastError": "That reminder time has already passed.",
+  "reminderRemindNow": "Remind me now instead",
+  "reminderSummary": "Reminder: {value}",
+  "@reminderSummary": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "taskFormCreateButton": "Create Task",
   "saveChanges": "Save changes",
 
@@ -379,7 +395,9 @@
   "quickAddNote": "Note",
 
   "quickAddTaskMoreOptions": "More options",
-  "quickAddTaskAdd": "Add Task",
+  "quickAddTaskMoreShort": "More",
+  "quickAddTaskAdd": "Add task",
+  "quickAddTaskVoiceInput": "Voice input",
   "quickAddTaskVoiceUnavailable": "Voice input isn't available on this device",
   "quickAddTaskDateShort": "Date",
   "quickAddTaskAssignShort": "Assign",
@@ -562,5 +580,190 @@
       "percent": {}
     }
   },
-  "insightNoChange": "About the same as last month."
+  "insightNoChange": "About the same as last month.",
+
+  "inviteTitle": "Invite family member",
+  "inviteSubtitle": "Bring someone into your family space",
+  "inviteYourCode": "Your invite code",
+  "inviteCopyCode": "Copy code",
+  "inviteShare": "Share invite",
+  "inviteCodeCopied": "Code copied",
+  "inviteExpiresInDays": "Expires in {count} {count, plural, one{day} other{days}}",
+  "@inviteExpiresInDays": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "inviteShareMessage": "Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: {code}",
+  "@inviteShareMessage": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "inviteShareSubject": "OrgFamily invite code",
+  "inviteCreateFailed": "Couldn't create an invite. Please check your connection and try again.",
+  "retry": "Try again",
+  "manageInvites": "Manage invites",
+  "manageInvitesEmpty": "You haven't created any invites yet.",
+  "manageInvitesLoadFailed": "Couldn't load your invites. Please check your connection and try again.",
+  "inviteStatusUsed": "Used",
+  "inviteStatusExpired": "Expired",
+  "inviteRevoke": "Revoke",
+  "inviteRevokeTitle": "Revoke this invite?",
+  "inviteRevokeBody": "The code {code} will stop working right away.",
+  "@inviteRevokeBody": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "inviteRevokeFailed": "Couldn't revoke the invite. Please try again.",
+  "joinFamilyTitle": "Join a family",
+  "joinEnterCode": "Enter invitation code",
+  "joinCodeHelper": "Ask a family member for their code.",
+  "joinContinue": "Continue",
+  "joinErrorNotFound": "That code doesn't match any invite. Double-check it and try again.",
+  "joinErrorUsed": "This invite has already been used. Ask for a new one.",
+  "joinErrorExpired": "This invite has expired. Ask for a new one.",
+  "joinErrorGeneric": "Something went wrong. Please check your connection and try again.",
+  "joinErrorOtherFamily": "This device already belongs to a different family, so this invite can't be used here.",
+  "cloudNotMemberTitle": "Not syncing this family",
+  "cloudNotMemberBody": "This account isn't a member of this family's cloud yet. Ask a family member for an invite code.",
+  "cloudNotMemberAction": "Enter code",
+  "syncListenerError": "Can't receive cloud updates ({code})",
+  "syncReviewTitle": "{count} {count, plural, one{change} other{changes}} to review",
+  "@syncReviewTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "syncReviewBody": "Made while not syncing, or by another account. They won't upload until you choose.",
+  "syncReviewAction": "Review",
+  "syncReviewSheetBody": "These changes were made on this phone while it wasn't syncing as you, so they haven't been shared with the family. Each one has been compared with the family's cloud copy — choose what to do with it.",
+  "syncReviewChecking": "Comparing with the cloud…",
+  "syncReviewCheckFailed": "Couldn't reach the cloud to compare versions. Try again when you're online, or keep these changes on this phone.",
+  "syncReviewConflicts": "{count} {count, plural, one{has} other{have}} a newer version in the cloud — set to use the cloud version.",
+  "@syncReviewConflicts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "syncReviewStateNew": "Not in the cloud yet",
+  "syncReviewStatePhoneNewer": "Changed here after the cloud version",
+  "syncReviewStateCloudNewer": "The cloud has a newer version",
+  "syncReviewStateInSync": "Already matches the cloud",
+  "syncReviewChoiceUpload": "Upload",
+  "syncReviewChoiceUseCloud": "Use cloud",
+  "syncReviewChoicePhoneOnly": "Phone only",
+  "syncReviewApply": "Apply",
+  "syncReviewApplying": "Applying {done} of {total}…",
+  "@syncReviewApplying": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "syncReviewUpload": "Upload",
+  "syncReviewKeepLocal": "Keep on this phone",
+  "syncReviewTask": "Task",
+  "syncReviewEvent": "Event",
+  "syncReviewShoppingItem": "Shopping item",
+  "syncReviewShoppingList": "Shopping list",
+  "syncReviewMember": "Family member",
+  "syncReviewFamily": "Family settings",
+  "syncReviewResponsibility": "Responsibility",
+  "responsibilitiesTitle": "Responsibilities",
+  "moneyBackupTitle": "Money backup",
+  "moneyBackupSettingsHint": "Encrypted backup of your family's money records",
+  "moneyBackupLastBackup": "Last backup: {when}",
+  "@moneyBackupLastBackup": {
+    "placeholders": {
+      "when": {}
+    }
+  },
+  "moneyBackupNever": "No backup yet",
+  "moneyBackupAutoInfo": "Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.",
+  "moneyBackupNow": "Back up now",
+  "moneyBackupDone": "Backup saved",
+  "moneyBackupLimit": "You can keep up to 3 manual backups. Delete one to make room.",
+  "moneyBackupFailed": "Couldn't complete that. Check your connection and try again.",
+  "moneyBackupAutomatic": "Automatic",
+  "moneyBackupManual": "Manual",
+  "moneyBackupSafety": "Before restore",
+  "moneyBackupCounts": "{transactions} transactions · {goals} savings goals",
+  "@moneyBackupCounts": {
+    "placeholders": {
+      "transactions": {"type": "int"},
+      "goals": {"type": "int"}
+    }
+  },
+  "moneyBackupRestore": "Restore",
+  "moneyBackupRestoreTitle": "Restore this backup?",
+  "moneyBackupRestoreBody": "Backup from {when}: {transactions} transactions, {limits} category budgets and {goals} savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.",
+  "@moneyBackupRestoreBody": {
+    "placeholders": {
+      "when": {},
+      "transactions": {"type": "int"},
+      "limits": {"type": "int"},
+      "goals": {"type": "int"}
+    }
+  },
+  "moneyBackupRestored": "Money records restored",
+  "moneyBackupDeleteTitle": "Delete this backup?",
+  "moneyBackupDelete": "Delete",
+  "moneyBackupOwnerOnly": "Only the family Owner can back up and restore money records.",
+  "moneyBackupNeedsAccount": "Connect the family Owner's account to back up money records.",
+  "responsibilitiesEmpty": "No responsibilities yet",
+  "responsibilityNew": "New responsibility",
+  "responsibilityTitleHint": "e.g. Make bed",
+  "responsibilityRepeats": "Repeats",
+  "responsibilityDaily": "Daily",
+  "responsibilitySchoolDays": "School days (Sun–Thu)",
+  "responsibilityCustom": "Custom",
+  "responsibilityAdd": "Add",
+  "responsibilityEvery": "Every {days}",
+  "@responsibilityEvery": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "responsibilityNext": "Next: {day}",
+  "@responsibilityNext": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "responsibilityDeleteTitle": "Delete responsibility?",
+  "responsibilityDeleteBody": "\"{title}\" will be removed for everyone in the family.",
+  "@responsibilityDeleteBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "responsibilityDelete": "Delete",
+  "homeMyResponsibilities": "My responsibilities",
+  "syncReviewDeleted": "(no longer on this phone)",
+  "restoreFamilyChecking": "Looking for your family…",
+  "restoreFamilyError": "Couldn't check for an existing family. Check your connection and try again.",
+  "restoreFamilyRetry": "Try again",
+  "@syncListenerError": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "joinConfirmTitleNamed": "Join {name}'s family?",
+  "@joinConfirmTitleNamed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "joinConfirmTitle": "Join this family?",
+  "joinFamilyNamed": "{name}'s family",
+  "@joinFamilyNamed": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "joinFamilyUnnamed": "Your new family",
+  "joinConfirmBody": "Tasks, events and shopping lists will be shared with you.",
+  "joinFamilyButton": "Join family"
 }

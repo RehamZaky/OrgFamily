@@ -1,0 +1,13 @@
+{
+  "name": "orgfamily-firestore-rules-test",
+  "private": true,
+  "type": "module",
+  "description": "Firestore security-rules tests for OrgFamily, run against the Firebase Local Emulator Suite (never against the real orgfamily-c40ae project) — see README.md.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0"
+  }
+}

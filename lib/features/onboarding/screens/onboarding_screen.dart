@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_config.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/screens/join_family_screen.dart';
+import '../../auth/screens/sign_in_screen.dart';
 import '../../family/screens/add_member_screen.dart';
 
 /// The four marketing screens are supplied as ready-made artwork (English
 /// and Arabic versions, picked by the device's system language) and shown
 /// exactly as designed — full-bleed, no native chrome drawn on top of them.
-/// Only the final "let's set up your family" page, which actually does
-/// something, is built natively.
-class OnboardingScreen extends StatefulWidget {
+/// The final "let's set up your family" page is built natively and, on a
+/// platform that supports it, requires signing in first — see
+/// `_addYourself` — before AddMemberScreen(isFirstMember: true) can create
+/// that first Owner (docs/architecture.md "Family identity and
+/// authentication").
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _imagePageCount = 4;
   static const _pageCount = _imagePageCount + 1;
 
@@ -45,7 +53,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _addYourself() {
+  Future<void> _addYourself() async {
+    // On a platform that supports it, the first Owner has to authenticate
+    // before AddMemberScreen(isFirstMember: true) can link their Firebase
+    // uid to that member — see docs/architecture.md "Family identity and
+    // authentication". Desktop skips straight to setup, same as before V2
+    // Auth existed.
+    if (isFirebaseAuthSupportedPlatform &&
+        ref.read(authRepositoryProvider).currentUser == null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SignInScreen()),
+      );
+      // authStateProvider is a StreamProvider — reading it here instead of
+      // the synchronous `currentUser` getter risks an AsyncLoading value on
+      // its very first watch (nothing else watches it on this fresh-install
+      // path), which would misread a successful sign-in as failed.
+      if (!mounted || ref.read(authRepositoryProvider).currentUser == null) {
+        return;
+      }
+      // Signing in restored an existing cloud family for this account (a
+      // member's new phone) — there's no first member to create, even if
+      // the download hasn't delivered the members yet.
+      final profile = await ref.read(familyProfileRepositoryProvider).watchProfile().first;
+      if (profile?.familyId != null) return;
+    }
     // Must be push, not pushReplacement: OnboardingScreen isn't a separate
     // route (RootScaffold renders it inline as the app's one and only
     // route while there's no family yet), so replacing it here would leave
@@ -53,10 +84,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // to pop back to — a black screen. Pushing keeps that route underneath,
     // and once the first member is saved RootScaffold reactively swaps
     // itself from onboarding to the normal tab shell once popped back to.
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const AddMemberScreen(isFirstMember: true),
       ),
+    );
+  }
+
+  /// The alternative to [_addYourself] for a second real adult whose
+  /// family already exists in the cloud — see docs/architecture.md
+  /// "Family invitations". Not platform-gated the way [_addYourself]'s
+  /// sign-in step is: joining is meaningless without Firebase at all, so
+  /// this button only appears when `isFirebaseAuthSupportedPlatform`
+  /// (see `_SetupPage` below).
+  void _joinFamily() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const JoinFamilyScreen()),
     );
   }
 
@@ -79,7 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   assetPath: 'assets/onboarding/$lang/page$i.png',
                   onTap: _next,
                 ),
-              _SetupPage(l10n: l10n, onAddYourself: _addYourself),
+              _SetupPage(l10n: l10n, onAddYourself: _addYourself, onJoinFamily: _joinFamily),
             ],
           ),
           if (!isLastPage)
@@ -136,10 +180,15 @@ class _OnboardingImagePage extends StatelessWidget {
 /// The one page that isn't supplied artwork — it has to actually add the
 /// first family member, so it's built natively.
 class _SetupPage extends StatelessWidget {
-  const _SetupPage({required this.l10n, required this.onAddYourself});
+  const _SetupPage({
+    required this.l10n,
+    required this.onAddYourself,
+    required this.onJoinFamily,
+  });
 
   final AppLocalizations l10n;
   final VoidCallback onAddYourself;
+  final VoidCallback onJoinFamily;
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +241,23 @@ class _SetupPage extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: FilledButton(
-              onPressed: onAddYourself,
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              child: Text(l10n.onboardingAddYourself),
+            child: Column(
+              children: [
+                FilledButton(
+                  onPressed: onAddYourself,
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  child: Text(l10n.onboardingAddYourself),
+                ),
+                // Only meaningful once there's a cloud family to join at
+                // all — desktop never initializes Firebase, so there's
+                // nothing for this to join. See docs/architecture.md
+                // "Family invitations".
+                if (isFirebaseAuthSupportedPlatform)
+                  TextButton(
+                    onPressed: onJoinFamily,
+                    child: const Text('Join an existing family instead'),
+                  ),
+              ],
             ),
           ),
         ],

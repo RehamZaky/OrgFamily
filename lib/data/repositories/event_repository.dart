@@ -5,15 +5,19 @@ import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/events_table.dart';
 import '../local/tables/family_members_table.dart';
+import '../local/tables/sync_outbox_table.dart';
+import '../sync/sync_engine.dart';
 
 class EventRepository {
-  EventRepository(this._db, this._notifications);
+  EventRepository(this._db, this._notifications, this._sync);
 
   final AppDatabase _db;
   final NotificationService _notifications;
+  final SyncEngine _sync;
 
   Future<Event?> getById(String id) {
-    return (_db.select(_db.events)..where((e) => e.id.equals(id))).getSingleOrNull();
+    return (_db.select(_db.events)..where((e) => e.id.equals(id) & e.deletedAt.isNull()))
+        .getSingleOrNull();
   }
 
   /// Re-schedules every event's reminder from current DB state. Called
@@ -21,7 +25,7 @@ class EventRepository {
   /// boot_detector.dart) as a correctness backstop on top of the native
   /// BOOT_COMPLETED replay, which replays a snapshot rather than live data.
   Future<void> resyncReminders() async {
-    final events = await _db.select(_db.events).get();
+    final events = await (_db.select(_db.events)..where((e) => e.deletedAt.isNull())).get();
     for (final e in events) {
       await _notifications.scheduleEventReminder(
         eventId: e.id,
@@ -33,6 +37,7 @@ class EventRepository {
 
   Stream<List<Event>> watchAll() {
     return (_db.select(_db.events)
+          ..where((e) => e.deletedAt.isNull())
           ..orderBy([(e) => OrderingTerm.asc(e.startAt)]))
         .watch();
   }
@@ -43,6 +48,7 @@ class EventRepository {
     final until = startOfDay.add(Duration(days: days));
     return (_db.select(_db.events)
           ..where((e) =>
+              e.deletedAt.isNull() &
               e.startAt.isBiggerOrEqualValue(startOfDay) &
               e.startAt.isSmallerThanValue(until))
           ..orderBy([(e) => OrderingTerm.asc(e.startAt)]))
@@ -97,20 +103,24 @@ class EventRepository {
     if (!canPerform(actingRole, FamilyAction.manageCalendar)) {
       throw FamilyPermissionException(FamilyAction.manageCalendar, actingRole);
     }
-    await _db.into(_db.events).insert(
-          EventsCompanion.insert(
-            id: id,
-            title: title,
-            description: Value(description),
-            startAt: startAt,
-            endAt: Value(endAt),
-            location: Value(location),
-            category: Value(category),
-            colorValue: Value(colorValue),
-            attachmentPath: Value(attachmentPath),
-          ),
-        );
-    await _setMembers(id, memberIds);
+    await _db.transaction(() async {
+      await _db.into(_db.events).insert(
+            EventsCompanion.insert(
+              id: id,
+              title: title,
+              description: Value(description),
+              startAt: startAt,
+              endAt: Value(endAt),
+              location: Value(location),
+              category: Value(category),
+              colorValue: Value(colorValue),
+              attachmentPath: Value(attachmentPath),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+      await _setMembers(id, memberIds);
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: id);
+    });
     await _notifications.scheduleEventReminder(
       eventId: id,
       title: title,
@@ -126,8 +136,11 @@ class EventRepository {
     if (!canPerform(actingRole, FamilyAction.manageCalendar)) {
       throw FamilyPermissionException(FamilyAction.manageCalendar, actingRole);
     }
-    await _db.update(_db.events).replace(event);
-    await _setMembers(event.id, memberIds);
+    await _db.transaction(() async {
+      await _db.update(_db.events).replace(event.copyWith(updatedAt: DateTime.now()));
+      await _setMembers(event.id, memberIds);
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: event.id);
+    });
     await _notifications.scheduleEventReminder(
       eventId: event.id,
       title: event.title,
@@ -139,8 +152,19 @@ class EventRepository {
     if (!canPerform(actingRole, FamilyAction.manageCalendar)) {
       throw FamilyPermissionException(FamilyAction.manageCalendar, actingRole);
     }
-    await (_db.delete(_db.eventMembers)..where((m) => m.eventId.equals(id))).go();
-    await (_db.delete(_db.events)..where((e) => e.id.equals(id))).go();
+    // Soft-delete the event itself (see tasks_table.dart's deletedAt doc
+    // comment) so the tombstone can propagate through Firestore sync;
+    // eventMembers has no sync identity of its own (denormalized into the
+    // event's memberIds on push) so clearing it outright here is fine —
+    // note this also means the pushed tombstone's memberIds comes back
+    // empty, which is fine since a deleted event's members don't matter.
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      await (_db.delete(_db.eventMembers)..where((m) => m.eventId.equals(id))).go();
+      await (_db.update(_db.events)..where((e) => e.id.equals(id)))
+          .write(EventsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: id);
+    });
     await _notifications.cancelEventReminder(id);
   }
 }

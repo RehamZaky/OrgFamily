@@ -67,6 +67,15 @@ enum FamilyAction {
 
   /// Create, edit, delete, or contribute to a savings goal.
   manageSavingsGoals,
+
+  /// Create, edit, reassign, or delete a member's responsibility (chore).
+  manageResponsibilities,
+
+  /// Tick "done today" on a responsibility assigned to you.
+  completeOwnResponsibility,
+
+  /// Tick "done today" on anyone's responsibility.
+  completeAnyResponsibility,
 }
 
 /// Actions denied to Adult that Owner otherwise gets — Owner is a strict
@@ -86,6 +95,7 @@ const _childAllowed = {
   FamilyAction.rescheduleOwnTask,
   FamilyAction.completeOwnTask,
   FamilyAction.addListItem,
+  FamilyAction.completeOwnResponsibility,
 };
 
 /// Whether [role] is allowed to perform [action]. This is the single

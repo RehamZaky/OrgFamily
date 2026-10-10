@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,8 @@ import '../core/permissions/family_permissions.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/banner_ad_widget.dart';
+import '../data/backup/money_backup_providers.dart';
+import '../data/providers.dart';
 import '../features/budget/screens/money_overview_screen.dart';
 import '../features/budget/widgets/add_transaction_sheet.dart';
 import '../features/calendar/screens/calendar_screen.dart';
@@ -26,8 +30,64 @@ class RootScaffold extends ConsumerStatefulWidget {
   ConsumerState<RootScaffold> createState() => _RootScaffoldState();
 }
 
-class _RootScaffoldState extends ConsumerState<RootScaffold> {
+class _RootScaffoldState extends ConsumerState<RootScaffold> with WidgetsBindingObserver {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Starts/stops SyncEngine as sign-in/link state changes — fireImmediately
+    // so a fresh app boot that's already linked resumes syncing right away,
+    // not just at the moment recordLink itself runs. See
+    // docs/architecture.md "Firestore sync".
+    ref.listenManual(activeSyncProvider, (previous, next) {
+      final sync = ref.read(syncEngineProvider);
+      if (next != null) {
+        sync.start(next.familyId, next.uid);
+        _maybeBackUpMoney();
+      } else {
+        sync.stop();
+      }
+    }, fireImmediately: true);
+    // Changes made while not syncing are still queued (held for review),
+    // tagged with whoever was signed in — see SyncEngine.enqueueUpsert.
+    ref.listenManual(authStateProvider, (previous, next) {
+      ref.read(syncEngineProvider).setSignedInUid(next.valueOrNull?.uid);
+    }, fireImmediately: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // A proxy for "reconnect" without a dedicated connectivity dependency —
+    // Firestore's own listeners resume on their own, but a queued outbox
+    // row's retry backoff can be sitting well past due if the app was
+    // backgrounded for a while, so give it an immediate nudge on resume
+    // rather than waiting for its scheduled retry.
+    if (state == AppLifecycleState.resumed) {
+      final sync = ref.read(syncEngineProvider);
+      unawaited(sync.drainNow());
+      sync.reconnectNow();
+      _maybeBackUpMoney();
+    }
+  }
+
+  /// The automatic daily Money backup — the Owner's phone only, and only
+  /// while syncing as them (see MoneyAutoBackup).
+  void _maybeBackUpMoney() {
+    final active = ref.read(activeSyncProvider);
+    final ownerUid = ref.read(familyProfileStreamProvider).valueOrNull?.ownerUid;
+    if (active == null || ownerUid != active.uid) return;
+    unawaited(ref
+        .read(moneyAutoBackupProvider)
+        .runIfDue(familyId: active.familyId, uid: active.uid));
+  }
 
   Widget _buildScreen(int index) {
     return switch (index) {
@@ -55,7 +115,29 @@ class _RootScaffoldState extends ConsumerState<RootScaffold> {
     if (membersAsync.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    if ((membersAsync.valueOrNull ?? []).isEmpty &&
+        ref.watch(familyProfileStreamProvider).valueOrNull?.familyId != null) {
+      // A restored cloud family (a member's new phone, see SignInScreen)
+      // whose members haven't downloaded yet — not a fresh install, so
+      // don't offer to create a new family while it arrives.
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(l10n.restoreFamilyChecking),
+            ],
+          ),
+        ),
+      );
+    }
     if ((membersAsync.valueOrNull ?? []).isEmpty) {
+      // Fresh install, no local family at all: show the intro slides
+      // first. Sign-in (on a platform that supports it) and creating the
+      // first Owner both happen at the end of that flow — see
+      // OnboardingScreen's `_addYourself`.
       return const OnboardingScreen();
     }
 

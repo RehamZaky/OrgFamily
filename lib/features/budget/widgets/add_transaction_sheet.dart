@@ -166,7 +166,7 @@ class _AddTransactionSheetState extends ConsumerState<_AddTransactionSheet> {
 
     final repo = ref.read(budgetRepositoryProvider);
     final actingRole = ref.read(activeRoleProvider);
-    final actingMemberId = ref.read(activeMemberIdProvider);
+    final actingMemberId = ref.read(actingMemberIdProvider);
     final note = _noteController.text.trim();
     // Income/transfer entries don't carry a meaningful category, and
     // expense/transfer don't carry a meaningful income source — pin the

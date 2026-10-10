@@ -98,7 +98,7 @@ class _AddGoalSheetState extends ConsumerState<_AddGoalSheet> {
 
     final repo = ref.read(savingsGoalRepositoryProvider);
     final actingRole = ref.read(activeRoleProvider);
-    final actingMemberId = ref.read(activeMemberIdProvider);
+    final actingMemberId = ref.read(actingMemberIdProvider);
     final targetCents = (target * 100).round();
 
     final existing = widget.existing;

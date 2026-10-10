@@ -7,6 +7,15 @@ class AppColors {
   static const primaryLight = Color(0xFFB9A9FF);
   static const primaryDark = Color(0xFF5541D6);
 
+  /// The invite flow's curved header band — deeper than [primaryDark] so
+  /// white title text on it clears contrast comfortably.
+  static const primaryDeep = Color(0xFF3B2A8F);
+
+  /// Warm call-to-action accent (the invite screen's Share button) —
+  /// deliberately outside the purple family so the one action most
+  /// people take stands apart from the secondary Copy beside it.
+  static const accentCoral = Color(0xFFEA5534);
+
   static const background = Color(0xFFF6F5FA);
   static const surface = Colors.white;
   static const textPrimary = Color(0xFF1F1B33);

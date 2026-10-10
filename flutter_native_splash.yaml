@@ -1,15 +1,9 @@
 flutter_native_splash:
-  # Centered icon (the heart/family mark, no wordmark) on a plain white
-  # background — same treatment on every platform, so pre-12 Android, iOS,
-  # and Web match what Android 12+'s splash API renders natively.
-  image: "assets/splash/android12_icon.png"
+  # Plain background, no custom icon — the platform's own default splash
+  # treatment on every target (pre-12 Android, Android 12+, iOS, Web).
   color: "#FFFFFF"
 
   fullscreen: true
 
-  # Android 12+ uses a dedicated splash API: only a small centered icon on
-  # a solid color is supported, not an arbitrary full-bleed image.
   android_12:
-    image: "assets/splash/android12_icon.png"
-    icon_background_color: "#FFFFFF"
     color: "#FFFFFF"

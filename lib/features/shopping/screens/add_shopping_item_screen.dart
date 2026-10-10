@@ -67,7 +67,7 @@ class _AddShoppingItemScreenState extends ConsumerState<AddShoppingItemScreen> {
       await repo.addList(id: listId, name: 'Shopping', emoji: '🛒');
     }
 
-    final me = ref.read(currentMemberProvider);
+    final me = ref.read(actingMemberProvider);
     await repo.addItem(
       id: const Uuid().v4(),
       listId: listId,

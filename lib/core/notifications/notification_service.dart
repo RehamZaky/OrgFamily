@@ -120,9 +120,15 @@ class NotificationService {
 
   // Four disjoint ids per entity (task due, event start, task overdue
   // follow-up, +1 spare) so none of these can ever collide with another.
-  int _taskNotificationId(String id) => (id.hashCode & 0x3fffffff) * 4;
-  int _eventNotificationId(String id) => (id.hashCode & 0x3fffffff) * 4 + 1;
-  int _taskOverdueFollowupId(String id) => (id.hashCode & 0x3fffffff) * 4 + 2;
+  // Masked to 29 bits, not 30: `* 4 + 3` (the highest of the four) must
+  // still fit a signed 32-bit int, which flutter_local_notifications
+  // requires — 30 bits masked in would let `* 4` overflow past 2^31-1 for
+  // roughly half of all hashCodes, throwing an unhandled platform-channel
+  // ArgumentError the moment a task/event with an unlucky hashCode got a
+  // reminder scheduled or cancelled.
+  int _taskNotificationId(String id) => (id.hashCode & 0x1fffffff) * 4;
+  int _eventNotificationId(String id) => (id.hashCode & 0x1fffffff) * 4 + 1;
+  int _taskOverdueFollowupId(String id) => (id.hashCode & 0x1fffffff) * 4 + 2;
 
   Future<void> _schedule({
     required int id,
@@ -166,8 +172,16 @@ class NotificationService {
   }
 
   Future<void> _cancel(int id) async {
-    await init();
-    await _plugin.cancel(id: id);
+    try {
+      await init();
+      await _plugin.cancel(id: id);
+    } catch (_) {
+      // Best-effort, same reasoning as _schedule's catch above — a
+      // cancel failure must never block whatever task/event write
+      // triggered it (e.g. every addTask/updateTask call, regardless of
+      // whether that entity has a due date, cancels first to clear any
+      // stale reminder).
+    }
   }
 
   Future<void> scheduleTaskReminder({

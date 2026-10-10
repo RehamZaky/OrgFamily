@@ -36,6 +36,13 @@ class Events extends Table {
   /// flyer) — same on-device storage pattern as member/family photos.
   TextColumn get attachmentPath => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  /// Firestore sync bookkeeping — see `tasks_table.dart`'s `updatedAt`/
+  /// `deletedAt` doc comments. [EventMembers] has no timestamps of its own:
+  /// it's denormalized into this event's Firestore doc as a `memberIds`
+  /// array, so a membership change is just this event's `updatedAt`
+  /// bumping, same as any other field edit.
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

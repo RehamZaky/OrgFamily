@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' show Value;
 import '../../../core/permissions/family_permissions.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
+import '../../../data/local/tables/tasks_table.dart' show TaskReminderType;
 
 /// Task fields relevant to deadline math, decoupled from the Drift row type
 /// so this stays pure and easy to unit test without a database.
@@ -67,6 +68,52 @@ DateTime? taskReminderAt(TaskDeadlineInput task) {
     return DateTime(date.year, date.month, date.day, minutes ~/ 60, minutes % 60);
   }
   return DateTime(date.year, date.month, date.day, 9);
+}
+
+/// [TaskDeadlineInput] plus the reminder configuration needed to compute
+/// when (if at all) a task's notification should fire — kept as a separate
+/// input type since most deadline math (overdue, days-overdue) doesn't need
+/// the reminder fields at all.
+class TaskReminderInput {
+  const TaskReminderInput({
+    required this.deadline,
+    required this.reminderType,
+    required this.reminderOffsetMinutes,
+    required this.reminderAt,
+  });
+
+  TaskReminderInput.fromTask(Task task)
+      : this(
+          deadline: TaskDeadlineInput.fromTask(task),
+          reminderType: task.reminderType,
+          reminderOffsetMinutes: task.reminderOffsetMinutes,
+          reminderAt: task.reminderAt,
+        );
+
+  final TaskDeadlineInput deadline;
+  final TaskReminderType reminderType;
+  final int? reminderOffsetMinutes;
+  final DateTime? reminderAt;
+}
+
+/// The exact moment a task's reminder notification should fire, or null if
+/// nothing should be scheduled — no due date, or the reminder is explicitly
+/// turned off ([TaskReminderType.none]). [TaskReminderType.custom] ignores
+/// the due date entirely and fires at [TaskReminderInput.reminderAt]
+/// instead, which is itself null until the user picks one.
+DateTime? taskReminderNotifyAt(TaskReminderInput input) {
+  switch (input.reminderType) {
+    case TaskReminderType.none:
+      return null;
+    case TaskReminderType.custom:
+      return input.reminderAt;
+    case TaskReminderType.dueTime:
+      return taskReminderAt(input.deadline);
+    case TaskReminderType.offset:
+      final dueMoment = taskReminderAt(input.deadline);
+      if (dueMoment == null) return null;
+      return dueMoment.subtract(Duration(minutes: input.reminderOffsetMinutes ?? 0));
+  }
 }
 
 /// When the single, non-repeating "still needs attention" follow-up should

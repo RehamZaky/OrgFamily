@@ -17,7 +17,7 @@ import '../../../data/local/database.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../budget/providers/budget_providers.dart' show currencyCodeProvider;
-import '../../family/providers/family_providers.dart' show activeMemberIdProvider;
+import '../../family/providers/family_providers.dart' show actingMemberIdProvider;
 import '../domain/savings_goal_calculator.dart';
 import '../providers/savings_goal_providers.dart';
 import '../widgets/add_goal_sheet.dart';
@@ -148,7 +148,7 @@ class _GoalCard extends ConsumerWidget {
     await ref.read(savingsGoalRepositoryProvider).deleteGoal(
           goal.id,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
   }
 
@@ -193,7 +193,7 @@ class _GoalCard extends ConsumerWidget {
           goal.id,
           amountCents,
           actingRole: ref.read(activeRoleProvider),
-          actingMemberId: ref.read(activeMemberIdProvider),
+          actingMemberId: ref.read(actingMemberIdProvider),
         );
 
     if (!context.mounted || newTier <= oldTier || newTier <= 0) return;

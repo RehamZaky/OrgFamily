@@ -31,7 +31,7 @@ class _ListDetailScreenState extends ConsumerState<ListDetailScreen> {
   Future<void> _addItem() async {
     final name = _itemController.text.trim();
     if (name.isEmpty) return;
-    final me = ref.read(currentMemberProvider);
+    final me = ref.read(actingMemberProvider);
     await ref.read(shoppingRepositoryProvider).addItem(
           id: const Uuid().v4(),
           listId: widget.list.id,

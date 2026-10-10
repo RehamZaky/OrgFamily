@@ -1532,6 +1532,72 @@ abstract class AppLocalizations {
   /// **'{feature} is coming soon'**
   String taskFormComingSoon(Object feature);
 
+  /// No description provided for @reminderOptionDueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'At the due time'**
+  String get reminderOptionDueTime;
+
+  /// No description provided for @reminderOption15MinBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes before'**
+  String get reminderOption15MinBefore;
+
+  /// No description provided for @reminderOption30MinBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'30 minutes before'**
+  String get reminderOption30MinBefore;
+
+  /// No description provided for @reminderOption1HourBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour before'**
+  String get reminderOption1HourBefore;
+
+  /// No description provided for @reminderOption1DayBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day before'**
+  String get reminderOption1DayBefore;
+
+  /// No description provided for @reminderOptionCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom date and time'**
+  String get reminderOptionCustom;
+
+  /// No description provided for @reminderOptionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get reminderOptionNone;
+
+  /// No description provided for @reminderSelectDueDateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a due date first to set a reminder.'**
+  String get reminderSelectDueDateFirst;
+
+  /// No description provided for @reminderPastError.
+  ///
+  /// In en, this message translates to:
+  /// **'That reminder time has already passed.'**
+  String get reminderPastError;
+
+  /// No description provided for @reminderRemindNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me now instead'**
+  String get reminderRemindNow;
+
+  /// No description provided for @reminderSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder: {value}'**
+  String reminderSummary(Object value);
+
   /// No description provided for @taskFormCreateButton.
   ///
   /// In en, this message translates to:
@@ -1622,11 +1688,23 @@ abstract class AppLocalizations {
   /// **'More options'**
   String get quickAddTaskMoreOptions;
 
+  /// No description provided for @quickAddTaskMoreShort.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get quickAddTaskMoreShort;
+
   /// No description provided for @quickAddTaskAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add Task'**
+  /// **'Add task'**
   String get quickAddTaskAdd;
+
+  /// No description provided for @quickAddTaskVoiceInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input'**
+  String get quickAddTaskVoiceInput;
 
   /// No description provided for @quickAddTaskVoiceUnavailable.
   ///
@@ -2281,6 +2359,635 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About the same as last month.'**
   String get insightNoChange;
+
+  /// No description provided for @inviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite family member'**
+  String get inviteTitle;
+
+  /// No description provided for @inviteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring someone into your family space'**
+  String get inviteSubtitle;
+
+  /// No description provided for @inviteYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get inviteYourCode;
+
+  /// No description provided for @inviteCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get inviteCopyCode;
+
+  /// No description provided for @inviteShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invite'**
+  String get inviteShare;
+
+  /// No description provided for @inviteCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get inviteCodeCopied;
+
+  /// No description provided for @inviteExpiresInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {count} {count, plural, one{day} other{days}}'**
+  String inviteExpiresInDays(num count);
+
+  /// No description provided for @inviteShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: {code}'**
+  String inviteShareMessage(Object code);
+
+  /// No description provided for @inviteShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'OrgFamily invite code'**
+  String get inviteShareSubject;
+
+  /// No description provided for @inviteCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create an invite. Please check your connection and try again.'**
+  String get inviteCreateFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
+  /// No description provided for @manageInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage invites'**
+  String get manageInvites;
+
+  /// No description provided for @manageInvitesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t created any invites yet.'**
+  String get manageInvitesEmpty;
+
+  /// No description provided for @manageInvitesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your invites. Please check your connection and try again.'**
+  String get manageInvitesLoadFailed;
+
+  /// No description provided for @inviteStatusUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get inviteStatusUsed;
+
+  /// No description provided for @inviteStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get inviteStatusExpired;
+
+  /// No description provided for @inviteRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get inviteRevoke;
+
+  /// No description provided for @inviteRevokeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke this invite?'**
+  String get inviteRevokeTitle;
+
+  /// No description provided for @inviteRevokeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The code {code} will stop working right away.'**
+  String inviteRevokeBody(Object code);
+
+  /// No description provided for @inviteRevokeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke the invite. Please try again.'**
+  String get inviteRevokeFailed;
+
+  /// No description provided for @joinFamilyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a family'**
+  String get joinFamilyTitle;
+
+  /// No description provided for @joinEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter invitation code'**
+  String get joinEnterCode;
+
+  /// No description provided for @joinCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a family member for their code.'**
+  String get joinCodeHelper;
+
+  /// No description provided for @joinContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get joinContinue;
+
+  /// No description provided for @joinErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'That code doesn\'t match any invite. Double-check it and try again.'**
+  String get joinErrorNotFound;
+
+  /// No description provided for @joinErrorUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has already been used. Ask for a new one.'**
+  String get joinErrorUsed;
+
+  /// No description provided for @joinErrorExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has expired. Ask for a new one.'**
+  String get joinErrorExpired;
+
+  /// No description provided for @joinErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please check your connection and try again.'**
+  String get joinErrorGeneric;
+
+  /// No description provided for @joinErrorOtherFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'This device already belongs to a different family, so this invite can\'t be used here.'**
+  String get joinErrorOtherFamily;
+
+  /// No description provided for @cloudNotMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not syncing this family'**
+  String get cloudNotMemberTitle;
+
+  /// No description provided for @cloudNotMemberBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account isn\'t a member of this family\'s cloud yet. Ask a family member for an invite code.'**
+  String get cloudNotMemberBody;
+
+  /// No description provided for @cloudNotMemberAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get cloudNotMemberAction;
+
+  /// No description provided for @syncListenerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t receive cloud updates ({code})'**
+  String syncListenerError(Object code);
+
+  /// No description provided for @syncReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{change} other{changes}} to review'**
+  String syncReviewTitle(int count);
+
+  /// No description provided for @syncReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Made while not syncing, or by another account. They won\'t upload until you choose.'**
+  String get syncReviewBody;
+
+  /// No description provided for @syncReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get syncReviewAction;
+
+  /// No description provided for @syncReviewSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Each one has been compared with the family\'s cloud copy — choose what to do with it.'**
+  String get syncReviewSheetBody;
+
+  /// No description provided for @syncReviewChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing with the cloud…'**
+  String get syncReviewChecking;
+
+  /// No description provided for @syncReviewCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the cloud to compare versions. Try again when you\'re online, or keep these changes on this phone.'**
+  String get syncReviewCheckFailed;
+
+  /// No description provided for @syncReviewConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, one{has} other{have}} a newer version in the cloud — set to use the cloud version.'**
+  String syncReviewConflicts(int count);
+
+  /// No description provided for @syncReviewStateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the cloud yet'**
+  String get syncReviewStateNew;
+
+  /// No description provided for @syncReviewStatePhoneNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed here after the cloud version'**
+  String get syncReviewStatePhoneNewer;
+
+  /// No description provided for @syncReviewStateCloudNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud has a newer version'**
+  String get syncReviewStateCloudNewer;
+
+  /// No description provided for @syncReviewStateInSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Already matches the cloud'**
+  String get syncReviewStateInSync;
+
+  /// No description provided for @syncReviewChoiceUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get syncReviewChoiceUpload;
+
+  /// No description provided for @syncReviewChoiceUseCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Use cloud'**
+  String get syncReviewChoiceUseCloud;
+
+  /// No description provided for @syncReviewChoicePhoneOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone only'**
+  String get syncReviewChoicePhoneOnly;
+
+  /// No description provided for @syncReviewApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get syncReviewApply;
+
+  /// No description provided for @syncReviewApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying {done} of {total}…'**
+  String syncReviewApplying(int done, int total);
+
+  /// No description provided for @syncReviewUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get syncReviewUpload;
+
+  /// No description provided for @syncReviewKeepLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep on this phone'**
+  String get syncReviewKeepLocal;
+
+  /// No description provided for @syncReviewTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get syncReviewTask;
+
+  /// No description provided for @syncReviewEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get syncReviewEvent;
+
+  /// No description provided for @syncReviewShoppingItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping item'**
+  String get syncReviewShoppingItem;
+
+  /// No description provided for @syncReviewShoppingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list'**
+  String get syncReviewShoppingList;
+
+  /// No description provided for @syncReviewMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Family member'**
+  String get syncReviewMember;
+
+  /// No description provided for @syncReviewFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family settings'**
+  String get syncReviewFamily;
+
+  /// No description provided for @syncReviewResponsibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibility'**
+  String get syncReviewResponsibility;
+
+  /// No description provided for @responsibilitiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get responsibilitiesTitle;
+
+  /// No description provided for @moneyBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money backup'**
+  String get moneyBackupTitle;
+
+  /// No description provided for @moneyBackupSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup of your family\'s money records'**
+  String get moneyBackupSettingsHint;
+
+  /// No description provided for @moneyBackupLastBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {when}'**
+  String moneyBackupLastBackup(Object when);
+
+  /// No description provided for @moneyBackupNever.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get moneyBackupNever;
+
+  /// No description provided for @moneyBackupAutoInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.'**
+  String get moneyBackupAutoInfo;
+
+  /// No description provided for @moneyBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get moneyBackupNow;
+
+  /// No description provided for @moneyBackupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get moneyBackupDone;
+
+  /// No description provided for @moneyBackupLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep up to 3 manual backups. Delete one to make room.'**
+  String get moneyBackupLimit;
+
+  /// No description provided for @moneyBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t complete that. Check your connection and try again.'**
+  String get moneyBackupFailed;
+
+  /// No description provided for @moneyBackupAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get moneyBackupAutomatic;
+
+  /// No description provided for @moneyBackupManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get moneyBackupManual;
+
+  /// No description provided for @moneyBackupSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Before restore'**
+  String get moneyBackupSafety;
+
+  /// No description provided for @moneyBackupCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{transactions} transactions · {goals} savings goals'**
+  String moneyBackupCounts(int transactions, int goals);
+
+  /// No description provided for @moneyBackupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get moneyBackupRestore;
+
+  /// No description provided for @moneyBackupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get moneyBackupRestoreTitle;
+
+  /// No description provided for @moneyBackupRestoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {when}: {transactions} transactions, {limits} category budgets and {goals} savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.'**
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  );
+
+  /// No description provided for @moneyBackupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Money records restored'**
+  String get moneyBackupRestored;
+
+  /// No description provided for @moneyBackupDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this backup?'**
+  String get moneyBackupDeleteTitle;
+
+  /// No description provided for @moneyBackupDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get moneyBackupDelete;
+
+  /// No description provided for @moneyBackupOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the family Owner can back up and restore money records.'**
+  String get moneyBackupOwnerOnly;
+
+  /// No description provided for @moneyBackupNeedsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the family Owner\'s account to back up money records.'**
+  String get moneyBackupNeedsAccount;
+
+  /// No description provided for @responsibilitiesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No responsibilities yet'**
+  String get responsibilitiesEmpty;
+
+  /// No description provided for @responsibilityNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New responsibility'**
+  String get responsibilityNew;
+
+  /// No description provided for @responsibilityTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Make bed'**
+  String get responsibilityTitleHint;
+
+  /// No description provided for @responsibilityRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats'**
+  String get responsibilityRepeats;
+
+  /// No description provided for @responsibilityDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get responsibilityDaily;
+
+  /// No description provided for @responsibilitySchoolDays.
+  ///
+  /// In en, this message translates to:
+  /// **'School days (Sun–Thu)'**
+  String get responsibilitySchoolDays;
+
+  /// No description provided for @responsibilityCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get responsibilityCustom;
+
+  /// No description provided for @responsibilityAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get responsibilityAdd;
+
+  /// No description provided for @responsibilityEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days}'**
+  String responsibilityEvery(Object days);
+
+  /// No description provided for @responsibilityNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {day}'**
+  String responsibilityNext(Object day);
+
+  /// No description provided for @responsibilityDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete responsibility?'**
+  String get responsibilityDeleteTitle;
+
+  /// No description provided for @responsibilityDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" will be removed for everyone in the family.'**
+  String responsibilityDeleteBody(Object title);
+
+  /// No description provided for @responsibilityDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get responsibilityDelete;
+
+  /// No description provided for @homeMyResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'My responsibilities'**
+  String get homeMyResponsibilities;
+
+  /// No description provided for @syncReviewDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'(no longer on this phone)'**
+  String get syncReviewDeleted;
+
+  /// No description provided for @restoreFamilyChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for your family…'**
+  String get restoreFamilyChecking;
+
+  /// No description provided for @restoreFamilyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for an existing family. Check your connection and try again.'**
+  String get restoreFamilyError;
+
+  /// No description provided for @restoreFamilyRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get restoreFamilyRetry;
+
+  /// No description provided for @joinConfirmTitleNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {name}\'s family?'**
+  String joinConfirmTitleNamed(Object name);
+
+  /// No description provided for @joinConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join this family?'**
+  String get joinConfirmTitle;
+
+  /// No description provided for @joinFamilyNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s family'**
+  String joinFamilyNamed(Object name);
+
+  /// No description provided for @joinFamilyUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new family'**
+  String get joinFamilyUnnamed;
+
+  /// No description provided for @joinConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks, events and shopping lists will be shared with you.'**
+  String get joinConfirmBody;
+
+  /// No description provided for @joinFamilyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Join family'**
+  String get joinFamilyButton;
 }
 
 class _AppLocalizationsDelegate

@@ -804,6 +804,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reminderOptionDueTime => 'At the due time';
+
+  @override
+  String get reminderOption15MinBefore => '15 minutes before';
+
+  @override
+  String get reminderOption30MinBefore => '30 minutes before';
+
+  @override
+  String get reminderOption1HourBefore => '1 hour before';
+
+  @override
+  String get reminderOption1DayBefore => '1 day before';
+
+  @override
+  String get reminderOptionCustom => 'Custom date and time';
+
+  @override
+  String get reminderOptionNone => 'No reminder';
+
+  @override
+  String get reminderSelectDueDateFirst =>
+      'Select a due date first to set a reminder.';
+
+  @override
+  String get reminderPastError => 'That reminder time has already passed.';
+
+  @override
+  String get reminderRemindNow => 'Remind me now instead';
+
+  @override
+  String reminderSummary(Object value) {
+    return 'Reminder: $value';
+  }
+
+  @override
   String get taskFormCreateButton => 'Create Task';
 
   @override
@@ -850,7 +886,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickAddTaskMoreOptions => 'More options';
 
   @override
-  String get quickAddTaskAdd => 'Add Task';
+  String get quickAddTaskMoreShort => 'More';
+
+  @override
+  String get quickAddTaskAdd => 'Add task';
+
+  @override
+  String get quickAddTaskVoiceInput => 'Voice input';
 
   @override
   String get quickAddTaskVoiceUnavailable =>
@@ -1204,4 +1246,389 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightNoChange => 'About the same as last month.';
+
+  @override
+  String get inviteTitle => 'Invite family member';
+
+  @override
+  String get inviteSubtitle => 'Bring someone into your family space';
+
+  @override
+  String get inviteYourCode => 'Your invite code';
+
+  @override
+  String get inviteCopyCode => 'Copy code';
+
+  @override
+  String get inviteShare => 'Share invite';
+
+  @override
+  String get inviteCodeCopied => 'Code copied';
+
+  @override
+  String inviteExpiresInDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days',
+      one: 'day',
+    );
+    return 'Expires in $count $_temp0';
+  }
+
+  @override
+  String inviteShareMessage(Object code) {
+    return 'Join our family on OrgFamily! Open the app, choose to join an existing family, and enter this code: $code';
+  }
+
+  @override
+  String get inviteShareSubject => 'OrgFamily invite code';
+
+  @override
+  String get inviteCreateFailed =>
+      'Couldn\'t create an invite. Please check your connection and try again.';
+
+  @override
+  String get retry => 'Try again';
+
+  @override
+  String get manageInvites => 'Manage invites';
+
+  @override
+  String get manageInvitesEmpty => 'You haven\'t created any invites yet.';
+
+  @override
+  String get manageInvitesLoadFailed =>
+      'Couldn\'t load your invites. Please check your connection and try again.';
+
+  @override
+  String get inviteStatusUsed => 'Used';
+
+  @override
+  String get inviteStatusExpired => 'Expired';
+
+  @override
+  String get inviteRevoke => 'Revoke';
+
+  @override
+  String get inviteRevokeTitle => 'Revoke this invite?';
+
+  @override
+  String inviteRevokeBody(Object code) {
+    return 'The code $code will stop working right away.';
+  }
+
+  @override
+  String get inviteRevokeFailed =>
+      'Couldn\'t revoke the invite. Please try again.';
+
+  @override
+  String get joinFamilyTitle => 'Join a family';
+
+  @override
+  String get joinEnterCode => 'Enter invitation code';
+
+  @override
+  String get joinCodeHelper => 'Ask a family member for their code.';
+
+  @override
+  String get joinContinue => 'Continue';
+
+  @override
+  String get joinErrorNotFound =>
+      'That code doesn\'t match any invite. Double-check it and try again.';
+
+  @override
+  String get joinErrorUsed =>
+      'This invite has already been used. Ask for a new one.';
+
+  @override
+  String get joinErrorExpired => 'This invite has expired. Ask for a new one.';
+
+  @override
+  String get joinErrorGeneric =>
+      'Something went wrong. Please check your connection and try again.';
+
+  @override
+  String get joinErrorOtherFamily =>
+      'This device already belongs to a different family, so this invite can\'t be used here.';
+
+  @override
+  String get cloudNotMemberTitle => 'Not syncing this family';
+
+  @override
+  String get cloudNotMemberBody =>
+      'This account isn\'t a member of this family\'s cloud yet. Ask a family member for an invite code.';
+
+  @override
+  String get cloudNotMemberAction => 'Enter code';
+
+  @override
+  String syncListenerError(Object code) {
+    return 'Can\'t receive cloud updates ($code)';
+  }
+
+  @override
+  String syncReviewTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'changes',
+      one: 'change',
+    );
+    return '$count $_temp0 to review';
+  }
+
+  @override
+  String get syncReviewBody =>
+      'Made while not syncing, or by another account. They won\'t upload until you choose.';
+
+  @override
+  String get syncReviewAction => 'Review';
+
+  @override
+  String get syncReviewSheetBody =>
+      'These changes were made on this phone while it wasn\'t syncing as you, so they haven\'t been shared with the family. Each one has been compared with the family\'s cloud copy — choose what to do with it.';
+
+  @override
+  String get syncReviewChecking => 'Comparing with the cloud…';
+
+  @override
+  String get syncReviewCheckFailed =>
+      'Couldn\'t reach the cloud to compare versions. Try again when you\'re online, or keep these changes on this phone.';
+
+  @override
+  String syncReviewConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'have',
+      one: 'has',
+    );
+    return '$count $_temp0 a newer version in the cloud — set to use the cloud version.';
+  }
+
+  @override
+  String get syncReviewStateNew => 'Not in the cloud yet';
+
+  @override
+  String get syncReviewStatePhoneNewer =>
+      'Changed here after the cloud version';
+
+  @override
+  String get syncReviewStateCloudNewer => 'The cloud has a newer version';
+
+  @override
+  String get syncReviewStateInSync => 'Already matches the cloud';
+
+  @override
+  String get syncReviewChoiceUpload => 'Upload';
+
+  @override
+  String get syncReviewChoiceUseCloud => 'Use cloud';
+
+  @override
+  String get syncReviewChoicePhoneOnly => 'Phone only';
+
+  @override
+  String get syncReviewApply => 'Apply';
+
+  @override
+  String syncReviewApplying(int done, int total) {
+    return 'Applying $done of $total…';
+  }
+
+  @override
+  String get syncReviewUpload => 'Upload';
+
+  @override
+  String get syncReviewKeepLocal => 'Keep on this phone';
+
+  @override
+  String get syncReviewTask => 'Task';
+
+  @override
+  String get syncReviewEvent => 'Event';
+
+  @override
+  String get syncReviewShoppingItem => 'Shopping item';
+
+  @override
+  String get syncReviewShoppingList => 'Shopping list';
+
+  @override
+  String get syncReviewMember => 'Family member';
+
+  @override
+  String get syncReviewFamily => 'Family settings';
+
+  @override
+  String get syncReviewResponsibility => 'Responsibility';
+
+  @override
+  String get responsibilitiesTitle => 'Responsibilities';
+
+  @override
+  String get moneyBackupTitle => 'Money backup';
+
+  @override
+  String get moneyBackupSettingsHint =>
+      'Encrypted backup of your family\'s money records';
+
+  @override
+  String moneyBackupLastBackup(Object when) {
+    return 'Last backup: $when';
+  }
+
+  @override
+  String get moneyBackupNever => 'No backup yet';
+
+  @override
+  String get moneyBackupAutoInfo =>
+      'Backed up automatically once a day when your money records change. Restoring replaces the money records on this phone only.';
+
+  @override
+  String get moneyBackupNow => 'Back up now';
+
+  @override
+  String get moneyBackupDone => 'Backup saved';
+
+  @override
+  String get moneyBackupLimit =>
+      'You can keep up to 3 manual backups. Delete one to make room.';
+
+  @override
+  String get moneyBackupFailed =>
+      'Couldn\'t complete that. Check your connection and try again.';
+
+  @override
+  String get moneyBackupAutomatic => 'Automatic';
+
+  @override
+  String get moneyBackupManual => 'Manual';
+
+  @override
+  String get moneyBackupSafety => 'Before restore';
+
+  @override
+  String moneyBackupCounts(int transactions, int goals) {
+    return '$transactions transactions · $goals savings goals';
+  }
+
+  @override
+  String get moneyBackupRestore => 'Restore';
+
+  @override
+  String get moneyBackupRestoreTitle => 'Restore this backup?';
+
+  @override
+  String moneyBackupRestoreBody(
+    Object when,
+    int transactions,
+    int limits,
+    int goals,
+  ) {
+    return 'Backup from $when: $transactions transactions, $limits category budgets and $goals savings goals.\n\nIt will replace the money records on this phone. A safety backup of your current records is made first, so you can undo this.';
+  }
+
+  @override
+  String get moneyBackupRestored => 'Money records restored';
+
+  @override
+  String get moneyBackupDeleteTitle => 'Delete this backup?';
+
+  @override
+  String get moneyBackupDelete => 'Delete';
+
+  @override
+  String get moneyBackupOwnerOnly =>
+      'Only the family Owner can back up and restore money records.';
+
+  @override
+  String get moneyBackupNeedsAccount =>
+      'Connect the family Owner\'s account to back up money records.';
+
+  @override
+  String get responsibilitiesEmpty => 'No responsibilities yet';
+
+  @override
+  String get responsibilityNew => 'New responsibility';
+
+  @override
+  String get responsibilityTitleHint => 'e.g. Make bed';
+
+  @override
+  String get responsibilityRepeats => 'Repeats';
+
+  @override
+  String get responsibilityDaily => 'Daily';
+
+  @override
+  String get responsibilitySchoolDays => 'School days (Sun–Thu)';
+
+  @override
+  String get responsibilityCustom => 'Custom';
+
+  @override
+  String get responsibilityAdd => 'Add';
+
+  @override
+  String responsibilityEvery(Object days) {
+    return 'Every $days';
+  }
+
+  @override
+  String responsibilityNext(Object day) {
+    return 'Next: $day';
+  }
+
+  @override
+  String get responsibilityDeleteTitle => 'Delete responsibility?';
+
+  @override
+  String responsibilityDeleteBody(Object title) {
+    return '\"$title\" will be removed for everyone in the family.';
+  }
+
+  @override
+  String get responsibilityDelete => 'Delete';
+
+  @override
+  String get homeMyResponsibilities => 'My responsibilities';
+
+  @override
+  String get syncReviewDeleted => '(no longer on this phone)';
+
+  @override
+  String get restoreFamilyChecking => 'Looking for your family…';
+
+  @override
+  String get restoreFamilyError =>
+      'Couldn\'t check for an existing family. Check your connection and try again.';
+
+  @override
+  String get restoreFamilyRetry => 'Try again';
+
+  @override
+  String joinConfirmTitleNamed(Object name) {
+    return 'Join $name\'s family?';
+  }
+
+  @override
+  String get joinConfirmTitle => 'Join this family?';
+
+  @override
+  String joinFamilyNamed(Object name) {
+    return '$name\'s family';
+  }
+
+  @override
+  String get joinFamilyUnnamed => 'Your new family';
+
+  @override
+  String get joinConfirmBody =>
+      'Tasks, events and shopping lists will be shared with you.';
+
+  @override
+  String get joinFamilyButton => 'Join family';
 }
