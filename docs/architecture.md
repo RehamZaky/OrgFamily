@@ -406,6 +406,57 @@ runs from `RootScaffold` on the Owner's phone at most daily, skipping the
 upload when the content hash is unchanged. Key handling is a documented
 temporary trade-off — see docs/roadmap.md "Money backup".
 
+## Family activity log (V2.1)
+
+`FamilyActivities` (Drift) mirrors `families/{familyId}/activities`. The
+repositories record an entry through `ActivityLog` **inside the same
+transaction** as the change it describes (task created/assigned/
+completed, event created/changed/cancelled, shopping item added/bought/
+removed, member joined, responsibility done), so the entry and the change
+commit together and the entry's id is fixed then — a retry re-sends the
+same document. `RootScaffold` keeps the log's actor current: the signed-in
+`actorUid` (verified by the rules) and the acting member (`actorMemberId`,
+"on behalf of" data until children have accounts). A recurring task's
+next occurrence isn't logged — it's not a family action.
+
+- **Order**: `occurredAt` is a server timestamp, set on the first upload
+  and read back by the engine's normal post-push read; the rules require
+  `occurredAt == request.time` on create and allow nothing but a retry's
+  re-send afterwards — no rewrite, backdating or delete.
+- **Authorship and linkage** (rules): `actorUid` is the writer;
+  `actorMemberId` is null, the writer's own member, or an account-less
+  member (a child on a shared phone) — never an adult linked to another
+  account. The entry must be a supported type describing an existing
+  entity of the matching kind. The entity's *state* (e.g. completed) is
+  deliberately not checked: any member can already write that state
+  directly, and an offline complete-then-undo would get a genuine entry
+  rejected for good. V3's child/device entries need a rules change (not
+  a schema change).
+- **Upload order**: the engine drains the outbox in queue order and
+  holds an entry back while a change queued before it — its entity, or
+  its acting member — hasn't uploaded yet, so a failed or retrying change
+  never gets its entry rejected; both go once the change does.
+- **Window**: `ActivitySyncAdapter` is a `WindowedSyncAdapter`, so the
+  engine listens to and reconciles only the last 30 days of the
+  collection rather than the whole, ever-growing history.
+- **Review**: an entry made while not syncing is held like any other
+  change, but never listed on its own — `resolveReview` applies the
+  decision on the entity it describes to it (upload together; keep both
+  on the phone; or drop it when the cloud version wins). An uploaded
+  entry made under another account is re-credited to the uploader's uid
+  (the rules only accept an entry from the account it names).
+  Reconciling a collection for the first time also skips changes that
+  are awaiting review, rather than uploading them behind the review.
+- **Forward compatibility**: `type`/`entityType` are open strings and
+  readers skip types they don't know, so V3's child entries (`actorKind:
+  child`, `actorDeviceId`, `state`, `relatedActivityId`) need neither a
+  schema nor a rules change. Entity types use `SyncEntityType` names.
+- **UI**: `familyActivityProvider(days)` merges the log with history
+  from before this phone's first entry (derived from completed tasks and
+  added items). The Home card and Family screen show the latest four;
+  `FamilyActivityScreen` has the weekly summary, member/type filters, day
+  groups and "Show older activity".
+
 ## Testing
 
 `test/widget_test.dart` overrides `databaseProvider` with

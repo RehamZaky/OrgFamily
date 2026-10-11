@@ -42,6 +42,68 @@ service cloud.firestore {
           == request.auth.uid;
     }
 
+    // An activity entry's shape (ActivitySyncAdapter.toFirestoreFields plus
+    // the engine's updatedAt). type/entityType are open strings in the
+    // database, so V3 adds kinds with a rules change only — never a schema
+    // change; metadata is bounded in keys, and the whole document by
+    // Firestore's own 1 MiB limit.
+    function isActivityEnvelope(d) {
+      return d.keys().hasOnly(['type', 'actorKind', 'actorUid', 'actorMemberId',
+            'actorDeviceId', 'entityType', 'entityId', 'state', 'relatedActivityId',
+            'metadata', 'schemaVersion', 'createdAt', 'occurredAt', 'updatedAt'])
+        && d.keys().hasAll(['type', 'actorKind', 'entityType', 'entityId', 'metadata',
+            'schemaVersion', 'occurredAt'])
+        && d.type is string && d.type.size() > 0 && d.type.size() <= 64
+        && d.actorKind in ['adult', 'child', 'system']
+        && d.entityType is string && d.entityType.size() <= 64
+        && d.entityId is string && d.entityId.size() <= 128
+        && d.metadata is map && d.metadata.size() <= 20
+        && d.schemaVersion is int;
+    }
+
+    // The activity types this version records, each with the entity type
+    // it must describe (SyncEntityType names). V3's child-device types and
+    // actorKind 'child' are added here when child devices can sign in.
+    function activityEntityTypes() {
+      return {
+        'task.created': 'task', 'task.assigned': 'task', 'task.completed': 'task',
+        'event.created': 'event', 'event.changed': 'event', 'event.cancelled': 'event',
+        'shopping_item.added': 'shoppingItem', 'shopping_item.purchased': 'shoppingItem',
+        'shopping_item.removed': 'shoppingItem',
+        'member.joined': 'familyMember',
+        'responsibility.completed': 'responsibility'
+      };
+    }
+
+    function activityCollections() {
+      return {
+        'task': 'tasks', 'event': 'events', 'shoppingItem': 'shoppingItems',
+        'familyMember': 'members', 'responsibility': 'responsibilities'
+      };
+    }
+
+    // A new entry must be a supported type, describe a real entity of the
+    // matching kind in this family (the app uploads the change before the
+    // entry describing it), and be by an adult account.
+    function isSupportedActivity(familyId, d) {
+      return d.type in activityEntityTypes()
+        && activityEntityTypes()[d.type] == d.entityType
+        && d.actorKind in ['adult', 'system']
+        && d.actorDeviceId == null
+        && exists(/databases/$(database)/documents/families/$(familyId)/$(activityCollections()[d.entityType])/$(d.entityId));
+    }
+
+    // actorMemberId may name the writer's own member, or a member with no
+    // account (a child, on a shared phone — "on behalf of"); never a member
+    // linked to a different account. Null for "not known".
+    function isAllowedActingMember(familyId, memberId) {
+      return memberId == null || (
+        exists(/databases/$(database)/documents/families/$(familyId)/members/$(memberId))
+        && get(/databases/$(database)/documents/families/$(familyId)/members/$(memberId))
+             .data.get('linkedUid', null) in [null, request.auth.uid]
+      );
+    }
+
     function isDirectOrJoinedMember(memberUids, familyId) {
       return isSignedIn() && (
         request.auth.uid in memberUids
@@ -205,6 +267,43 @@ service cloud.firestore {
       // accounts of their own yet, so the rules can't tell them apart.
       match /responsibilities/{responsibilityId} {
         allow read, write: if isFamilyMember(familyId);
+      }
+
+      // Family activity log (V2.1, see family_activities_table.dart). Any
+      // member reads; an entry is written once and never rewritten or
+      // deleted — a history, not shared state. actorUid must be the writer
+      // (or null for an entry made while signed out); actorMemberId must be
+      // the writer's own member or an account-less one (children have no
+      // accounts yet, so that part is "on behalf of"). The entry must
+      // describe an existing entity of its type. occurredAt must be the
+      // server's time, so a wrong device clock can't reorder the timeline.
+      //
+      // Deliberately not checked: that the entity's current state matches
+      // (e.g. the task is completed). Any member may already write that
+      // state directly, so it would prove nothing more, and an offline
+      // complete-then-undo would upload the undone task first and get the
+      // genuine entry rejected for good.
+      //
+      // The only change allowed afterwards is the sync engine re-sending
+      // the same entry (a retry whose first attempt landed): nothing may
+      // differ but updatedAt, and occurredAt only by the retry's own
+      // server time — or keep its value.
+      match /activities/{activityId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if isFamilyMember(familyId)
+          && isActivityEnvelope(request.resource.data)
+          && isSupportedActivity(familyId, request.resource.data)
+          && (request.resource.data.actorUid == null
+              || request.resource.data.actorUid == request.auth.uid)
+          && isAllowedActingMember(familyId, request.resource.data.actorMemberId)
+          && request.resource.data.occurredAt == request.time;
+        allow update: if isFamilyMember(familyId)
+          && isActivityEnvelope(request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['updatedAt', 'occurredAt'])
+          && (request.resource.data.occurredAt == resource.data.occurredAt
+              || request.resource.data.occurredAt == request.time);
+        allow delete: if false;
       }
 
       // Money backups (docs/roadmap.md "Money backup") — Owner only, read

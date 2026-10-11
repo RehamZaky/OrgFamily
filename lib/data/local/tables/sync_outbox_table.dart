@@ -10,6 +10,7 @@ enum SyncEntityType {
   shoppingList,
   shoppingItem,
   responsibility,
+  activity,
 }
 
 enum SyncOperation { upsert, delete }

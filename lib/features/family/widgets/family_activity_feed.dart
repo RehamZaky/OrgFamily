@@ -4,71 +4,55 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/widgets/member_avatar.dart';
+import '../../../data/activity/activity_log.dart';
 import '../../../data/local/database.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../shopping/providers/shopping_providers.dart';
+import '../providers/activity_providers.dart';
 import '../providers/family_providers.dart';
 
-class ActivityEntry {
-  ActivityEntry({
-    required this.member,
-    required this.text,
-    required this.time,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  final FamilyMember? member;
-  final String text;
-  final DateTime time;
-  final IconData icon;
-  /// Resolved against the active theme at render time, since entries are
-  /// built outside any widget's [BuildContext].
-  final Color Function(AppColorScheme colors) iconColor;
+/// The sentence after the member's name, e.g. `completed "Feed the cat"`.
+/// Built from the entry's own metadata — the names as they were then — so
+/// it still reads right after the task is renamed or deleted.
+String activityText(
+  ActivityItem item,
+  AppLocalizations l10n,
+  Map<String, FamilyMember> membersById,
+) {
+  String m(String key) => item.metadata[key] as String? ?? '';
+  return switch (item.type) {
+    ActivityTypes.taskCreated => l10n.activityTaskCreated(m('title')),
+    ActivityTypes.taskAssigned => l10n.activityTaskAssigned(
+      m('title'),
+      membersById[item.metadata['assigneeId']]?.name ?? l10n.activitySomeone,
+    ),
+    ActivityTypes.taskCompleted => l10n.activityCompleted(m('title')),
+    ActivityTypes.eventCreated => l10n.activityEventCreated(m('title')),
+    ActivityTypes.eventChanged => l10n.activityEventChanged(m('title')),
+    ActivityTypes.eventCancelled => l10n.activityEventCancelled(m('title')),
+    ActivityTypes.shoppingItemAdded => l10n.activityAdded(m('name'), m('listName')),
+    ActivityTypes.shoppingItemPurchased => l10n.activityItemBought(m('name')),
+    ActivityTypes.shoppingItemRemoved => l10n.activityItemRemoved(m('name'), m('listName')),
+    ActivityTypes.memberJoined => l10n.activityMemberJoined,
+    ActivityTypes.responsibilityCompleted => l10n.activityResponsibilityDone(m('title')),
+    _ => '',
+  };
 }
 
-/// Merges completed tasks and newly added shopping items into one
-/// time-sorted feed — the "Family Activity" data, shared by the Home
-/// dashboard and Family screen.
-List<ActivityEntry> buildFamilyActivity({
-  required List<Task> tasks,
-  required List<ShoppingList> lists,
-  required Map<String, FamilyMember> membersById,
-  required WidgetRef ref,
-  required AppLocalizations l10n,
-  int limit = 4,
-}) {
-  final entries = <ActivityEntry>[];
-  for (final t in tasks) {
-    if (t.isCompleted && t.completedAt != null) {
-      entries.add(ActivityEntry(
-        // Whoever ticked it, not whoever it was assigned to — falling back to
-        // the assignee only for tasks completed before completers were recorded.
-        member: membersById[t.completedByMemberId] ?? membersById[t.assigneeId],
-        text: l10n.activityCompleted(t.title),
-        time: t.completedAt!,
-        icon: Icons.check_circle,
-        iconColor: (c) => c.success,
-      ));
-    }
-  }
-  for (final list in lists) {
-    final items = ref.watch(shoppingItemsProvider(list.id)).valueOrNull ?? [];
-    for (final item in items) {
-      entries.add(ActivityEntry(
-        member: membersById[item.addedById],
-        text: l10n.activityAdded(item.name, list.name),
-        time: item.createdAt,
-        icon: Icons.add_circle,
-        iconColor: (c) => c.accent,
-      ));
-    }
-  }
-  entries.sort((a, b) => b.time.compareTo(a.time));
-  return entries.take(limit).toList();
-}
+(IconData, Color) activityIcon(ActivityItem item, AppColorScheme colors) => switch (item.type) {
+  ActivityTypes.taskCompleted ||
+  ActivityTypes.responsibilityCompleted => (Icons.check_circle, colors.success),
+  ActivityTypes.taskCreated => (Icons.add_task, colors.accent),
+  ActivityTypes.taskAssigned => (Icons.assignment_ind, colors.accent),
+  ActivityTypes.eventCreated || ActivityTypes.eventChanged => (Icons.event, colors.warning),
+  ActivityTypes.eventCancelled => (Icons.event_busy, colors.danger),
+  ActivityTypes.shoppingItemAdded => (Icons.add_shopping_cart, colors.accent),
+  ActivityTypes.shoppingItemPurchased => (Icons.shopping_bag, colors.success),
+  ActivityTypes.shoppingItemRemoved => (Icons.remove_shopping_cart, colors.danger),
+  ActivityTypes.memberJoined => (Icons.waving_hand, colors.warning),
+  _ => (Icons.circle, colors.textSecondary),
+};
 
-String _timeAgo(BuildContext context, AppLocalizations l10n, DateTime dt) {
+String timeAgo(BuildContext context, AppLocalizations l10n, DateTime dt) {
   final diff = DateTime.now().difference(dt);
   if (diff.inMinutes < 1) return l10n.justNow;
   if (diff.inMinutes < 60) return l10n.minutesAgo(diff.inMinutes);
@@ -79,26 +63,36 @@ String _timeAgo(BuildContext context, AppLocalizations l10n, DateTime dt) {
 }
 
 class ActivityRow extends StatelessWidget {
-  const ActivityRow({super.key, required this.entry});
+  const ActivityRow({super.key, required this.item, required this.membersById, this.timeLabel});
 
-  final ActivityEntry entry;
+  final ActivityItem item;
+  final Map<String, FamilyMember> membersById;
+
+  /// Shown under the sentence; defaults to "5 minutes ago" style.
+  final String? timeLabel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final member = membersById[item.memberId];
+    final (icon, iconColor) = activityIcon(item, context.colors);
+    // A member who has since been removed keeps their name on the entries
+    // that recorded it.
+    final name = member?.name ?? (item.metadata['name'] as String?);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Stack(
+          clipBehavior: Clip.none,
           children: [
-            MemberAvatar(member: entry.member, radius: 18),
-            Positioned(
-              right: -2,
+            MemberAvatar(member: member, radius: 18),
+            PositionedDirectional(
+              end: -2,
               bottom: -2,
               child: CircleAvatar(
                 radius: 8,
                 backgroundColor: context.colors.surface,
-                child: Icon(entry.icon, size: 12, color: entry.iconColor(context.colors)),
+                child: Icon(icon, size: 12, color: iconColor),
               ),
             ),
           ],
@@ -108,21 +102,25 @@ class ActivityRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
+              Text.rich(
+                TextSpan(
                   style: TextStyle(color: context.colors.textPrimary, fontSize: 13),
                   children: [
                     TextSpan(
-                      text: entry.member?.name ?? l10n.activitySomeone,
+                      text: item.type == ActivityTypes.memberJoined
+                          ? (name ?? l10n.activitySomeone)
+                          : (member?.name ?? l10n.activitySomeone),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    TextSpan(text: ' ${entry.text}'),
+                    TextSpan(text: ' ${activityText(item, l10n, membersById)}'),
                   ],
                 ),
               ),
               const SizedBox(height: 2),
-              Text(_timeAgo(context, l10n, entry.time),
-                  style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
+              Text(
+                timeLabel ?? timeAgo(context, l10n, item.time),
+                style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
+              ),
             ],
           ),
         ),
@@ -131,49 +129,41 @@ class ActivityRow extends StatelessWidget {
   }
 }
 
-/// The "Family Activity" card body: recent task completions and shopping
-/// additions, merged and sorted by time, or an empty-state message.
-class FamilyActivityFeed extends ConsumerWidget {
-  const FamilyActivityFeed({
-    super.key,
-    required this.tasks,
-    required this.lists,
-    this.limit = 4,
-  });
+/// Members by id, for resolving who an entry is credited to.
+Map<String, FamilyMember> membersByIdOf(WidgetRef ref) => {
+  for (final m in ref.watch(familyMembersProvider).valueOrNull ?? <FamilyMember>[]) m.id: m,
+};
 
-  final List<Task> tasks;
-  final List<ShoppingList> lists;
+/// The "Family Activity" card body on Home and the Family screen: the
+/// latest [limit] entries of the last week, or an empty-state message.
+class FamilyActivityFeed extends ConsumerWidget {
+  const FamilyActivityFeed({super.key, this.limit = 4});
+
   final int limit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final membersById = <String, FamilyMember>{
-      for (final m in ref.watch(familyMembersProvider).valueOrNull ?? [])
-        m.id: m
-    };
-    final activity = buildFamilyActivity(
-      tasks: tasks,
-      lists: lists,
-      membersById: membersById,
-      ref: ref,
-      l10n: l10n,
-      limit: limit,
-    );
+    final membersById = membersByIdOf(ref);
+    final activity = (ref.watch(familyActivityProvider(7)).valueOrNull ?? const <ActivityItem>[])
+        .take(limit)
+        .toList();
 
     if (activity.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Center(
-          child: Text(l10n.emptyNoActivityYet,
-              style: TextStyle(color: context.colors.textSecondary)),
+          child: Text(
+            l10n.emptyNoActivityYet,
+            style: TextStyle(color: context.colors.textSecondary),
+          ),
         ),
       );
     }
     return Column(
       children: [
         for (var i = 0; i < activity.length; i++) ...[
-          ActivityRow(entry: activity[i]),
+          ActivityRow(item: activity[i], membersById: membersById),
           if (i != activity.length - 1) const SizedBox(height: 14),
         ],
       ],

@@ -4,13 +4,15 @@ import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
 import '../local/tables/sync_outbox_table.dart';
+import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 class FamilyRepository {
-  FamilyRepository(this._db, this._sync);
+  FamilyRepository(this._db, this._sync, {ActivityLog? activity}) : _activity = activity;
 
   final AppDatabase _db;
   final SyncEngine _sync;
+  final ActivityLog? _activity;
 
   Stream<List<FamilyMember>> watchMembers() {
     return (_db.select(_db.familyMembers)
@@ -63,6 +65,11 @@ class FamilyRepository {
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.familyMember, entityId: id);
+      await _activity.maybeRecord(_db,
+          type: ActivityTypes.memberJoined,
+          entityType: SyncEntityType.familyMember.name,
+          entityId: id,
+          metadata: {'name': name, 'role': role.name});
     });
   }
 

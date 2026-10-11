@@ -274,6 +274,94 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activitySomeone => 'شخص ما';
 
   @override
+  String activityTaskCreated(Object title) {
+    return 'أضاف المهمة \"$title\"';
+  }
+
+  @override
+  String activityTaskAssigned(Object title, Object name) {
+    return 'أسند \"$title\" إلى $name';
+  }
+
+  @override
+  String activityEventCreated(Object title) {
+    return 'أضاف الموعد \"$title\"';
+  }
+
+  @override
+  String activityEventChanged(Object title) {
+    return 'عدّل الموعد \"$title\"';
+  }
+
+  @override
+  String activityEventCancelled(Object title) {
+    return 'ألغى الموعد \"$title\"';
+  }
+
+  @override
+  String activityItemBought(Object item) {
+    return 'اشترى \"$item\"';
+  }
+
+  @override
+  String activityItemRemoved(Object item, Object list) {
+    return 'حذف \"$item\" من $list';
+  }
+
+  @override
+  String get activityMemberJoined => 'انضم إلى العائلة';
+
+  @override
+  String activityResponsibilityDone(Object title) {
+    return 'أنجز \"$title\"';
+  }
+
+  @override
+  String get activityThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get activityStatTasks => 'مهام منجزة';
+
+  @override
+  String get activityStatEvents => 'مواعيد';
+
+  @override
+  String get activityStatShopping => 'تحديثات القوائم';
+
+  @override
+  String get activityStatChores => 'مسؤوليات منجزة';
+
+  @override
+  String get activityEarlierThisWeek => 'في وقت سابق هذا الأسبوع';
+
+  @override
+  String get activityLoadOlder => 'عرض النشاط الأقدم';
+
+  @override
+  String get activityNoOlder => 'لا يوجد نشاط أقدم على هذا الجهاز';
+
+  @override
+  String get activityFilterEveryone => 'الجميع';
+
+  @override
+  String get activityFilterAll => 'الكل';
+
+  @override
+  String get activityFilterTasks => 'المهام';
+
+  @override
+  String get activityFilterEvents => 'المواعيد';
+
+  @override
+  String get activityFilterShopping => 'التسوق';
+
+  @override
+  String get activityFilterFamily => 'العائلة';
+
+  @override
+  String get activityEmptyFiltered => 'لا يوجد نشاط يطابق هذه الاختيارات';
+
+  @override
   String get today => 'اليوم';
 
   @override

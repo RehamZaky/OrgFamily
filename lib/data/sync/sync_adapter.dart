@@ -1,4 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../local/tables/sync_outbox_table.dart';
+
+/// Implemented by an adapter whose collection only ever grows (the
+/// activity log): the engine listens to, and reconciles against, only the
+/// recent part of it instead of the whole history — so a new phone doesn't
+/// download years of entries, and the listener's cost stays flat.
+abstract interface class WindowedSyncAdapter {
+  Query<Map<String, dynamic>> window(CollectionReference<Map<String, dynamic>> collection);
+}
 
 /// Bridges one synced Drift table to its Firestore collection — one
 /// implementation per [SyncEntityType]. See `docs/architecture.md`

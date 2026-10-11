@@ -9,14 +9,17 @@ import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
 import '../local/tables/sync_outbox_table.dart';
 import '../local/tables/tasks_table.dart';
+import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 class TaskRepository {
-  TaskRepository(this._db, this._notifications, this._sync);
+  TaskRepository(this._db, this._notifications, this._sync, {ActivityLog? activity})
+      : _activity = activity;
 
   final AppDatabase _db;
   final NotificationService _notifications;
   final SyncEngine _sync;
+  final ActivityLog? _activity;
 
   /// "Due at 6:00 PM • Assigned to you" (or "Due today" for a date-only
   /// task, or just the due clause when unassigned) — built fresh each time
@@ -149,6 +152,7 @@ class TaskRepository {
     DateTime? reminderAt,
     FamilyRole actingRole = FamilyRole.owner,
     String? actingMemberId,
+    bool recordActivity = true,
   }) async {
     if (!canPerform(actingRole, FamilyAction.createTask)) {
       throw FamilyPermissionException(FamilyAction.createTask, actingRole);
@@ -172,6 +176,13 @@ class TaskRepository {
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: id);
+      if (recordActivity) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.taskCreated,
+            entityType: SyncEntityType.task.name,
+            entityId: id,
+            metadata: {'title': title, 'assigneeId': assigneeId});
+      }
     });
     await _updateReminder(
       id: id,
@@ -201,6 +212,15 @@ class TaskRepository {
     await _db.transaction(() async {
       await _db.update(_db.tasks).replace(task.copyWith(updatedAt: DateTime.now()));
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: task.id);
+      if (existing != null &&
+          task.assigneeId != null &&
+          task.assigneeId != existing.assigneeId) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.taskAssigned,
+            entityType: SyncEntityType.task.name,
+            entityId: task.id,
+            metadata: {'title': task.title, 'assigneeId': task.assigneeId});
+      }
     });
     await _updateReminder(
       id: task.id,
@@ -242,6 +262,13 @@ class TaskRepository {
         ),
       );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.task, entityId: id);
+      if (isCompleted && task != null && !task.isCompleted) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.taskCompleted,
+            entityType: SyncEntityType.task.name,
+            entityId: id,
+            metadata: {'title': task.title, 'assigneeId': task.assigneeId});
+      }
     });
     if (task == null) return;
     if (isCompleted) {
@@ -270,6 +297,8 @@ class TaskRepository {
               : task.reminderType,
           reminderOffsetMinutes: task.reminderOffsetMinutes,
           actingMemberId: task.createdByMemberId,
+          // The next occurrence of a series isn't a new family action.
+          recordActivity: false,
         );
       }
     } else {

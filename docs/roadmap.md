@@ -205,9 +205,11 @@ The point where Firebase actually earns its place.
 
 ## V2.1 — Family communication
 
-- [ ] Activity feed backed by a real audit log (replacing the derived
+- [x] Activity feed backed by a real audit log (replacing the derived
       "recent completions/additions" heuristic in V1) — scoped 2026-10-04,
-      deliberately deferred behind hardening. Planned shape:
+      built 2026-10-10 on `feature/v2.1-family-activity` (see
+      docs/architecture.md "Family activity log"). Still to do: deploy the
+      `activities` rules, then real-device testing. Shape as built:
   - **Screen**: a dedicated Family Activity screen — a 7-day timeline
     grouped Today / Yesterday / Earlier this week, a weekly summary (tasks
     done, events, list updates), filters by member and activity type, and
@@ -215,12 +217,18 @@ The point where Firebase actually earns its place.
   - **What's recorded** (meaningful actions only, never screen opens or
     tab changes): tasks created/assigned/completed; events created/
     changed/cancelled; shopping items added/purchased/removed; a member
-    joined. No financial amounts in the general feed — money activity
-    would get its own permission-gated history.
+    joined; a responsibility done. No financial amounts in the general
+    feed — money activity would get its own permission-gated history.
   - **Storage**: a Drift table for offline reading plus
     `families/{familyId}/activities/{activityId}`. Idempotent creation
-    (deterministic activity ids, so an outbox retry can't duplicate an
-    entry) and server timestamps for ordering.
+    (the id is fixed in the same transaction as the change, so an outbox
+    retry re-sends the same document) and server timestamps for
+    ordering. Phones sync only the last 30 days (older entries stay in
+    the cloud and on phones that already have them).
+  - **History from before the log** isn't backfilled into Firestore
+    (every phone would race to write the same entries under different
+    accounts); the timeline derives it locally from completed tasks and
+    added shopping items older than this phone's first log entry.
   - **Requirement: V3's child activities must not need a schema change.**
     So the V2.1 shape already carries everything V3 adds, as optional
     data rather than new columns:

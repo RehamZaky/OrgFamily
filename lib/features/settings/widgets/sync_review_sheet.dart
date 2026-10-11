@@ -79,6 +79,9 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
         (await (db.select(db.responsibilities)..where((r) => r.id.equals(id))).getSingleOrNull())
             ?.title,
       SyncEntityType.familyProfile => '',
+      // Never listed — an activity entry follows its entity's decision
+      // (see SyncEngine.inspectReview).
+      SyncEntityType.activity => null,
     };
   }
 
@@ -90,6 +93,7 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
         SyncEntityType.familyMember => l10n.syncReviewMember,
         SyncEntityType.responsibility => l10n.syncReviewResponsibility,
         SyncEntityType.familyProfile => l10n.syncReviewFamily,
+        SyncEntityType.activity => '',
       };
 
   String _stateLabel(AppLocalizations l10n, ReviewItem item, String locale) {

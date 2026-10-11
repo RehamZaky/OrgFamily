@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/auth_config.dart';
 import '../core/notifications/notification_service.dart';
+import 'activity/activity_log.dart';
 import 'local/database.dart';
 import 'local/tables/sync_outbox_table.dart';
 import 'repositories/auth_repository.dart';
@@ -20,6 +21,7 @@ import 'repositories/responsibility_repository.dart';
 import 'repositories/savings_goal_repository.dart';
 import 'repositories/shopping_repository.dart';
 import 'repositories/task_repository.dart';
+import 'sync/adapters/activity_sync_adapter.dart';
 import 'sync/adapters/event_sync_adapter.dart';
 import 'sync/adapters/family_member_sync_adapter.dart';
 import 'sync/adapters/family_profile_sync_adapter.dart';
@@ -74,6 +76,7 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
     ShoppingListSyncAdapter(db),
     ShoppingItemSyncAdapter(db),
     ResponsibilitySyncAdapter(db),
+    ActivitySyncAdapter(db),
   ]);
 });
 
@@ -234,7 +237,13 @@ class SyncOutboxSummary {
 
   /// Distinct entities in [review] — an entity edited several times is
   /// queued several times but is one change to the person reviewing it.
-  int get reviewCount => review.map((r) => (r.entityType, r.entityId)).toSet().length;
+  /// Activity entries aren't counted: each follows the decision on the
+  /// change it describes (see `SyncEngine.inspectReview`).
+  int get reviewCount => review
+      .where((r) => r.entityType != SyncEntityType.activity)
+      .map((r) => (r.entityType, r.entityId))
+      .toSet()
+      .length;
 }
 
 final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
@@ -255,8 +264,18 @@ final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
   });
 });
 
+/// One per app: the actor it stamps on entries is kept current by
+/// `RootScaffold`.
+final activityLogProvider = Provider<ActivityLog>((ref) {
+  return ActivityLog(ref.watch(syncEngineProvider));
+});
+
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
-  return FamilyRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
+  return FamilyRepository(
+    ref.watch(databaseProvider),
+    ref.watch(syncEngineProvider),
+    activity: ref.watch(activityLogProvider),
+  );
 });
 
 /// Always constructible (unlike [syncEngineProvider], no inert variant
@@ -278,6 +297,7 @@ final taskRepositoryProvider = Provider<TaskRepository>((ref) {
     ref.watch(databaseProvider),
     ref.watch(notificationServiceProvider),
     ref.watch(syncEngineProvider),
+    activity: ref.watch(activityLogProvider),
   );
 });
 
@@ -286,15 +306,24 @@ final eventRepositoryProvider = Provider<EventRepository>((ref) {
     ref.watch(databaseProvider),
     ref.watch(notificationServiceProvider),
     ref.watch(syncEngineProvider),
+    activity: ref.watch(activityLogProvider),
   );
 });
 
 final shoppingRepositoryProvider = Provider<ShoppingRepository>((ref) {
-  return ShoppingRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
+  return ShoppingRepository(
+    ref.watch(databaseProvider),
+    ref.watch(syncEngineProvider),
+    activity: ref.watch(activityLogProvider),
+  );
 });
 
 final responsibilityRepositoryProvider = Provider<ResponsibilityRepository>((ref) {
-  return ResponsibilityRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
+  return ResponsibilityRepository(
+    ref.watch(databaseProvider),
+    ref.watch(syncEngineProvider),
+    activity: ref.watch(activityLogProvider),
+  );
 });
 
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {

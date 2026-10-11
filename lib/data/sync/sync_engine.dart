@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart' hide Expression;
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Query;
 
 import '../local/database.dart';
 import '../local/tables/sync_outbox_table.dart';
@@ -242,10 +242,7 @@ class SyncEngine {
       _subscriptions.add(sub);
       return;
     }
-    final sub = _firestore!
-        .collection(adapter.collectionPath(familyId))
-        .snapshots()
-        .listen((snapshot) async {
+    final sub = _scoped(adapter, familyId).snapshots().listen((snapshot) async {
       _onListenerHealthy();
       for (final change in snapshot.docChanges) {
         // Our own optimistic write echoing back — the eventual
@@ -266,6 +263,15 @@ class SyncEngine {
       }
     }, onError: _onListenerError);
     _subscriptions.add(sub);
+  }
+
+  /// The part of [adapter]'s collection this device keeps in sync — all of
+  /// it, unless the adapter is a [WindowedSyncAdapter].
+  Query<Map<String, dynamic>> _scoped(SyncAdapter adapter, String familyId) {
+    final collection = _firestore!.collection(adapter.collectionPath(familyId));
+    return adapter is WindowedSyncAdapter
+        ? (adapter as WindowedSyncAdapter).window(collection)
+        : collection;
   }
 
   Future<void> _mergeIncoming(SyncAdapter adapter, String id, Map<String, dynamic> data) async {
@@ -351,18 +357,44 @@ class SyncEngine {
       return;
     }
     final localIds = await adapter.allLocalIds(familyId);
-    final remoteSnap = await _firestore!.collection(adapter.collectionPath(familyId)).get();
+    final remoteSnap = await _scoped(adapter, familyId).get();
     final remoteDocs = {for (final d in remoteSnap.docs) d.id: d.data()};
+    // Changes awaiting a member's review stay held: reconciling a
+    // collection for the first time (e.g. one a newer version added) must
+    // not upload them behind the review's back.
+    final uid = _activeUid;
+    final held = uid == null
+        ? const <String>{}
+        : {
+            for (final o in await (_db.select(_db.syncOutbox)
+                  ..where((o) =>
+                      _needsReview(o, familyId, uid) & o.entityType.equalsValue(adapter.entityType)))
+                .get())
+              o.entityId,
+          };
 
     for (final id in localIds) {
       final remote = remoteDocs.remove(id);
       if (remote == null) {
+        if (held.contains(id)) continue;
         // Genuinely never uploaded (this only runs pre-flag) — push it.
         final local = await adapter.getLocalById(id);
         if (local == null) continue;
         final data = Map<String, dynamic>.from(adapter.toFirestoreFields(local));
         data['updatedAt'] = FieldValue.serverTimestamp();
-        await _firestore.collection(adapter.collectionPath(familyId)).doc(id).set(data);
+        final upload = _firestore!.collection(adapter.collectionPath(familyId)).doc(id).set(data);
+        if (adapter is WindowedSyncAdapter) {
+          // A history entry the rules refuse (e.g. about something never
+          // uploaded) is skipped, not allowed to fail — and so endlessly
+          // retry — the whole collection's reconciliation.
+          try {
+            await upload;
+          } on FirebaseException catch (e) {
+            if (e.code != 'permission-denied') rethrow;
+          }
+        } else {
+          await upload;
+        }
         continue;
       }
       final remoteUpdatedAt = (remote['updatedAt'] as Timestamp?)?.toDate();
@@ -487,6 +519,11 @@ class SyncEngine {
   /// and a held change can be days old. Reads from the server, never the
   /// cache: throws if Firestore can't be reached, so a stale answer is
   /// never presented as "safe to upload".
+  ///
+  /// Activity entries are never listed on their own: each describes a
+  /// change to some entity, and [resolveReview] applies that entity's
+  /// decision to it too — uploading a held task uploads "Kareem added …"
+  /// with it; keeping it on the phone keeps the entry local as well.
   Future<List<ReviewItem>> inspectReview() async {
     final familyId = _activeFamilyId;
     final uid = _activeUid;
@@ -498,6 +535,7 @@ class SyncEngine {
     final seen = <(SyncEntityType, String)>{};
     final items = <ReviewItem>[];
     for (final row in rows) {
+      if (row.entityType == SyncEntityType.activity) continue;
       if (!seen.add((row.entityType, row.entityId))) continue;
       final adapter = _adapters[row.entityType];
       if (adapter == null) continue;
@@ -542,10 +580,18 @@ class SyncEngine {
     var done = 0;
     onProgress?.call(done, choices.length);
     for (final MapEntry(key: (type, entityId), value: choice) in choices.entries) {
+      // The entity's own outbox rows, plus those of the activity entries
+      // describing changes to it (see [inspectReview]).
+      final activityIds = await (_db.selectOnly(_db.familyActivities)
+            ..addColumns([_db.familyActivities.id])
+            ..where(_db.familyActivities.entityType.equals(type.name) &
+                _db.familyActivities.entityId.equals(entityId)))
+          .map((r) => r.read(_db.familyActivities.id)!)
+          .get();
       Expression<bool> rowsOf($SyncOutboxTable o) =>
           _needsReview(o, familyId, uid) &
-          o.entityType.equalsValue(type) &
-          o.entityId.equals(entityId);
+          ((o.entityType.equalsValue(type) & o.entityId.equals(entityId)) |
+              (o.entityType.equalsValue(SyncEntityType.activity) & o.entityId.isIn(activityIds)));
       switch (choice) {
         case ReviewChoice.upload:
           await (_db.update(_db.syncOutbox)..where(rowsOf)).write(
@@ -556,6 +602,33 @@ class SyncEngine {
               nextRetryAt: const Value(null),
             ),
           );
+          // Entries made under another account are credited to the one
+          // taking them on (firestore.rules only accepts an entry from the
+          // account it names); who it was on behalf of — actorMemberId —
+          // is unchanged.
+          final otherAccounts = await (_db.select(_db.familyActivities)
+                ..where((a) =>
+                    a.id.isIn(activityIds) &
+                    a.occurredAt.isNull() &
+                    a.actorUid.isNotNull() &
+                    a.actorUid.equals(uid).not()))
+              .get();
+          for (final entry in otherAccounts) {
+            // Nor may it name an adult linked to another account as acting
+            // — it becomes "not known" then, rather than being rejected.
+            final member = entry.actorMemberId == null
+                ? null
+                : await (_db.select(_db.familyMembers)
+                      ..where((m) => m.id.equals(entry.actorMemberId!)))
+                    .getSingleOrNull();
+            final keepMember = member == null || member.linkedUid == null || member.linkedUid == uid;
+            await (_db.update(_db.familyActivities)..where((a) => a.id.equals(entry.id))).write(
+              FamilyActivitiesCompanion(
+                actorUid: Value(uid),
+                actorMemberId: Value(keepMember ? entry.actorMemberId : null),
+              ),
+            );
+          }
         case ReviewChoice.useCloud:
           final adapter = _adapters[type];
           if (adapter == null) break;
@@ -569,6 +642,11 @@ class SyncEngine {
             await adapter.applyRemoteUpsert(entityId, data, remoteUpdatedAt);
           }
           await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
+          // The change was replaced by the cloud's version, so entries
+          // describing it (never uploaded: no server time yet) go too.
+          await (_db.delete(_db.familyActivities)
+                ..where((a) => a.id.isIn(activityIds) & a.occurredAt.isNull()))
+              .go();
         case ReviewChoice.phoneOnly:
           await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
       }
@@ -653,7 +731,8 @@ class SyncEngine {
               o.familyId.equals(familyId) &
               o.originUid.equals(uid) &
               o.status.isInValues([SyncOutboxStatus.pending, SyncOutboxStatus.retrying]) &
-              (o.nextRetryAt.isNull() | o.nextRetryAt.isSmallerOrEqualValue(now))))
+              (o.nextRetryAt.isNull() | o.nextRetryAt.isSmallerOrEqualValue(now)))
+          ..orderBy([(o) => OrderingTerm.asc(o.id)]))
         .get();
     for (final row in rows) {
       // Mirrors _runInitialReconciliationIfNeeded's per-adapter guard — a
@@ -662,8 +741,41 @@ class SyncEngine {
       // signed in now, rather than only checking once before the whole
       // batch was read.
       if (_session != session) return;
+      if (row.entityType == SyncEntityType.activity && await _activityWaiting(row)) continue;
       await _pushOne(row);
     }
+  }
+
+  /// Whether an activity entry must wait for the change it describes (or
+  /// its acting member) to upload first: firestore.rules only accept an
+  /// entry about an entity that exists in the cloud. Queue order already
+  /// puts the change first (same transaction, lower id); this covers the
+  /// change failing or retrying — the entry then stays queued, untouched,
+  /// and goes on a later drain instead of being rejected for good.
+  Future<bool> _activityWaiting(SyncOutboxData row) async {
+    final entry = await (_db.select(_db.familyActivities)
+          ..where((a) => a.id.equals(row.entityId)))
+        .getSingleOrNull();
+    if (entry == null) return false;
+    final entityType = SyncEntityType.values.asNameMap()[entry.entityType];
+    // Only changes queued *before* the entry: once those have uploaded the
+    // entity exists in the cloud, whatever later edits are still queued.
+    Expression<bool> queued(SyncEntityType type, String id) =>
+        _db.syncOutbox.id.isSmallerThanValue(row.id) &
+        _db.syncOutbox.familyId.equals(row.familyId) &
+        _db.syncOutbox.entityType.equalsValue(type) &
+        _db.syncOutbox.entityId.equals(id);
+    final deps = [
+      if (entityType != null) queued(entityType, entry.entityId),
+      if (entry.actorMemberId != null) queued(SyncEntityType.familyMember, entry.actorMemberId!),
+    ];
+    if (deps.isEmpty) return false;
+    final waiting = await (_db.selectOnly(_db.syncOutbox)
+          ..addColumns([_db.syncOutbox.id])
+          ..where(deps.reduce((a, b) => a | b))
+          ..limit(1))
+        .get();
+    return waiting.isNotEmpty;
   }
 
   Future<void> _pushOne(SyncOutboxData row) async {
