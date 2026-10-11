@@ -10,13 +10,26 @@ import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 class EventRepository {
-  EventRepository(this._db, this._notifications, this._sync, {ActivityLog? activity})
-      : _activity = activity;
+  EventRepository(
+    this._db,
+    this._notifications,
+    this._sync, {
+    ActivityLog? activity,
+    int? Function()? eventReminderMinutes,
+  }) : _activity = activity,
+       _eventReminderMinutes = eventReminderMinutes ?? (() => 15);
 
   final AppDatabase _db;
   final NotificationService _notifications;
   final SyncEngine _sync;
   final ActivityLog? _activity;
+
+  /// This phone's "event reminder" setting for whoever is using it — minutes
+  /// before the start, or null for none. Read at scheduling time, so a
+  /// change applies from the next (re)schedule; [resyncReminders] applies
+  /// it to every event at once. Only this phone's local notifications are
+  /// affected — the shared event records never change.
+  final int? Function() _eventReminderMinutes;
 
   Future<Event?> getById(String id) {
     return (_db.select(_db.events)..where((e) => e.id.equals(id) & e.deletedAt.isNull()))
@@ -34,6 +47,7 @@ class EventRepository {
         eventId: e.id,
         title: e.title,
         startAt: e.startAt,
+        minutesBefore: _eventReminderMinutes(),
       );
     }
   }
@@ -133,6 +147,7 @@ class EventRepository {
       eventId: id,
       title: title,
       startAt: startAt,
+      minutesBefore: _eventReminderMinutes(),
     );
   }
 
@@ -158,6 +173,7 @@ class EventRepository {
       eventId: event.id,
       title: event.title,
       startAt: event.startAt,
+      minutesBefore: _eventReminderMinutes(),
     );
   }
 

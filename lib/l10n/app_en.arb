@@ -280,6 +280,52 @@
   "settingsLanguageArabic": "العربية",
   "settingsLanguageSystem": "System",
   "settingsPreferences": "Preferences",
+  "settingsTimeFormat": "Time format",
+  "settingsTimeFormatSystem": "Phone",
+  "settingsTimeFormat12": "12-hour",
+  "settingsTimeFormat24": "24-hour",
+  "settingsTimeFormatExample": "Example: {time}",
+  "@settingsTimeFormatExample": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsStartTab": "Open the app on",
+  "settingsReminders": "Reminders",
+  "settingsRemindersFor": "These are {name}'s reminders on this phone — switching profile doesn't change them.",
+  "@settingsRemindersFor": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "settingsTaskReminder": "New tasks",
+  "settingsTaskReminderHint": "The starting reminder for tasks you create from now on; existing tasks keep theirs. Date-only tasks are reminded at 9 AM that day. \"No reminder\" turns it off for all new tasks, date-only ones included.",
+  "settingsEventReminder": "Events",
+  "settingsEventReminderHint": "Only changes reminders on this phone, not the event for anyone else.",
+  "settingsDailyReminder": "Daily responsibilities",
+  "settingsDailyReminderOff": "Off",
+  "settingsDailyReminderHint": "One reminder a day with what's left. Open the app at least once a week to keep it coming.",
+  "settingsFamilySchedule": "Family schedule",
+  "settingsSchoolDays": "School days",
+  "settingsSchoolDaysHint": "When \"School days\" responsibilities are due. The calendar's weekend stays the same.",
+  "settingsWeekStart": "Week starts on",
+  "settingsFamilyScheduleOwnerOnly": "Set by the family Owner for everyone.",
+  "dailyReminderLeft": "{count, plural, =1{1 responsibility left today 💜 {names}} other{{count} responsibilities left today 💜 {names}}}",
+  "@dailyReminderLeft": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "names": {}
+    }
+  },
+  "dailyReminderGeneric": "Check today's responsibilities 💜",
+  "memberResponsibilitiesTitle": "{name}'s responsibilities",
+  "@memberResponsibilitiesTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "responsibilitiesAll": "All",
+  "responsibilitiesNoneToday": "Nothing due today 🎉",
   "accountSectionTitle": "Account",
   "accountSignOutConfirmTitle": "Sign out?",
   "accountSignOutConfirmBody": "Your family stays on this phone. Changes made while signed out won't be shared until a family member signs in and reviews them.",
@@ -879,7 +925,7 @@
   "responsibilityTitleHint": "e.g. Make bed",
   "responsibilityRepeats": "Repeats",
   "responsibilityDaily": "Daily",
-  "responsibilitySchoolDays": "School days (Sun–Thu)",
+  "responsibilitySchoolDays": "School days",
   "responsibilityCustom": "Custom",
   "responsibilityAdd": "Add",
   "responsibilityEvery": "Every {days}",

@@ -5,6 +5,7 @@ import '../../../core/utils/enum_display.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/family_members_table.dart';
 import '../../../data/providers.dart';
+import '../../../data/repositories/family_settings_repository.dart';
 import '../../tasks/providers/task_providers.dart';
 
 const _activeMemberIdPrefsKey = 'active_member_id';
@@ -75,19 +76,18 @@ final familyPhotoPathProvider = StreamProvider<String?>((ref) {
   return ref.watch(familyProfileRepositoryProvider).watchPhotoPath();
 });
 
-/// Midnight on the Monday of the current week — the cutoff used for all
-/// "this week" family stats, so they reset together.
-DateTime _startOfThisWeek() {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  return today.subtract(Duration(days: today.weekday - DateTime.monday));
-}
+/// Midnight on the first day of the current week, by the family's week
+/// start (Settings → Family schedule) — the cutoff for all "this week"
+/// family stats, so they reset together.
+DateTime _startOfThisWeek(Ref ref) =>
+    (ref.watch(familyScheduleProvider).valueOrNull ?? FamilySchedule.defaults)
+        .weekStart(DateTime.now());
 
 /// Tasks each member completed this week, keyed by `assigneeId`. Tasks with
 /// no assignee don't count toward anyone's points.
 final familyPointsThisWeekProvider = Provider<Map<String, int>>((ref) {
   final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
-  final weekStart = _startOfThisWeek();
+  final weekStart = _startOfThisWeek(ref);
   final points = <String, int>{};
   for (final t in tasks) {
     final assigneeId = t.assigneeId;
@@ -102,7 +102,7 @@ final familyPointsThisWeekProvider = Provider<Map<String, int>>((ref) {
 /// Total tasks (any assignee) completed since the start of this week.
 final tasksDoneThisWeekProvider = Provider<int>((ref) {
   final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
-  final weekStart = _startOfThisWeek();
+  final weekStart = _startOfThisWeek(ref);
   return tasks
       .where((t) =>
           t.isCompleted &&
@@ -122,7 +122,7 @@ final familyPointsTotalThisWeekProvider = Provider<int>((ref) {
 final tasksDoneThisWeekForMemberProvider =
     Provider.family<int, String>((ref, memberId) {
   final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
-  final weekStart = _startOfThisWeek();
+  final weekStart = _startOfThisWeek(ref);
   return tasks
       .where((t) =>
           t.assigneeId == memberId &&

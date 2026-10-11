@@ -998,6 +998,156 @@ abstract class AppLocalizations {
   /// **'Preferences'**
   String get settingsPreferences;
 
+  /// No description provided for @settingsTimeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Time format'**
+  String get settingsTimeFormat;
+
+  /// No description provided for @settingsTimeFormatSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settingsTimeFormatSystem;
+
+  /// No description provided for @settingsTimeFormat12.
+  ///
+  /// In en, this message translates to:
+  /// **'12-hour'**
+  String get settingsTimeFormat12;
+
+  /// No description provided for @settingsTimeFormat24.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour'**
+  String get settingsTimeFormat24;
+
+  /// No description provided for @settingsTimeFormatExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: {time}'**
+  String settingsTimeFormatExample(Object time);
+
+  /// No description provided for @settingsStartTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the app on'**
+  String get settingsStartTab;
+
+  /// No description provided for @settingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// No description provided for @settingsRemindersFor.
+  ///
+  /// In en, this message translates to:
+  /// **'These are {name}\'s reminders on this phone — switching profile doesn\'t change them.'**
+  String settingsRemindersFor(Object name);
+
+  /// No description provided for @settingsTaskReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'New tasks'**
+  String get settingsTaskReminder;
+
+  /// No description provided for @settingsTaskReminderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The starting reminder for tasks you create from now on; existing tasks keep theirs. Date-only tasks are reminded at 9 AM that day. \"No reminder\" turns it off for all new tasks, date-only ones included.'**
+  String get settingsTaskReminderHint;
+
+  /// No description provided for @settingsEventReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get settingsEventReminder;
+
+  /// No description provided for @settingsEventReminderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only changes reminders on this phone, not the event for anyone else.'**
+  String get settingsEventReminderHint;
+
+  /// No description provided for @settingsDailyReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily responsibilities'**
+  String get settingsDailyReminder;
+
+  /// No description provided for @settingsDailyReminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsDailyReminderOff;
+
+  /// No description provided for @settingsDailyReminderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder a day with what\'s left. Open the app at least once a week to keep it coming.'**
+  String get settingsDailyReminderHint;
+
+  /// No description provided for @settingsFamilySchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Family schedule'**
+  String get settingsFamilySchedule;
+
+  /// No description provided for @settingsSchoolDays.
+  ///
+  /// In en, this message translates to:
+  /// **'School days'**
+  String get settingsSchoolDays;
+
+  /// No description provided for @settingsSchoolDaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When \"School days\" responsibilities are due. The calendar\'s weekend stays the same.'**
+  String get settingsSchoolDaysHint;
+
+  /// No description provided for @settingsWeekStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Week starts on'**
+  String get settingsWeekStart;
+
+  /// No description provided for @settingsFamilyScheduleOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Set by the family Owner for everyone.'**
+  String get settingsFamilyScheduleOwnerOnly;
+
+  /// No description provided for @dailyReminderLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 responsibility left today 💜 {names}} other{{count} responsibilities left today 💜 {names}}}'**
+  String dailyReminderLeft(int count, Object names);
+
+  /// No description provided for @dailyReminderGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s responsibilities 💜'**
+  String get dailyReminderGeneric;
+
+  /// No description provided for @memberResponsibilitiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s responsibilities'**
+  String memberResponsibilitiesTitle(Object name);
+
+  /// No description provided for @responsibilitiesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get responsibilitiesAll;
+
+  /// No description provided for @responsibilitiesNoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due today 🎉'**
+  String get responsibilitiesNoneToday;
+
   /// No description provided for @accountSectionTitle.
   ///
   /// In en, this message translates to:
@@ -3358,7 +3508,7 @@ abstract class AppLocalizations {
   /// No description provided for @responsibilitySchoolDays.
   ///
   /// In en, this message translates to:
-  /// **'School days (Sun–Thu)'**
+  /// **'School days'**
   String get responsibilitySchoolDays;
 
   /// No description provided for @responsibilityCustom.

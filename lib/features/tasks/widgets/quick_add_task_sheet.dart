@@ -17,6 +17,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import '../screens/task_form_screen.dart';
 import 'reminder_picker_sheet.dart';
+import '../../settings/providers/reminder_providers.dart';
+import '../domain/default_reminder.dart';
 
 /// The fast path for adding a task: a full-width title field (with voice
 /// input below it) plus the two shortcuts most tasks actually need — date
@@ -49,6 +51,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
   TaskReminderType _reminderType = TaskReminderType.dueTime;
   int? _reminderOffsetMinutes;
   DateTime? _reminderAt;
+  bool _reminderPicked = false;
   String? _reminderError;
   bool _speechEnabled = false;
   bool _isListening = false;
@@ -68,6 +71,13 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     // path anymore (the full editor still allows clearing it).
     final now = DateTime.now();
     _dueDate = DateTime(now.year, now.month, now.day);
+    // The "default task reminder" setting; quick-add tasks are date-only.
+    final d = defaultTaskReminder(
+      ref.read(phoneReminderPreferencesProvider).taskDefault,
+      dueTimeMinutes: null,
+    );
+    _reminderType = d.type;
+    _reminderOffsetMinutes = d.offsetMinutes;
     _initSpeech();
   }
 
@@ -196,6 +206,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
     _unfocus();
     if (result == null) return;
     setState(() {
+      _reminderPicked = true;
       _reminderType = result.type;
       _reminderOffsetMinutes = result.offsetMinutes;
       _reminderAt = result.reminderAt;
@@ -285,6 +296,7 @@ class _QuickAddTaskSheetState extends ConsumerState<_QuickAddTaskSheet> {
           initialReminderType: _reminderType,
           initialReminderOffsetMinutes: _reminderOffsetMinutes,
           initialReminderAt: _reminderAt,
+          initialReminderIsDefault: !_reminderPicked,
         ),
       ),
     );

@@ -34,13 +34,39 @@ class FakeNotificationService implements NotificationService {
   @override
   Future<void> cancelTaskOverdueFollowup(String taskId) async {}
 
+  /// Event reminders currently scheduled: event id → minutes before.
+  final eventReminders = <String, int>{};
+
   @override
   Future<void> scheduleEventReminder({
     required String eventId,
     required String title,
     required DateTime startAt,
-  }) async {}
+    int? minutesBefore = 15,
+  }) async {
+    if (minutesBefore == null) {
+      eventReminders.remove(eventId);
+    } else {
+      eventReminders[eventId] = minutesBefore;
+    }
+  }
 
   @override
-  Future<void> cancelEventReminder(String eventId) async {}
+  Future<void> cancelEventReminder(String eventId) async => eventReminders.remove(eventId);
+
+  /// Daily responsibilities reminders currently scheduled, by slot.
+  final dailyReminders = <int, ({String title, String body, DateTime at})>{};
+
+  @override
+  Future<void> scheduleDailyResponsibilityReminder({
+    required int slot,
+    required String title,
+    required String body,
+    required DateTime at,
+  }) async {
+    dailyReminders[slot] = (title: title, body: body, at: at);
+  }
+
+  @override
+  Future<void> cancelDailyResponsibilityReminders() async => dailyReminders.clear();
 }

@@ -11,6 +11,7 @@ enum SyncEntityType {
   shoppingItem,
   responsibility,
   activity,
+  familySettings,
 }
 
 enum SyncOperation { upsert, delete }

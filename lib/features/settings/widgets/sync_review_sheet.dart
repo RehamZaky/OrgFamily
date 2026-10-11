@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
+import '../../../core/utils/date_format_x.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/sync_outbox_table.dart';
 import '../../../data/providers.dart';
@@ -78,7 +79,7 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
       SyncEntityType.responsibility =>
         (await (db.select(db.responsibilities)..where((r) => r.id.equals(id))).getSingleOrNull())
             ?.title,
-      SyncEntityType.familyProfile => '',
+      SyncEntityType.familyProfile || SyncEntityType.familySettings => '',
       // Never listed — an activity entry follows its entity's decision
       // (see SyncEngine.inspectReview).
       SyncEntityType.activity => null,
@@ -92,14 +93,15 @@ class _SyncReviewSheetState extends ConsumerState<_SyncReviewSheet> {
         SyncEntityType.shoppingList => l10n.syncReviewShoppingList,
         SyncEntityType.familyMember => l10n.syncReviewMember,
         SyncEntityType.responsibility => l10n.syncReviewResponsibility,
-        SyncEntityType.familyProfile => l10n.syncReviewFamily,
+        SyncEntityType.familyProfile || SyncEntityType.familySettings => l10n.syncReviewFamily,
         SyncEntityType.activity => '',
       };
 
   String _stateLabel(AppLocalizations l10n, ReviewItem item, String locale) {
     final cloudTime = item.remoteUpdatedAt == null
         ? ''
-        : ' · ${DateFormat.MMMd(locale).add_jm().format(item.remoteUpdatedAt!.toLocal())}';
+        : ' · ${DateFormat.MMMd(locale).format(item.remoteUpdatedAt!.toLocal())} '
+            '${formatTime(context, item.remoteUpdatedAt!)}';
     return switch (item.state) {
       ReviewState.newOnPhone => l10n.syncReviewStateNew,
       ReviewState.phoneNewer => l10n.syncReviewStatePhoneNewer,

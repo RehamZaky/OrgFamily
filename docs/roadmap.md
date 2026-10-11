@@ -203,6 +203,17 @@ The point where Firebase actually earns its place.
 4. **V3 — Children & rewards**: child devices, chore history, points,
    approvals, rewards.
 
+## V2.2 — Drawer & behaviour settings
+
+- [x] Drawer: My responsibilities (Today / All, names the profile when
+      switched to someone else) and Family activity.
+- [x] Settings: saved theme/language (were reset on restart), time format,
+      start tab, reminders (new-task default, event offset, daily
+      responsibilities reminder), family schedule (school days, week start;
+      Owner-only, synced). See docs/architecture.md "Settings and
+      preferences". Rules for `settings` not deployed yet.
+- [ ] More drawer items (to be listed); Home layout customisation.
+
 ## V2.1 — Family communication
 
 - [x] Activity feed backed by a real audit log (replacing the derived

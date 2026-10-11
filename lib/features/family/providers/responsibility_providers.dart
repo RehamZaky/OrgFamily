@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../data/local/database.dart';
 import '../../../data/local/tables/responsibilities_table.dart';
 import '../../../data/providers.dart';
+import '../../../data/repositories/family_settings_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../responsibility_schedule.dart';
 import 'family_providers.dart';
@@ -20,7 +21,9 @@ final myResponsibilitiesDueTodayProvider = Provider<List<Responsibility>>((ref) 
   if (memberId == null) return const [];
   final all = ref.watch(responsibilitiesForMemberProvider(memberId)).valueOrNull ?? const [];
   final today = DateTime.now();
-  return [for (final r in all) if (isDueOn(r, today)) r];
+  final schoolDays = ref.watch(familyScheduleProvider).valueOrNull?.schoolWeekdays ??
+      FamilySchedule.defaults.schoolWeekdays;
+  return [for (final r in all) if (isDueOn(r, today, schoolDays: schoolDays)) r];
 });
 
 /// A date in the week of a given `DateTime.weekday` value, for formatting

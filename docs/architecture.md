@@ -476,6 +476,44 @@ next occurrence isn't logged — it's not a family action.
   `FamilyActivityScreen` has the weekly summary, member/type filters, day
   groups and "Show older activity".
 
+## Settings and preferences (V2.2)
+
+- **Per phone** (`AppPreferences`, SharedPreferences): theme, language,
+  start tab, time format, and reminder choices keyed by member
+  (`reminders.<memberId>.*`). Reminders belong to the phone's own person
+  (`reminderOwnerProvider`: the signed-in account's own profile, or the
+  Owner's in an all-local family) — **never the acting profile**, so
+  switching into a child's profile neither schedules nor cancels anything.
+  Loaded in `main()` before `runApp`, so the first frame already has the
+  saved theme/language. The start tab is read once in
+  `RootScaffold.initState` (rebuilds never reset navigation); Money falls
+  back to Home for a profile that can't see it without touching the saved
+  choice. The time format drives `MediaQuery.alwaysUse24HourFormat` (time
+  pickers) and every formatted time (`formatTime`, `TimeFormatting`).
+- **Reminders**: the task default only pre-fills *new* tasks
+  (`defaultTaskReminder`; date-only tasks keep the 9 AM on-the-day
+  reminder). The event offset re-arms this phone's notifications
+  (`EventRepository.resyncReminders`); shared events never change. The
+  daily responsibilities reminder (`DailyResponsibilityReminders`) is a
+  rolling 7-day plan in fixed per-date slots — today names what's left,
+  later days use generic text; every plan cancels all slots first, so an
+  account/profile switch leaves nothing of the previous person's. Re-planned
+  on any input change (`dailyReminderInputsProvider`), on resume and start.
+- **Family schedule** (shared, Owner-only): `FamilySettings` →
+  `families/{id}/settings/{id}`, its own document (older builds overwrite
+  the family doc with a full `set()`). No row/document = defaults
+  (Sun–Thu school days, week starts Sunday) and nothing is uploaded until
+  the Owner saves; a pending local edit is never overwritten by the cloud
+  copy (listener and first reconciliation both check). The Owner check is
+  the signed-in account (`ownerUid`), never the acting profile. A queued
+  settings change from another account (Owner edits offline, signs out,
+  someone else signs in) is excluded from review and "keep on this phone"
+  (`SyncEngine._needsReview`) — it waits, untouched, and uploads when the
+  Owner's account syncs again. School days
+  decide when "School days" chores are due; the week start drives the
+  calendar's first column, "this week" stats and the activity summary; the
+  calendar's weekend shading is unchanged.
+
 ## Testing
 
 `test/widget_test.dart` overrides `databaseProvider` with

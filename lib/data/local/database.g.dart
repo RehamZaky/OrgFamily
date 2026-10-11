@@ -9173,6 +9173,321 @@ class FamilyActivitiesCompanion extends UpdateCompanion<FamilyActivity> {
   }
 }
 
+class $FamilySettingsTable extends FamilySettings
+    with TableInfo<$FamilySettingsTable, FamilySetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilySettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _schoolWeekdaysMeta = const VerificationMeta(
+    'schoolWeekdays',
+  );
+  @override
+  late final GeneratedColumn<String> schoolWeekdays = GeneratedColumn<String>(
+    'school_weekdays',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('7,1,2,3,4'),
+  );
+  static const VerificationMeta _weekStartDayMeta = const VerificationMeta(
+    'weekStartDay',
+  );
+  @override
+  late final GeneratedColumn<int> weekStartDay = GeneratedColumn<int>(
+    'week_start_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(DateTime.sunday),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    schoolWeekdays,
+    weekStartDay,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilySetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('school_weekdays')) {
+      context.handle(
+        _schoolWeekdaysMeta,
+        schoolWeekdays.isAcceptableOrUnknown(
+          data['school_weekdays']!,
+          _schoolWeekdaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('week_start_day')) {
+      context.handle(
+        _weekStartDayMeta,
+        weekStartDay.isAcceptableOrUnknown(
+          data['week_start_day']!,
+          _weekStartDayMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilySetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilySetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      schoolWeekdays: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}school_weekdays'],
+      )!,
+      weekStartDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}week_start_day'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FamilySettingsTable createAlias(String alias) {
+    return $FamilySettingsTable(attachedDatabase, alias);
+  }
+}
+
+class FamilySetting extends DataClass implements Insertable<FamilySetting> {
+  final int id;
+
+  /// `DateTime.weekday` numbers (Monday 1 … Sunday 7), comma-separated
+  /// locally; a list of ints in Firestore. Decides when "school days"
+  /// responsibilities are due — not the calendar's weekend shading.
+  final String schoolWeekdays;
+
+  /// `DateTime.weekday` the week starts on — calendar's first column and
+  /// the start of every "this week" figure.
+  final int weekStartDay;
+  final DateTime updatedAt;
+  const FamilySetting({
+    required this.id,
+    required this.schoolWeekdays,
+    required this.weekStartDay,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['school_weekdays'] = Variable<String>(schoolWeekdays);
+    map['week_start_day'] = Variable<int>(weekStartDay);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FamilySettingsCompanion toCompanion(bool nullToAbsent) {
+    return FamilySettingsCompanion(
+      id: Value(id),
+      schoolWeekdays: Value(schoolWeekdays),
+      weekStartDay: Value(weekStartDay),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FamilySetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilySetting(
+      id: serializer.fromJson<int>(json['id']),
+      schoolWeekdays: serializer.fromJson<String>(json['schoolWeekdays']),
+      weekStartDay: serializer.fromJson<int>(json['weekStartDay']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'schoolWeekdays': serializer.toJson<String>(schoolWeekdays),
+      'weekStartDay': serializer.toJson<int>(weekStartDay),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FamilySetting copyWith({
+    int? id,
+    String? schoolWeekdays,
+    int? weekStartDay,
+    DateTime? updatedAt,
+  }) => FamilySetting(
+    id: id ?? this.id,
+    schoolWeekdays: schoolWeekdays ?? this.schoolWeekdays,
+    weekStartDay: weekStartDay ?? this.weekStartDay,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FamilySetting copyWithCompanion(FamilySettingsCompanion data) {
+    return FamilySetting(
+      id: data.id.present ? data.id.value : this.id,
+      schoolWeekdays: data.schoolWeekdays.present
+          ? data.schoolWeekdays.value
+          : this.schoolWeekdays,
+      weekStartDay: data.weekStartDay.present
+          ? data.weekStartDay.value
+          : this.weekStartDay,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilySetting(')
+          ..write('id: $id, ')
+          ..write('schoolWeekdays: $schoolWeekdays, ')
+          ..write('weekStartDay: $weekStartDay, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, schoolWeekdays, weekStartDay, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilySetting &&
+          other.id == this.id &&
+          other.schoolWeekdays == this.schoolWeekdays &&
+          other.weekStartDay == this.weekStartDay &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FamilySettingsCompanion extends UpdateCompanion<FamilySetting> {
+  final Value<int> id;
+  final Value<String> schoolWeekdays;
+  final Value<int> weekStartDay;
+  final Value<DateTime> updatedAt;
+  const FamilySettingsCompanion({
+    this.id = const Value.absent(),
+    this.schoolWeekdays = const Value.absent(),
+    this.weekStartDay = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  FamilySettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.schoolWeekdays = const Value.absent(),
+    this.weekStartDay = const Value.absent(),
+    required DateTime updatedAt,
+  }) : updatedAt = Value(updatedAt);
+  static Insertable<FamilySetting> custom({
+    Expression<int>? id,
+    Expression<String>? schoolWeekdays,
+    Expression<int>? weekStartDay,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (schoolWeekdays != null) 'school_weekdays': schoolWeekdays,
+      if (weekStartDay != null) 'week_start_day': weekStartDay,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  FamilySettingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? schoolWeekdays,
+    Value<int>? weekStartDay,
+    Value<DateTime>? updatedAt,
+  }) {
+    return FamilySettingsCompanion(
+      id: id ?? this.id,
+      schoolWeekdays: schoolWeekdays ?? this.schoolWeekdays,
+      weekStartDay: weekStartDay ?? this.weekStartDay,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (schoolWeekdays.present) {
+      map['school_weekdays'] = Variable<String>(schoolWeekdays.value);
+    }
+    if (weekStartDay.present) {
+      map['week_start_day'] = Variable<int>(weekStartDay.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilySettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('schoolWeekdays: $schoolWeekdays, ')
+          ..write('weekStartDay: $weekStartDay, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9197,6 +9512,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FamilyActivitiesTable familyActivities = $FamilyActivitiesTable(
     this,
   );
+  late final $FamilySettingsTable familySettings = $FamilySettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9217,6 +9533,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     savingsGoals,
     syncOutbox,
     familyActivities,
+    familySettings,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -15634,6 +15951,187 @@ typedef $$FamilyActivitiesTableProcessedTableManager =
       FamilyActivity,
       PrefetchHooks Function()
     >;
+typedef $$FamilySettingsTableCreateCompanionBuilder =
+    FamilySettingsCompanion Function({
+      Value<int> id,
+      Value<String> schoolWeekdays,
+      Value<int> weekStartDay,
+      required DateTime updatedAt,
+    });
+typedef $$FamilySettingsTableUpdateCompanionBuilder =
+    FamilySettingsCompanion Function({
+      Value<int> id,
+      Value<String> schoolWeekdays,
+      Value<int> weekStartDay,
+      Value<DateTime> updatedAt,
+    });
+
+class $$FamilySettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilySettingsTable> {
+  $$FamilySettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get schoolWeekdays => $composableBuilder(
+    column: $table.schoolWeekdays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekStartDay => $composableBuilder(
+    column: $table.weekStartDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilySettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilySettingsTable> {
+  $$FamilySettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schoolWeekdays => $composableBuilder(
+    column: $table.schoolWeekdays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekStartDay => $composableBuilder(
+    column: $table.weekStartDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilySettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilySettingsTable> {
+  $$FamilySettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get schoolWeekdays => $composableBuilder(
+    column: $table.schoolWeekdays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekStartDay => $composableBuilder(
+    column: $table.weekStartDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FamilySettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilySettingsTable,
+          FamilySetting,
+          $$FamilySettingsTableFilterComposer,
+          $$FamilySettingsTableOrderingComposer,
+          $$FamilySettingsTableAnnotationComposer,
+          $$FamilySettingsTableCreateCompanionBuilder,
+          $$FamilySettingsTableUpdateCompanionBuilder,
+          (
+            FamilySetting,
+            BaseReferences<_$AppDatabase, $FamilySettingsTable, FamilySetting>,
+          ),
+          FamilySetting,
+          PrefetchHooks Function()
+        > {
+  $$FamilySettingsTableTableManager(
+    _$AppDatabase db,
+    $FamilySettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilySettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilySettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamilySettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> schoolWeekdays = const Value.absent(),
+                Value<int> weekStartDay = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => FamilySettingsCompanion(
+                id: id,
+                schoolWeekdays: schoolWeekdays,
+                weekStartDay: weekStartDay,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> schoolWeekdays = const Value.absent(),
+                Value<int> weekStartDay = const Value.absent(),
+                required DateTime updatedAt,
+              }) => FamilySettingsCompanion.insert(
+                id: id,
+                schoolWeekdays: schoolWeekdays,
+                weekStartDay: weekStartDay,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilySettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilySettingsTable,
+      FamilySetting,
+      $$FamilySettingsTableFilterComposer,
+      $$FamilySettingsTableOrderingComposer,
+      $$FamilySettingsTableAnnotationComposer,
+      $$FamilySettingsTableCreateCompanionBuilder,
+      $$FamilySettingsTableUpdateCompanionBuilder,
+      (
+        FamilySetting,
+        BaseReferences<_$AppDatabase, $FamilySettingsTable, FamilySetting>,
+      ),
+      FamilySetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15668,4 +16166,6 @@ class $AppDatabaseManager {
       $$SyncOutboxTableTableManager(_db, _db.syncOutbox);
   $$FamilyActivitiesTableTableManager get familyActivities =>
       $$FamilyActivitiesTableTableManager(_db, _db.familyActivities);
+  $$FamilySettingsTableTableManager get familySettings =>
+      $$FamilySettingsTableTableManager(_db, _db.familySettings);
 }

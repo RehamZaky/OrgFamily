@@ -10,6 +10,8 @@ import '../theme/app_colors.dart';
 import '../utils/enum_display.dart';
 import 'member_avatar.dart';
 import '../theme/app_color_scheme.dart';
+import '../../features/family/screens/family_activity_screen.dart';
+import '../../features/family/screens/my_responsibilities_screen.dart';
 
 /// The app-wide navigation drawer — same content on every tab (Home, Tasks,
 /// Calendar, Lists, Family), reached via the menu icon each Scaffold's
@@ -166,6 +168,18 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
                   _DrawerItem(
+                    icon: Icons.task_alt,
+                    label: l10n.homeMyResponsibilities,
+                    color: context.colors.success,
+                    onTap: () => _open(context, const MyResponsibilitiesScreen()),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.timeline_rounded,
+                    label: l10n.sectionFamilyActivity,
+                    color: context.colors.warning,
+                    onTap: () => _open(context, const FamilyActivityScreen()),
+                  ),
+                  _DrawerItem(
                     icon: Icons.settings_outlined,
                     label: l10n.drawerSettings,
                     color: AppColors.info,
@@ -229,4 +243,10 @@ class _DrawerItem extends StatelessWidget {
       onTap: onTap,
     );
   }
+}
+
+/// Closes the drawer, then opens [screen] — every drawer destination.
+void _open(BuildContext context, Widget screen) {
+  Navigator.of(context).pop();
+  Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
 }

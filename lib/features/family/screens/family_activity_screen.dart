@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_color_scheme.dart';
+import '../../../core/utils/date_format_x.dart';
 import '../../../core/widgets/member_avatar.dart';
 import '../../../data/local/database.dart';
+import '../../../data/providers.dart';
+import '../../../data/repositories/family_settings_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/activity_providers.dart';
 import '../providers/family_providers.dart';
@@ -31,7 +34,14 @@ class _FamilyActivityScreenState extends ConsumerState<FamilyActivityScreen> {
     final locale = Localizations.localeOf(context).toString();
     final days = ref.watch(activityDaysProvider);
     final all = ref.watch(familyActivityProvider(days));
-    final week = ref.watch(familyActivityProvider(7)).valueOrNull ?? const <ActivityItem>[];
+    // "This week" runs from the family's week start (Settings → Family
+    // schedule) — at most 6 days back, so the 7-day window covers it.
+    final weekStart = (ref.watch(familyScheduleProvider).valueOrNull ?? FamilySchedule.defaults)
+        .weekStart(DateTime.now());
+    final week = [
+      for (final i in ref.watch(familyActivityProvider(7)).valueOrNull ?? const <ActivityItem>[])
+        if (!i.time.toLocal().isBefore(weekStart)) i,
+    ];
     final hasOlder = ref.watch(hasOlderActivityProvider(days)).valueOrNull ?? false;
     final members = ref.watch(familyMembersProvider).valueOrNull ?? const <FamilyMember>[];
     final membersById = {for (final m in members) m.id: m};
@@ -52,7 +62,7 @@ class _FamilyActivityScreenState extends ConsumerState<FamilyActivityScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
-          _WeekSummary(summary: WeeklyActivitySummary.of(week)),
+          _WeekSummary(summary: WeeklyActivitySummary.of(week), weekStart: weekStart),
           const SizedBox(height: 18),
           if (!nothingYet) ...[
             _FilterBar(
@@ -104,7 +114,7 @@ class _FamilyActivityScreenState extends ConsumerState<FamilyActivityScreen> {
                           item: dayItems[i],
                           membersById: membersById,
                           // The section already says which day.
-                          timeLabel: DateFormat.jm(locale).format(dayItems[i].time.toLocal()),
+                          timeLabel: formatTime(context, dayItems[i].time),
                         ),
                         if (i != dayItems.length - 1)
                           Divider(height: 20, color: context.colors.border),
@@ -172,19 +182,19 @@ List<(String, List<ActivityItem>)> groupActivityByDay(
 /// "This week" for the whole family — always, whatever the filters below
 /// say (the subtitle states it), so the numbers never silently change.
 class _WeekSummary extends StatelessWidget {
-  const _WeekSummary({required this.summary});
+  const _WeekSummary({required this.summary, required this.weekStart});
 
   final WeeklyActivitySummary summary;
+  final DateTime weekStart;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
     final colors = context.colors;
-    final start = activityWindowStart(7);
     final now = DateTime.now();
     final range =
-        '${DateFormat.MMMd(locale).format(start)} – ${DateFormat.MMMd(locale).format(now)}';
+        '${DateFormat.MMMd(locale).format(weekStart)} – ${DateFormat.MMMd(locale).format(now)}';
 
     Widget stat(int value, String label, String fullLabel, IconData icon, Color color) => Expanded(
       child: Semantics(

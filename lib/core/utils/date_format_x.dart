@@ -1,4 +1,28 @@
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+/// How times are shown app-wide: 12/24-hour and the language's numerals.
+/// Kept current by `OrgFamilyApp` (from the time-format setting and the
+/// app language) so context-free helpers like [DateFormatX.timeLabel]
+/// format the same way as [formatTime].
+abstract final class TimeFormatting {
+  static bool use24Hour = false;
+  static String? locale;
+
+  static DateFormat get _format =>
+      use24Hour ? DateFormat.Hm(locale) : DateFormat.jm(locale);
+
+  static String format(DateTime dt) => _format.format(dt);
+}
+
+/// A time of day in the app's time format — "3:30 PM" / "15:30", or
+/// "٣:٣٠ م" / "١٥:٣٠" in Arabic. Reads the 24-hour choice from [context]
+/// (set from the time-format setting in `OrgFamilyApp`).
+String formatTime(BuildContext context, DateTime dt) {
+  final locale = Localizations.maybeLocaleOf(context)?.toString() ?? TimeFormatting.locale;
+  final use24 = MediaQuery.maybeAlwaysUse24HourFormatOf(context) ?? TimeFormatting.use24Hour;
+  return (use24 ? DateFormat.Hm(locale) : DateFormat.jm(locale)).format(dt.toLocal());
+}
 
 extension DateFormatX on DateTime {
   bool get isToday {
@@ -26,7 +50,7 @@ extension DateFormatX on DateTime {
     return DateFormat('EEEE').format(this);
   }
 
-  String get timeLabel => DateFormat('h:mm a').format(this);
+  String get timeLabel => TimeFormatting.format(this);
 
   String get shortDate => DateFormat('MMM d').format(this);
 
@@ -56,5 +80,5 @@ extension DateFormatX on DateTime {
 /// [DateFormatX.timeLabel] formats a full [DateTime].
 extension MinutesSinceMidnightX on int {
   String get timeOfDayLabel =>
-      DateFormat('h:mm a').format(DateTime(2000, 1, 1, this ~/ 60, this % 60));
+      TimeFormatting.format(DateTime(2000, 1, 1, this ~/ 60, this % 60));
 }

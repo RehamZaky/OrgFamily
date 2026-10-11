@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/auth_config.dart';
 import '../core/notifications/notification_service.dart';
+import '../features/settings/providers/reminder_providers.dart';
 import 'activity/activity_log.dart';
 import 'local/database.dart';
 import 'local/tables/sync_outbox_table.dart';
@@ -16,6 +17,7 @@ import 'repositories/event_repository.dart';
 import 'repositories/family_invite_repository.dart';
 import 'repositories/family_profile_repository.dart';
 import 'repositories/family_repository.dart';
+import 'repositories/family_settings_repository.dart';
 import 'repositories/note_repository.dart';
 import 'repositories/responsibility_repository.dart';
 import 'repositories/savings_goal_repository.dart';
@@ -25,6 +27,7 @@ import 'sync/adapters/activity_sync_adapter.dart';
 import 'sync/adapters/event_sync_adapter.dart';
 import 'sync/adapters/family_member_sync_adapter.dart';
 import 'sync/adapters/family_profile_sync_adapter.dart';
+import 'sync/adapters/family_settings_sync_adapter.dart';
 import 'sync/adapters/responsibility_sync_adapter.dart';
 import 'sync/adapters/shopping_item_sync_adapter.dart';
 import 'sync/adapters/shopping_list_sync_adapter.dart';
@@ -77,6 +80,7 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
     ShoppingItemSyncAdapter(db),
     ResponsibilitySyncAdapter(db),
     ActivitySyncAdapter(db),
+    FamilySettingsSyncAdapter(db),
   ]);
 });
 
@@ -253,9 +257,16 @@ final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
   return (db.select(db.syncOutbox)..where((o) => o.familyId.equals(active.familyId)))
       .watch()
       .map((rows) {
+    // Another account's family-settings change waits for that account (see
+    // SyncEngine._needsReview) — neither this account's nor reviewable.
+    bool waitsForItsAccount(SyncOutboxData r) =>
+        r.entityType == SyncEntityType.familySettings &&
+        r.originUid != null &&
+        r.originUid != active.uid;
     bool needsReview(SyncOutboxData r) =>
-        r.status == SyncOutboxStatus.held || r.originUid != active.uid;
-    final mine = rows.where((r) => !needsReview(r));
+        !waitsForItsAccount(r) &&
+        (r.status == SyncOutboxStatus.held || r.originUid != active.uid);
+    final mine = rows.where((r) => !needsReview(r) && !waitsForItsAccount(r));
     return SyncOutboxSummary(
       pending: mine.where((r) => r.status != SyncOutboxStatus.failed).length,
       failed: mine.where((r) => r.status == SyncOutboxStatus.failed).length,
@@ -268,6 +279,16 @@ final syncOutboxSummaryProvider = StreamProvider<SyncOutboxSummary?>((ref) {
 /// `RootScaffold`.
 final activityLogProvider = Provider<ActivityLog>((ref) {
   return ActivityLog(ref.watch(syncEngineProvider));
+});
+
+final familySettingsRepositoryProvider = Provider<FamilySettingsRepository>((ref) {
+  return FamilySettingsRepository(ref.watch(databaseProvider), ref.watch(syncEngineProvider));
+});
+
+/// The family's week — school days and week start — shared by everyone,
+/// set by the Owner; [FamilySchedule.defaults] until the Owner saves one.
+final familyScheduleProvider = StreamProvider<FamilySchedule>((ref) {
+  return ref.watch(familySettingsRepositoryProvider).watchSchedule();
 });
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
@@ -307,6 +328,7 @@ final eventRepositoryProvider = Provider<EventRepository>((ref) {
     ref.watch(notificationServiceProvider),
     ref.watch(syncEngineProvider),
     activity: ref.watch(activityLogProvider),
+    eventReminderMinutes: () => ref.read(phoneReminderPreferencesProvider).eventMinutes,
   );
 });
 

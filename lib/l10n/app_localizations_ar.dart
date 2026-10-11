@@ -575,6 +575,101 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsPreferences => 'التفضيلات';
 
   @override
+  String get settingsTimeFormat => 'تنسيق الوقت';
+
+  @override
+  String get settingsTimeFormatSystem => 'الجهاز';
+
+  @override
+  String get settingsTimeFormat12 => '١٢ ساعة';
+
+  @override
+  String get settingsTimeFormat24 => '٢٤ ساعة';
+
+  @override
+  String settingsTimeFormatExample(Object time) {
+    return 'مثال: $time';
+  }
+
+  @override
+  String get settingsStartTab => 'فتح التطبيق على';
+
+  @override
+  String get settingsReminders => 'التذكيرات';
+
+  @override
+  String settingsRemindersFor(Object name) {
+    return 'هذه تذكيرات $name على هذا الجهاز — تبديل الملف الشخصي لا يغيّرها.';
+  }
+
+  @override
+  String get settingsTaskReminder => 'المهام الجديدة';
+
+  @override
+  String get settingsTaskReminderHint =>
+      'التذكير المبدئي للمهام التي تنشئها من الآن؛ المهام الحالية تحتفظ بتذكيراتها. المهام بتاريخ فقط يُذكَّر بها الساعة ٩ صباحًا في يومها. «بدون تذكير» يوقفه لكل المهام الجديدة، بما فيها ذات التاريخ فقط.';
+
+  @override
+  String get settingsEventReminder => 'المواعيد';
+
+  @override
+  String get settingsEventReminderHint =>
+      'يغيّر التذكيرات على هذا الجهاز فقط، ولا يغيّر الموعد لأي شخص آخر.';
+
+  @override
+  String get settingsDailyReminder => 'المسؤوليات اليومية';
+
+  @override
+  String get settingsDailyReminderOff => 'متوقف';
+
+  @override
+  String get settingsDailyReminderHint =>
+      'تذكير واحد يوميًا بما تبقّى. افتح التطبيق مرة في الأسبوع على الأقل ليستمر.';
+
+  @override
+  String get settingsFamilySchedule => 'جدول العائلة';
+
+  @override
+  String get settingsSchoolDays => 'أيام الدراسة';
+
+  @override
+  String get settingsSchoolDaysHint =>
+      'متى تُستحق مسؤوليات «أيام الدراسة». عطلة نهاية الأسبوع في التقويم لا تتغير.';
+
+  @override
+  String get settingsWeekStart => 'بداية الأسبوع';
+
+  @override
+  String get settingsFamilyScheduleOwnerOnly => 'يحدده مالك العائلة للجميع.';
+
+  @override
+  String dailyReminderLeft(int count, Object names) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تبقّت $count مسؤولية اليوم 💜 $names',
+      few: 'تبقّت $count مسؤوليات اليوم 💜 $names',
+      two: 'تبقّت مسؤوليتان اليوم 💜 $names',
+      one: 'تبقّت مسؤولية واحدة اليوم 💜 $names',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dailyReminderGeneric => 'تحقّق من مسؤوليات اليوم 💜';
+
+  @override
+  String memberResponsibilitiesTitle(Object name) {
+    return 'مسؤوليات $name';
+  }
+
+  @override
+  String get responsibilitiesAll => 'الكل';
+
+  @override
+  String get responsibilitiesNoneToday => 'لا شيء مستحق اليوم 🎉';
+
+  @override
   String get accountSectionTitle => 'الحساب';
 
   @override
@@ -1922,7 +2017,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get responsibilityDaily => 'يوميًا';
 
   @override
-  String get responsibilitySchoolDays => 'أيام الدراسة (الأحد–الخميس)';
+  String get responsibilitySchoolDays => 'أيام الدراسة';
 
   @override
   String get responsibilityCustom => 'مخصص';
