@@ -15,6 +15,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../providers/family_providers.dart';
 import '../widgets/family_activity_feed.dart';
+import '../../../core/widgets/section_header.dart';
+import 'family_activity_screen.dart';
 import 'add_member_screen.dart';
 import 'member_profile_screen.dart';
 
@@ -220,8 +222,12 @@ class FamilyScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
               ],
             const SizedBox(height: 16),
-            Text(l10n.sectionFamilyActivity,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            SectionHeader(
+              title: l10n.sectionFamilyActivity,
+              onViewAll: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const FamilyActivityScreen()),
+              ),
+            ),
             const SizedBox(height: 10),
             Card(
               child: Padding(

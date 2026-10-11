@@ -71,6 +71,30 @@ class ActivityLog {
     _actorMemberId = memberId;
   }
 
+  /// The one completion entry a task occurrence can have. Each occurrence
+  /// of a recurring task is its own task (own id), so each gets its own.
+  static String taskCompletionId(String taskId) => '${ActivityTypes.taskCompleted}:$taskId';
+
+  /// The one completion entry a responsibility can have per local day.
+  static String responsibilityCompletionId(String responsibilityId, DateTime day) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final d = day.toLocal();
+    return '${ActivityTypes.responsibilityCompleted}:$responsibilityId:'
+        '${d.year}-${two(d.month)}-${two(d.day)}';
+  }
+
+  /// [onceId]: a deterministic id for an action that may only ever be
+  /// recorded once (see [taskCompletionId], [responsibilityCompletionId]).
+  /// If this phone already has that entry — recorded here, or synced from
+  /// another phone — nothing is recorded; untick and re-tick doesn't add a
+  /// second. Two phones recording it before either has synced produce the
+  /// same document, and the second to upload adopts the first's (see
+  /// `SyncEngine._pushOne`).
+  ///
+  /// An entry of the same [type] about the same entity under another id —
+  /// made before ids were deterministic, or by a phone on an older build —
+  /// counts as already recorded too: any time for a task, within the local
+  /// day [onceDay] for a responsibility.
   Future<void> record(
     AppDatabase db, {
     required String type,
@@ -78,9 +102,46 @@ class ActivityLog {
     required String entityId,
     Map<String, Object?> metadata = const {},
     String actorKind = ActorKinds.adult,
+    String? onceId,
+    DateTime? onceDay,
   }) async {
     final now = DateTime.now();
-    final id = _uuid.v4();
+    final id = onceId ?? _uuid.v4();
+    if (onceId != null) {
+      final a = db.familyActivities;
+      final day = onceDay?.toLocal();
+      final dayStart = day == null ? null : DateTime(day.year, day.month, day.day);
+      final dayEnd = dayStart == null ? null : DateTime(day!.year, day.month, day.day + 1);
+      final when = coalesce([a.occurredAt, a.createdAt]);
+      final existing =
+          await (db.selectOnly(a)
+                ..addColumns([a.id])
+                ..where(
+                  a.id.equals(onceId) |
+                      (a.type.equals(type) &
+                          a.entityId.equals(entityId) &
+                          (dayStart == null
+                              ? const Constant(true)
+                              : when.isBiggerOrEqualValue(dayStart) &
+                                    when.isSmallerThanValue(dayEnd!))),
+                )
+                ..limit(1))
+              .get();
+      if (existing.isNotEmpty) return;
+    }
+    // An adult linked to a different account than the signed-in one (a
+    // shared phone with someone else's profile picked) can't be vouched
+    // for — firestore.rules would refuse the entry — so it's recorded as
+    // "not known". Signed out, it's kept; review fixes it up on upload.
+    var memberId = actorKind == ActorKinds.system ? null : _actorMemberId;
+    if (memberId != null && _actorUid != null) {
+      final mid = memberId;
+      final member = await (db.select(
+        db.familyMembers,
+      )..where((m) => m.id.equals(mid))).getSingleOrNull();
+      final linked = member?.linkedUid;
+      if (linked != null && linked != _actorUid) memberId = null;
+    }
     await db
         .into(db.familyActivities)
         .insert(
@@ -89,7 +150,7 @@ class ActivityLog {
             type: type,
             actorKind: Value(actorKind),
             actorUid: Value(_actorUid),
-            actorMemberId: Value(actorKind == ActorKinds.system ? null : _actorMemberId),
+            actorMemberId: Value(memberId),
             entityType: entityType,
             entityId: entityId,
             metadata: Value(jsonEncode(metadata)),
@@ -110,6 +171,8 @@ extension ActivityLogX on ActivityLog? {
     required String entityType,
     required String entityId,
     Map<String, Object?> metadata = const {},
+    String? onceId,
+    DateTime? onceDay,
   }) async {
     final log = this;
     if (log == null) return;
@@ -119,6 +182,8 @@ extension ActivityLogX on ActivityLog? {
       entityType: entityType,
       entityId: entityId,
       metadata: metadata,
+      onceId: onceId,
+      onceDay: onceDay,
     );
   }
 }

@@ -592,6 +592,13 @@ class SyncEngine {
           _needsReview(o, familyId, uid) &
           ((o.entityType.equalsValue(type) & o.entityId.equals(entityId)) |
               (o.entityType.equalsValue(SyncEntityType.activity) & o.entityId.isIn(activityIds)));
+      // Only the entries that were themselves awaiting review — not this
+      // account's own entries about the same entity, which are queued
+      // normally and must be left alone.
+      final heldActivityIds = await (_db.select(_db.syncOutbox)
+            ..where((o) => rowsOf(o) & o.entityType.equalsValue(SyncEntityType.activity)))
+          .map((o) => o.entityId)
+          .get();
       switch (choice) {
         case ReviewChoice.upload:
           await (_db.update(_db.syncOutbox)..where(rowsOf)).write(
@@ -602,20 +609,16 @@ class SyncEngine {
               nextRetryAt: const Value(null),
             ),
           );
-          // Entries made under another account are credited to the one
-          // taking them on (firestore.rules only accepts an entry from the
-          // account it names); who it was on behalf of — actorMemberId —
-          // is unchanged.
-          final otherAccounts = await (_db.select(_db.familyActivities)
-                ..where((a) =>
-                    a.id.isIn(activityIds) &
-                    a.occurredAt.isNull() &
-                    a.actorUid.isNotNull() &
-                    a.actorUid.equals(uid).not()))
+          // firestore.rules accept an entry only from the account it names,
+          // on behalf of that account's own member or an account-less one.
+          // Held entries — made under another account, or signed out — are
+          // fixed up to match: credited to the account taking them on, and
+          // an adult linked to someone else becomes "not known" rather than
+          // getting the entry rejected for good.
+          final held = await (_db.select(_db.familyActivities)
+                ..where((a) => a.id.isIn(heldActivityIds) & a.occurredAt.isNull()))
               .get();
-          for (final entry in otherAccounts) {
-            // Nor may it name an adult linked to another account as acting
-            // — it becomes "not known" then, rather than being rejected.
+          for (final entry in held) {
             final member = entry.actorMemberId == null
                 ? null
                 : await (_db.select(_db.familyMembers)
@@ -624,7 +627,7 @@ class SyncEngine {
             final keepMember = member == null || member.linkedUid == null || member.linkedUid == uid;
             await (_db.update(_db.familyActivities)..where((a) => a.id.equals(entry.id))).write(
               FamilyActivitiesCompanion(
-                actorUid: Value(uid),
+                actorUid: Value(entry.actorUid == null ? null : uid),
                 actorMemberId: Value(keepMember ? entry.actorMemberId : null),
               ),
             );
@@ -642,10 +645,10 @@ class SyncEngine {
             await adapter.applyRemoteUpsert(entityId, data, remoteUpdatedAt);
           }
           await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
-          // The change was replaced by the cloud's version, so entries
-          // describing it (never uploaded: no server time yet) go too.
+          // The held change was replaced by the cloud's version, so the held
+          // entries describing it go too.
           await (_db.delete(_db.familyActivities)
-                ..where((a) => a.id.isIn(activityIds) & a.occurredAt.isNull()))
+                ..where((a) => a.id.isIn(heldActivityIds) & a.occurredAt.isNull()))
               .go();
         case ReviewChoice.phoneOnly:
           await (_db.delete(_db.syncOutbox)..where(rowsOf)).go();
@@ -792,12 +795,20 @@ class SyncEngine {
         await _removeOutboxRow(row.id);
         return;
       }
+      final docRef = _firestore!.collection(adapter.collectionPath(row.familyId)).doc(row.entityId);
+      // An entry is written once (firestore.rules refuse any change to
+      // it). Not having its server time yet can mean an earlier attempt
+      // landed but its read-back didn't, or — for a once-only entry with a
+      // deterministic id — another phone recorded it first: either way,
+      // take the stored one.
+      if (local is FamilyActivity && local.occurredAt == null && await _adoptStored(adapter, row)) {
+        return;
+      }
       final data = Map<String, dynamic>.from(adapter.toFirestoreFields(local));
       data['updatedAt'] = FieldValue.serverTimestamp();
       // Only ever reached via drainNow(), which only ever runs once
       // _activeFamilyId is set — which start() only does after confirming
       // _firestore != null.
-      final docRef = _firestore!.collection(adapter.collectionPath(row.familyId)).doc(row.entityId);
       await docRef.set(data);
       final snap = await docRef.get();
       final resolved = snap.data();
@@ -805,11 +816,54 @@ class SyncEngine {
       // Reconcile the local row's updatedAt to the server-assigned instant
       // (see the plan's "Conflict timestamps" section) via the same code
       // path a genuine remote change would use.
-      await adapter.applyRemoteUpsert(row.entityId, resolved ?? data, resolvedUpdatedAt);
-      await _removeOutboxRow(row.id);
+      //
+      // Unless the entity changed again locally while this push was in
+      // flight (another outbox row for it): applying the read-back then
+      // would overwrite that newer change — e.g. undo a delete made right
+      // after an add, which the next push would then upload as undeleted.
+      // That row's own push brings the server time in instead. Checked and
+      // applied in one transaction, so a local write can't land between.
+      await _db.transaction(() async {
+        final changedSince = await (_db.select(_db.syncOutbox)
+              ..where((o) =>
+                  o.entityType.equalsValue(row.entityType) &
+                  o.entityId.equals(row.entityId) &
+                  o.id.equals(row.id).not())
+              ..limit(1))
+            .get();
+        if (changedSince.isEmpty) {
+          await adapter.applyRemoteUpsert(row.entityId, resolved ?? data, resolvedUpdatedAt);
+        }
+        await _removeOutboxRow(row.id);
+      });
     } catch (e) {
+      // Two phones uploading the same once-only entry at the same moment:
+      // the second write lands on an existing entry, which the rules
+      // refuse — adopt the first phone's instead of failing for good.
+      if (row.entityType == SyncEntityType.activity &&
+          e is FirebaseException &&
+          e.code == 'permission-denied') {
+        try {
+          if (await _adoptStored(adapter, row)) return;
+        } catch (_) {}
+      }
       await _recordFailure(row, e);
     }
+  }
+
+  /// Replaces the local row with the stored cloud document and drops the
+  /// queued push, if the document exists. Reads from the server.
+  Future<bool> _adoptStored(SyncAdapter adapter, SyncOutboxData row) async {
+    final snap = await _firestore!
+        .collection(adapter.collectionPath(row.familyId))
+        .doc(row.entityId)
+        .get(const GetOptions(source: Source.server));
+    final stored = snap.data();
+    final storedUpdatedAt = (stored?['updatedAt'] as Timestamp?)?.toDate();
+    if (stored == null || storedUpdatedAt == null) return false;
+    await adapter.applyRemoteUpsert(row.entityId, stored, storedUpdatedAt);
+    await _removeOutboxRow(row.id);
+    return true;
   }
 
   Future<void> _removeOutboxRow(int id) =>

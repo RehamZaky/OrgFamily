@@ -242,59 +242,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String activityCompleted(Object title) {
-    return 'completed \"$title\"';
+  String activityCompleted(Object actor) {
+    return '$actor completed a task';
   }
 
   @override
-  String activityAdded(Object item, Object list) {
-    return 'added \"$item\" to $list';
+  String activityAdded(Object actor, Object list) {
+    return '$actor added to $list';
   }
 
   @override
   String get activitySomeone => 'Someone';
 
   @override
-  String activityTaskCreated(Object title) {
-    return 'added the task \"$title\"';
+  String activityTaskCreated(Object actor) {
+    return '$actor added a task';
   }
 
   @override
-  String activityTaskAssigned(Object title, Object name) {
-    return 'assigned \"$title\" to $name';
+  String activityTaskAssigned(Object actor, Object assignee) {
+    return '$actor assigned a task to $assignee';
   }
 
   @override
-  String activityEventCreated(Object title) {
-    return 'added the event \"$title\"';
+  String activityEventCreated(Object actor) {
+    return '$actor added an event';
   }
 
   @override
-  String activityEventChanged(Object title) {
-    return 'updated the event \"$title\"';
+  String activityEventChanged(Object actor) {
+    return '$actor updated an event';
   }
 
   @override
-  String activityEventCancelled(Object title) {
-    return 'cancelled the event \"$title\"';
+  String activityEventCancelled(Object actor) {
+    return '$actor cancelled an event';
   }
 
   @override
-  String activityItemBought(Object item) {
-    return 'bought \"$item\"';
+  String activityItemBought(Object actor) {
+    return '$actor bought an item';
   }
 
   @override
-  String activityItemRemoved(Object item, Object list) {
-    return 'removed \"$item\" from $list';
+  String activityItemRemoved(Object actor, Object list) {
+    return '$actor removed from $list';
   }
 
   @override
-  String get activityMemberJoined => 'joined the family';
+  String activityMemberJoined(Object actor) {
+    return '$actor joined the family';
+  }
 
   @override
-  String activityResponsibilityDone(Object title) {
-    return 'finished \"$title\"';
+  String activityResponsibilityDone(Object actor) {
+    return '$actor finished a responsibility';
   }
 
   @override
@@ -304,16 +306,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityStatTasks => 'Tasks done';
 
   @override
-  String get activityStatEvents => 'Events';
+  String get activityStatEvents => 'Event updates';
 
   @override
   String get activityStatShopping => 'List updates';
 
   @override
   String get activityStatChores => 'Chores done';
-
-  @override
-  String get activityEarlierThisWeek => 'Earlier this week';
 
   @override
   String get activityLoadOlder => 'Show older activity';
@@ -325,9 +324,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityFilterEveryone => 'Everyone';
 
   @override
-  String get activityFilterAll => 'All';
-
-  @override
   String get activityFilterTasks => 'Tasks';
 
   @override
@@ -337,10 +333,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityFilterShopping => 'Shopping';
 
   @override
-  String get activityFilterFamily => 'Family';
+  String get activityEmptyFiltered => 'No activity matches these filters';
 
   @override
-  String get activityEmptyFiltered => 'No activity matches these filters';
+  String activityWholeFamily(Object range) {
+    return 'Whole family · $range';
+  }
+
+  @override
+  String get activityStatTasksShort => 'Tasks';
+
+  @override
+  String get activityStatEventsShort => 'Events';
+
+  @override
+  String get activityStatListsShort => 'Lists';
+
+  @override
+  String get activityStatChoresShort => 'Chores';
+
+  @override
+  String get activityTimeline => 'Activity timeline';
+
+  @override
+  String get activityFilterAllTypes => 'All types';
+
+  @override
+  String get activityFilterResponsibilities => 'Responsibilities';
+
+  @override
+  String get activityFilterMembers => 'Members';
+
+  @override
+  String get activityFilterByMember => 'Show activity by';
+
+  @override
+  String get activityFilterByType => 'Activity type';
 
   @override
   String get today => 'Today';

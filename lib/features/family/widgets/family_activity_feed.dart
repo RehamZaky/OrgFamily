@@ -10,32 +10,61 @@ import '../../../l10n/app_localizations.dart';
 import '../providers/activity_providers.dart';
 import '../providers/family_providers.dart';
 
-/// The sentence after the member's name, e.g. `completed "Feed the cat"`.
-/// Built from the entry's own metadata — the names as they were then — so
-/// it still reads right after the task is renamed or deleted.
+/// The action, with [actor] wherever the language puts the name — English
+/// leads with it ("Mariam completed a task"); Arabic uses a neutral passive
+/// that fits every member without a gender ("تم إكمال مهمة بواسطة مريم").
+/// The item itself goes on its own line (see [activityTitle]), so long or
+/// Arabic titles don't make the sentence hard to scan.
 String activityText(
   ActivityItem item,
   AppLocalizations l10n,
   Map<String, FamilyMember> membersById,
+  String actor,
 ) {
   String m(String key) => item.metadata[key] as String? ?? '';
   return switch (item.type) {
-    ActivityTypes.taskCreated => l10n.activityTaskCreated(m('title')),
+    ActivityTypes.taskCreated => l10n.activityTaskCreated(actor),
     ActivityTypes.taskAssigned => l10n.activityTaskAssigned(
-      m('title'),
+      actor,
       membersById[item.metadata['assigneeId']]?.name ?? l10n.activitySomeone,
     ),
-    ActivityTypes.taskCompleted => l10n.activityCompleted(m('title')),
-    ActivityTypes.eventCreated => l10n.activityEventCreated(m('title')),
-    ActivityTypes.eventChanged => l10n.activityEventChanged(m('title')),
-    ActivityTypes.eventCancelled => l10n.activityEventCancelled(m('title')),
-    ActivityTypes.shoppingItemAdded => l10n.activityAdded(m('name'), m('listName')),
-    ActivityTypes.shoppingItemPurchased => l10n.activityItemBought(m('name')),
-    ActivityTypes.shoppingItemRemoved => l10n.activityItemRemoved(m('name'), m('listName')),
-    ActivityTypes.memberJoined => l10n.activityMemberJoined,
-    ActivityTypes.responsibilityCompleted => l10n.activityResponsibilityDone(m('title')),
+    ActivityTypes.taskCompleted => l10n.activityCompleted(actor),
+    ActivityTypes.eventCreated => l10n.activityEventCreated(actor),
+    ActivityTypes.eventChanged => l10n.activityEventChanged(actor),
+    ActivityTypes.eventCancelled => l10n.activityEventCancelled(actor),
+    ActivityTypes.shoppingItemAdded => l10n.activityAdded(actor, m('listName')),
+    ActivityTypes.shoppingItemPurchased => l10n.activityItemBought(actor),
+    ActivityTypes.shoppingItemRemoved => l10n.activityItemRemoved(actor, m('listName')),
+    ActivityTypes.memberJoined => l10n.activityMemberJoined(actor),
+    ActivityTypes.responsibilityCompleted => l10n.activityResponsibilityDone(actor),
     _ => '',
   };
+}
+
+/// What the entry is about — the task/event/chore title or item name as it
+/// was then, so it still reads right after a rename or delete. Null when
+/// the action says it all (a member joining).
+String? activityTitle(ActivityItem item) {
+  if (item.type == ActivityTypes.memberJoined) return null;
+  final title = (item.metadata['title'] ?? item.metadata['name']) as String?;
+  return (title == null || title.isEmpty) ? null : title;
+}
+
+/// [activityText] as spans, with the actor's name in bold.
+List<TextSpan> activitySpans(
+  ActivityItem item,
+  AppLocalizations l10n,
+  Map<String, FamilyMember> membersById,
+  String actor,
+) {
+  const marker = '\u0001';
+  final parts = activityText(item, l10n, membersById, marker).split(marker);
+  return [
+    for (var i = 0; i < parts.length; i++) ...[
+      if (i > 0) TextSpan(text: actor, style: const TextStyle(fontWeight: FontWeight.w700)),
+      if (parts[i].isNotEmpty) TextSpan(text: parts[i]),
+    ],
+  ];
 }
 
 (IconData, Color) activityIcon(ActivityItem item, AppColorScheme colors) => switch (item.type) {
@@ -59,7 +88,7 @@ String timeAgo(BuildContext context, AppLocalizations l10n, DateTime dt) {
   if (diff.inHours < 24) return l10n.hoursAgo(diff.inHours);
   if (diff.inDays < 7) return l10n.daysAgo(diff.inDays);
   final locale = Localizations.localeOf(context).toString();
-  return DateFormat('MMM d', locale).format(dt);
+  return DateFormat('MMM d', locale).format(dt.toLocal());
 }
 
 class ActivityRow extends StatelessWidget {
@@ -68,17 +97,22 @@ class ActivityRow extends StatelessWidget {
   final ActivityItem item;
   final Map<String, FamilyMember> membersById;
 
-  /// Shown under the sentence; defaults to "5 minutes ago" style.
+  /// Shown at the end of the first line; defaults to "5 minutes ago" style.
   final String? timeLabel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = context.colors;
     final member = membersById[item.memberId];
-    final (icon, iconColor) = activityIcon(item, context.colors);
-    // A member who has since been removed keeps their name on the entries
-    // that recorded it.
-    final name = member?.name ?? (item.metadata['name'] as String?);
+    final (icon, iconColor) = activityIcon(item, colors);
+    // A member who has since been removed: a join entry still has the name
+    // it recorded (other entries' `name` is an item's, not a person's).
+    final actor =
+        member?.name ??
+        (item.type == ActivityTypes.memberJoined ? item.metadata['name'] as String? : null) ??
+        l10n.activitySomeone;
+    final title = activityTitle(item);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -91,7 +125,7 @@ class ActivityRow extends StatelessWidget {
               bottom: -2,
               child: CircleAvatar(
                 radius: 8,
-                backgroundColor: context.colors.surface,
+                backgroundColor: colors.surface,
                 child: Icon(icon, size: 12, color: iconColor),
               ),
             ),
@@ -102,25 +136,40 @@ class ActivityRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text.rich(
-                TextSpan(
-                  style: TextStyle(color: context.colors.textPrimary, fontSize: 13),
-                  children: [
-                    TextSpan(
-                      text: item.type == ActivityTypes.memberJoined
-                          ? (name ?? l10n.activitySomeone)
-                          : (member?.name ?? l10n.activitySomeone),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: TextStyle(color: colors.textSecondary, fontSize: 12.5),
+                        children: activitySpans(item, l10n, membersById, actor),
+                      ),
                     ),
-                    TextSpan(text: ' ${activityText(item, l10n, membersById)}'),
-                  ],
+                  ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Text(
+                      timeLabel ?? timeAgo(context, l10n, item.time),
+                      style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+              if (title != null) ...[
+                const SizedBox(height: 3),
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                timeLabel ?? timeAgo(context, l10n, item.time),
-                style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
-              ),
+              ],
             ],
           ),
         ),
@@ -153,10 +202,7 @@ class FamilyActivityFeed extends ConsumerWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Center(
-          child: Text(
-            l10n.emptyNoActivityYet,
-            style: TextStyle(color: context.colors.textSecondary),
-          ),
+          child: Text(l10n.emptyNoActivityYet, style: TextStyle(color: context.colors.textSecondary)),
         ),
       );
     }

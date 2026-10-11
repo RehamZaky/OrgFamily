@@ -285,9 +285,10 @@ service cloud.firestore {
       // genuine entry rejected for good.
       //
       // The only change allowed afterwards is the sync engine re-sending
-      // the same entry (a retry whose first attempt landed): nothing may
-      // differ but updatedAt, and occurredAt only by the retry's own
-      // server time — or keep its value.
+      // the same entry unchanged — nothing but updatedAt may differ, so an
+      // entry can't be edited or moved in the timeline. (A retry whose
+      // first attempt already landed reads the stored entry back instead
+      // of re-sending: see SyncEngine._pushOne.)
       match /activities/{activityId} {
         allow read: if isFamilyMember(familyId);
         allow create: if isFamilyMember(familyId)
@@ -300,9 +301,7 @@ service cloud.firestore {
         allow update: if isFamilyMember(familyId)
           && isActivityEnvelope(request.resource.data)
           && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(['updatedAt', 'occurredAt'])
-          && (request.resource.data.occurredAt == resource.data.occurredAt
-              || request.resource.data.occurredAt == request.time);
+               .hasOnly(['updatedAt']);
         allow delete: if false;
       }
 

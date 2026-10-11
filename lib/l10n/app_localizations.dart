@@ -497,14 +497,14 @@ abstract class AppLocalizations {
   /// No description provided for @activityCompleted.
   ///
   /// In en, this message translates to:
-  /// **'completed \"{title}\"'**
-  String activityCompleted(Object title);
+  /// **'{actor} completed a task'**
+  String activityCompleted(Object actor);
 
   /// No description provided for @activityAdded.
   ///
   /// In en, this message translates to:
-  /// **'added \"{item}\" to {list}'**
-  String activityAdded(Object item, Object list);
+  /// **'{actor} added to {list}'**
+  String activityAdded(Object actor, Object list);
 
   /// No description provided for @activitySomeone.
   ///
@@ -515,56 +515,56 @@ abstract class AppLocalizations {
   /// No description provided for @activityTaskCreated.
   ///
   /// In en, this message translates to:
-  /// **'added the task \"{title}\"'**
-  String activityTaskCreated(Object title);
+  /// **'{actor} added a task'**
+  String activityTaskCreated(Object actor);
 
   /// No description provided for @activityTaskAssigned.
   ///
   /// In en, this message translates to:
-  /// **'assigned \"{title}\" to {name}'**
-  String activityTaskAssigned(Object title, Object name);
+  /// **'{actor} assigned a task to {assignee}'**
+  String activityTaskAssigned(Object actor, Object assignee);
 
   /// No description provided for @activityEventCreated.
   ///
   /// In en, this message translates to:
-  /// **'added the event \"{title}\"'**
-  String activityEventCreated(Object title);
+  /// **'{actor} added an event'**
+  String activityEventCreated(Object actor);
 
   /// No description provided for @activityEventChanged.
   ///
   /// In en, this message translates to:
-  /// **'updated the event \"{title}\"'**
-  String activityEventChanged(Object title);
+  /// **'{actor} updated an event'**
+  String activityEventChanged(Object actor);
 
   /// No description provided for @activityEventCancelled.
   ///
   /// In en, this message translates to:
-  /// **'cancelled the event \"{title}\"'**
-  String activityEventCancelled(Object title);
+  /// **'{actor} cancelled an event'**
+  String activityEventCancelled(Object actor);
 
   /// No description provided for @activityItemBought.
   ///
   /// In en, this message translates to:
-  /// **'bought \"{item}\"'**
-  String activityItemBought(Object item);
+  /// **'{actor} bought an item'**
+  String activityItemBought(Object actor);
 
   /// No description provided for @activityItemRemoved.
   ///
   /// In en, this message translates to:
-  /// **'removed \"{item}\" from {list}'**
-  String activityItemRemoved(Object item, Object list);
+  /// **'{actor} removed from {list}'**
+  String activityItemRemoved(Object actor, Object list);
 
   /// No description provided for @activityMemberJoined.
   ///
   /// In en, this message translates to:
-  /// **'joined the family'**
-  String get activityMemberJoined;
+  /// **'{actor} joined the family'**
+  String activityMemberJoined(Object actor);
 
   /// No description provided for @activityResponsibilityDone.
   ///
   /// In en, this message translates to:
-  /// **'finished \"{title}\"'**
-  String activityResponsibilityDone(Object title);
+  /// **'{actor} finished a responsibility'**
+  String activityResponsibilityDone(Object actor);
 
   /// No description provided for @activityThisWeek.
   ///
@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @activityStatEvents.
   ///
   /// In en, this message translates to:
-  /// **'Events'**
+  /// **'Event updates'**
   String get activityStatEvents;
 
   /// No description provided for @activityStatShopping.
@@ -595,12 +595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chores done'**
   String get activityStatChores;
-
-  /// No description provided for @activityEarlierThisWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'Earlier this week'**
-  String get activityEarlierThisWeek;
 
   /// No description provided for @activityLoadOlder.
   ///
@@ -620,12 +614,6 @@ abstract class AppLocalizations {
   /// **'Everyone'**
   String get activityFilterEveryone;
 
-  /// No description provided for @activityFilterAll.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get activityFilterAll;
-
   /// No description provided for @activityFilterTasks.
   ///
   /// In en, this message translates to:
@@ -644,17 +632,77 @@ abstract class AppLocalizations {
   /// **'Shopping'**
   String get activityFilterShopping;
 
-  /// No description provided for @activityFilterFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get activityFilterFamily;
-
   /// No description provided for @activityEmptyFiltered.
   ///
   /// In en, this message translates to:
   /// **'No activity matches these filters'**
   String get activityEmptyFiltered;
+
+  /// No description provided for @activityWholeFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole family · {range}'**
+  String activityWholeFamily(Object range);
+
+  /// No description provided for @activityStatTasksShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get activityStatTasksShort;
+
+  /// No description provided for @activityStatEventsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get activityStatEventsShort;
+
+  /// No description provided for @activityStatListsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get activityStatListsShort;
+
+  /// No description provided for @activityStatChoresShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Chores'**
+  String get activityStatChoresShort;
+
+  /// No description provided for @activityTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity timeline'**
+  String get activityTimeline;
+
+  /// No description provided for @activityFilterAllTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All types'**
+  String get activityFilterAllTypes;
+
+  /// No description provided for @activityFilterResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get activityFilterResponsibilities;
+
+  /// No description provided for @activityFilterMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get activityFilterMembers;
+
+  /// No description provided for @activityFilterByMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Show activity by'**
+  String get activityFilterByMember;
+
+  /// No description provided for @activityFilterByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity type'**
+  String get activityFilterByType;
 
   /// No description provided for @today.
   ///

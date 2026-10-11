@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_color_scheme.dart';
 import 'app_colors.dart';
@@ -74,6 +75,13 @@ class AppTheme {
     return base.copyWith(
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
+        // Stated explicitly: with a transparent bar Flutter can't judge
+        // the background and picks white status-bar icons, unreadable on
+        // the light lavender background.
+        systemOverlayStyle: (colorScheme.brightness == Brightness.light
+                ? SystemUiOverlayStyle.dark
+                : SystemUiOverlayStyle.light)
+            .copyWith(statusBarColor: Colors.transparent),
         elevation: 0,
         foregroundColor: colors.textPrimary,
         centerTitle: false,

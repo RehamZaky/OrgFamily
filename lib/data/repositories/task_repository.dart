@@ -267,7 +267,8 @@ class TaskRepository {
             type: ActivityTypes.taskCompleted,
             entityType: SyncEntityType.task.name,
             entityId: id,
-            metadata: {'title': task.title, 'assigneeId': task.assigneeId});
+            metadata: {'title': task.title, 'assigneeId': task.assigneeId},
+            onceId: ActivityLog.taskCompletionId(id));
       }
     });
     if (task == null) return;

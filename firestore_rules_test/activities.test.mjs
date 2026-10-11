@@ -140,16 +140,41 @@ describe('families/{familyId}/activities', () => {
     await assertFails(setDoc(doc(owner, path), { ...entry('owner-uid'), actorDeviceId: 'device-1' }));
   });
 
-  test('a sync retry may re-send the same entry', async () => {
+  test('a retry may re-send the stored entry unchanged, but never move it to "now"', async () => {
     await seed();
     const owner = testEnv.authenticatedContext('owner-uid').firestore();
+    const joiner = testEnv.authenticatedContext('joiner-uid').firestore();
     const data = entry('owner-uid');
     await assertSucceeds(setDoc(doc(owner, path), data));
-    // Retry before the read-back: same fields, fresh server sentinels.
-    await assertSucceeds(setDoc(doc(owner, path), data));
-    // Retry after the read-back: the stored occurredAt is sent back as is.
+    // After the read-back the stored occurredAt goes back as is.
     const stored = (await getDoc(doc(owner, path))).data();
     await assertSucceeds(setDoc(doc(owner, path), { ...data, occurredAt: stored.occurredAt }));
+    // A fresh server time would move it to the top of everyone's timeline
+    // — refused, whoever sends it (the app reads back instead).
+    await assertFails(setDoc(doc(owner, path), data));
+    await assertFails(updateDoc(doc(joiner, path), { occurredAt: serverTimestamp() }));
+  });
+
+  test('entries about deleted (tombstoned) tasks, events and items still upload', async () => {
+    await seed();
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      const gone = { deletedAt: Timestamp.now() };
+      await setDoc(doc(fs, 'families/fam-1/tasks/t-del'), { title: 'Old', ...gone });
+      await setDoc(doc(fs, 'families/fam-1/events/e-del'), { title: 'Swimming', ...gone });
+      await setDoc(doc(fs, 'families/fam-1/shoppingItems/i-del'), { name: 'Rice', ...gone });
+    });
+    const owner = testEnv.authenticatedContext('owner-uid').firestore();
+    const about = (id, type, entityType, entityId) =>
+      setDoc(doc(owner, `families/fam-1/activities/${id}`), {
+        ...entry('owner-uid'),
+        type,
+        entityType,
+        entityId,
+      });
+    await assertSucceeds(about('d1', 'task.completed', 'task', 't-del'));
+    await assertSucceeds(about('d2', 'event.cancelled', 'event', 'e-del'));
+    await assertSucceeds(about('d3', 'shopping_item.removed', 'shoppingItem', 'i-del'));
   });
 
   test('an entry cannot be rewritten, backdated or deleted', async () => {
