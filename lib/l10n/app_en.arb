@@ -129,6 +129,72 @@
     }
   },
   "activitySomeone": "Someone",
+  "activityTaskCreated": "added the task \"{title}\"",
+  "@activityTaskCreated": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityTaskAssigned": "assigned \"{title}\" to {name}",
+  "@activityTaskAssigned": {
+    "placeholders": {
+      "title": {},
+      "name": {}
+    }
+  },
+  "activityEventCreated": "added the event \"{title}\"",
+  "@activityEventCreated": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityEventChanged": "updated the event \"{title}\"",
+  "@activityEventChanged": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityEventCancelled": "cancelled the event \"{title}\"",
+  "@activityEventCancelled": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityItemBought": "bought \"{item}\"",
+  "@activityItemBought": {
+    "placeholders": {
+      "item": {}
+    }
+  },
+  "activityItemRemoved": "removed \"{item}\" from {list}",
+  "@activityItemRemoved": {
+    "placeholders": {
+      "item": {},
+      "list": {}
+    }
+  },
+  "activityMemberJoined": "joined the family",
+  "activityResponsibilityDone": "finished \"{title}\"",
+  "@activityResponsibilityDone": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "activityThisWeek": "This week",
+  "activityStatTasks": "Tasks done",
+  "activityStatEvents": "Events",
+  "activityStatShopping": "List updates",
+  "activityStatChores": "Chores done",
+  "activityEarlierThisWeek": "Earlier this week",
+  "activityLoadOlder": "Show older activity",
+  "activityNoOlder": "No older activity on this phone",
+  "activityFilterEveryone": "Everyone",
+  "activityFilterAll": "All",
+  "activityFilterTasks": "Tasks",
+  "activityFilterEvents": "Events",
+  "activityFilterShopping": "Shopping",
+  "activityFilterFamily": "Family",
+  "activityEmptyFiltered": "No activity matches these filters",
 
   "today": "Today",
   "tomorrow": "Tomorrow",

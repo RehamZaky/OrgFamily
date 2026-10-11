@@ -6,14 +6,17 @@ import '../local/database.dart';
 import '../local/tables/events_table.dart';
 import '../local/tables/family_members_table.dart';
 import '../local/tables/sync_outbox_table.dart';
+import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 class EventRepository {
-  EventRepository(this._db, this._notifications, this._sync);
+  EventRepository(this._db, this._notifications, this._sync, {ActivityLog? activity})
+      : _activity = activity;
 
   final AppDatabase _db;
   final NotificationService _notifications;
   final SyncEngine _sync;
+  final ActivityLog? _activity;
 
   Future<Event?> getById(String id) {
     return (_db.select(_db.events)..where((e) => e.id.equals(id) & e.deletedAt.isNull()))
@@ -120,6 +123,11 @@ class EventRepository {
           );
       await _setMembers(id, memberIds);
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: id);
+      await _activity.maybeRecord(_db,
+          type: ActivityTypes.eventCreated,
+          entityType: SyncEntityType.event.name,
+          entityId: id,
+          metadata: {'title': title, 'startAt': startAt.toIso8601String()});
     });
     await _notifications.scheduleEventReminder(
       eventId: id,
@@ -140,6 +148,11 @@ class EventRepository {
       await _db.update(_db.events).replace(event.copyWith(updatedAt: DateTime.now()));
       await _setMembers(event.id, memberIds);
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: event.id);
+      await _activity.maybeRecord(_db,
+          type: ActivityTypes.eventChanged,
+          entityType: SyncEntityType.event.name,
+          entityId: event.id,
+          metadata: {'title': event.title, 'startAt': event.startAt.toIso8601String()});
     });
     await _notifications.scheduleEventReminder(
       eventId: event.id,
@@ -159,11 +172,19 @@ class EventRepository {
     // note this also means the pushed tombstone's memberIds comes back
     // empty, which is fine since a deleted event's members don't matter.
     final now = DateTime.now();
+    final event = await getById(id);
     await _db.transaction(() async {
       await (_db.delete(_db.eventMembers)..where((m) => m.eventId.equals(id))).go();
       await (_db.update(_db.events)..where((e) => e.id.equals(id)))
           .write(EventsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.event, entityId: id);
+      if (event != null) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.eventCancelled,
+            entityType: SyncEntityType.event.name,
+            entityId: id,
+            metadata: {'title': event.title, 'startAt': event.startAt.toIso8601String()});
+      }
     });
     await _notifications.cancelEventReminder(id);
   }

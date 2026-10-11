@@ -54,7 +54,18 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
     // tagged with whoever was signed in — see SyncEngine.enqueueUpsert.
     ref.listenManual(authStateProvider, (previous, next) {
       ref.read(syncEngineProvider).setSignedInUid(next.valueOrNull?.uid);
+      _updateActivityActor();
     }, fireImmediately: true);
+    // Who family activity entries are credited to (see ActivityLog).
+    ref.listenManual(actingMemberIdProvider, (_, _) => _updateActivityActor(),
+        fireImmediately: true);
+  }
+
+  void _updateActivityActor() {
+    ref.read(activityLogProvider).setActor(
+          uid: ref.read(authStateProvider).valueOrNull?.uid,
+          memberId: ref.read(actingMemberIdProvider),
+        );
   }
 
   @override

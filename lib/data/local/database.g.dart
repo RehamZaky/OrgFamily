@@ -8280,6 +8280,899 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
   }
 }
 
+class $FamilyActivitiesTable extends FamilyActivities
+    with TableInfo<$FamilyActivitiesTable, FamilyActivity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyActivitiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actorKindMeta = const VerificationMeta(
+    'actorKind',
+  );
+  @override
+  late final GeneratedColumn<String> actorKind = GeneratedColumn<String>(
+    'actor_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('adult'),
+  );
+  static const VerificationMeta _actorUidMeta = const VerificationMeta(
+    'actorUid',
+  );
+  @override
+  late final GeneratedColumn<String> actorUid = GeneratedColumn<String>(
+    'actor_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actorMemberIdMeta = const VerificationMeta(
+    'actorMemberId',
+  );
+  @override
+  late final GeneratedColumn<String> actorMemberId = GeneratedColumn<String>(
+    'actor_member_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actorDeviceIdMeta = const VerificationMeta(
+    'actorDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> actorDeviceId = GeneratedColumn<String>(
+    'actor_device_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _relatedActivityIdMeta = const VerificationMeta(
+    'relatedActivityId',
+  );
+  @override
+  late final GeneratedColumn<String> relatedActivityId =
+      GeneratedColumn<String>(
+        'related_activity_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
+  @override
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _schemaVersionMeta = const VerificationMeta(
+    'schemaVersion',
+  );
+  @override
+  late final GeneratedColumn<int> schemaVersion = GeneratedColumn<int>(
+    'schema_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    actorKind,
+    actorUid,
+    actorMemberId,
+    actorDeviceId,
+    entityType,
+    entityId,
+    state,
+    relatedActivityId,
+    metadata,
+    schemaVersion,
+    createdAt,
+    occurredAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_activities';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyActivity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('actor_kind')) {
+      context.handle(
+        _actorKindMeta,
+        actorKind.isAcceptableOrUnknown(data['actor_kind']!, _actorKindMeta),
+      );
+    }
+    if (data.containsKey('actor_uid')) {
+      context.handle(
+        _actorUidMeta,
+        actorUid.isAcceptableOrUnknown(data['actor_uid']!, _actorUidMeta),
+      );
+    }
+    if (data.containsKey('actor_member_id')) {
+      context.handle(
+        _actorMemberIdMeta,
+        actorMemberId.isAcceptableOrUnknown(
+          data['actor_member_id']!,
+          _actorMemberIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('actor_device_id')) {
+      context.handle(
+        _actorDeviceIdMeta,
+        actorDeviceId.isAcceptableOrUnknown(
+          data['actor_device_id']!,
+          _actorDeviceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    }
+    if (data.containsKey('related_activity_id')) {
+      context.handle(
+        _relatedActivityIdMeta,
+        relatedActivityId.isAcceptableOrUnknown(
+          data['related_activity_id']!,
+          _relatedActivityIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
+    }
+    if (data.containsKey('schema_version')) {
+      context.handle(
+        _schemaVersionMeta,
+        schemaVersion.isAcceptableOrUnknown(
+          data['schema_version']!,
+          _schemaVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyActivity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyActivity(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      actorKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_kind'],
+      )!,
+      actorUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_uid'],
+      ),
+      actorMemberId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_member_id'],
+      ),
+      actorDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_device_id'],
+      ),
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      ),
+      relatedActivityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}related_activity_id'],
+      ),
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      )!,
+      schemaVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}schema_version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FamilyActivitiesTable createAlias(String alias) {
+    return $FamilyActivitiesTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyActivity extends DataClass implements Insertable<FamilyActivity> {
+  /// Fixed when the action happens (in the same transaction as the change
+  /// it records), so a sync retry re-sends the same document instead of
+  /// creating a duplicate.
+  final String id;
+  final String type;
+  final String actorKind;
+  final String? actorUid;
+  final String? actorMemberId;
+  final String? actorDeviceId;
+  final String entityType;
+  final String entityId;
+  final String? state;
+  final String? relatedActivityId;
+
+  /// Type-specific details as a JSON object — e.g. the task's title at
+  /// the time, so the entry still reads right after the task is renamed
+  /// or deleted.
+  final String metadata;
+  final int schemaVersion;
+
+  /// This device's clock when the action happened — shown until the
+  /// server's [occurredAt] arrives.
+  final DateTime createdAt;
+
+  /// Firestore's server time for the action, assigned on first upload —
+  /// the authoritative order across devices (device clocks can be wrong).
+  /// Null until synced.
+  final DateTime? occurredAt;
+
+  /// Sync bookkeeping, as on every synced table.
+  final DateTime updatedAt;
+  const FamilyActivity({
+    required this.id,
+    required this.type,
+    required this.actorKind,
+    this.actorUid,
+    this.actorMemberId,
+    this.actorDeviceId,
+    required this.entityType,
+    required this.entityId,
+    this.state,
+    this.relatedActivityId,
+    required this.metadata,
+    required this.schemaVersion,
+    required this.createdAt,
+    this.occurredAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['actor_kind'] = Variable<String>(actorKind);
+    if (!nullToAbsent || actorUid != null) {
+      map['actor_uid'] = Variable<String>(actorUid);
+    }
+    if (!nullToAbsent || actorMemberId != null) {
+      map['actor_member_id'] = Variable<String>(actorMemberId);
+    }
+    if (!nullToAbsent || actorDeviceId != null) {
+      map['actor_device_id'] = Variable<String>(actorDeviceId);
+    }
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    if (!nullToAbsent || state != null) {
+      map['state'] = Variable<String>(state);
+    }
+    if (!nullToAbsent || relatedActivityId != null) {
+      map['related_activity_id'] = Variable<String>(relatedActivityId);
+    }
+    map['metadata'] = Variable<String>(metadata);
+    map['schema_version'] = Variable<int>(schemaVersion);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || occurredAt != null) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FamilyActivitiesCompanion toCompanion(bool nullToAbsent) {
+    return FamilyActivitiesCompanion(
+      id: Value(id),
+      type: Value(type),
+      actorKind: Value(actorKind),
+      actorUid: actorUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorUid),
+      actorMemberId: actorMemberId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorMemberId),
+      actorDeviceId: actorDeviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorDeviceId),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      state: state == null && nullToAbsent
+          ? const Value.absent()
+          : Value(state),
+      relatedActivityId: relatedActivityId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relatedActivityId),
+      metadata: Value(metadata),
+      schemaVersion: Value(schemaVersion),
+      createdAt: Value(createdAt),
+      occurredAt: occurredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(occurredAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FamilyActivity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyActivity(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      actorKind: serializer.fromJson<String>(json['actorKind']),
+      actorUid: serializer.fromJson<String?>(json['actorUid']),
+      actorMemberId: serializer.fromJson<String?>(json['actorMemberId']),
+      actorDeviceId: serializer.fromJson<String?>(json['actorDeviceId']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      state: serializer.fromJson<String?>(json['state']),
+      relatedActivityId: serializer.fromJson<String?>(
+        json['relatedActivityId'],
+      ),
+      metadata: serializer.fromJson<String>(json['metadata']),
+      schemaVersion: serializer.fromJson<int>(json['schemaVersion']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      occurredAt: serializer.fromJson<DateTime?>(json['occurredAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'actorKind': serializer.toJson<String>(actorKind),
+      'actorUid': serializer.toJson<String?>(actorUid),
+      'actorMemberId': serializer.toJson<String?>(actorMemberId),
+      'actorDeviceId': serializer.toJson<String?>(actorDeviceId),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'state': serializer.toJson<String?>(state),
+      'relatedActivityId': serializer.toJson<String?>(relatedActivityId),
+      'metadata': serializer.toJson<String>(metadata),
+      'schemaVersion': serializer.toJson<int>(schemaVersion),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'occurredAt': serializer.toJson<DateTime?>(occurredAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FamilyActivity copyWith({
+    String? id,
+    String? type,
+    String? actorKind,
+    Value<String?> actorUid = const Value.absent(),
+    Value<String?> actorMemberId = const Value.absent(),
+    Value<String?> actorDeviceId = const Value.absent(),
+    String? entityType,
+    String? entityId,
+    Value<String?> state = const Value.absent(),
+    Value<String?> relatedActivityId = const Value.absent(),
+    String? metadata,
+    int? schemaVersion,
+    DateTime? createdAt,
+    Value<DateTime?> occurredAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => FamilyActivity(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    actorKind: actorKind ?? this.actorKind,
+    actorUid: actorUid.present ? actorUid.value : this.actorUid,
+    actorMemberId: actorMemberId.present
+        ? actorMemberId.value
+        : this.actorMemberId,
+    actorDeviceId: actorDeviceId.present
+        ? actorDeviceId.value
+        : this.actorDeviceId,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    state: state.present ? state.value : this.state,
+    relatedActivityId: relatedActivityId.present
+        ? relatedActivityId.value
+        : this.relatedActivityId,
+    metadata: metadata ?? this.metadata,
+    schemaVersion: schemaVersion ?? this.schemaVersion,
+    createdAt: createdAt ?? this.createdAt,
+    occurredAt: occurredAt.present ? occurredAt.value : this.occurredAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FamilyActivity copyWithCompanion(FamilyActivitiesCompanion data) {
+    return FamilyActivity(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      actorKind: data.actorKind.present ? data.actorKind.value : this.actorKind,
+      actorUid: data.actorUid.present ? data.actorUid.value : this.actorUid,
+      actorMemberId: data.actorMemberId.present
+          ? data.actorMemberId.value
+          : this.actorMemberId,
+      actorDeviceId: data.actorDeviceId.present
+          ? data.actorDeviceId.value
+          : this.actorDeviceId,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      state: data.state.present ? data.state.value : this.state,
+      relatedActivityId: data.relatedActivityId.present
+          ? data.relatedActivityId.value
+          : this.relatedActivityId,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
+      schemaVersion: data.schemaVersion.present
+          ? data.schemaVersion.value
+          : this.schemaVersion,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyActivity(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('actorKind: $actorKind, ')
+          ..write('actorUid: $actorUid, ')
+          ..write('actorMemberId: $actorMemberId, ')
+          ..write('actorDeviceId: $actorDeviceId, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('state: $state, ')
+          ..write('relatedActivityId: $relatedActivityId, ')
+          ..write('metadata: $metadata, ')
+          ..write('schemaVersion: $schemaVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    actorKind,
+    actorUid,
+    actorMemberId,
+    actorDeviceId,
+    entityType,
+    entityId,
+    state,
+    relatedActivityId,
+    metadata,
+    schemaVersion,
+    createdAt,
+    occurredAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyActivity &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.actorKind == this.actorKind &&
+          other.actorUid == this.actorUid &&
+          other.actorMemberId == this.actorMemberId &&
+          other.actorDeviceId == this.actorDeviceId &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.state == this.state &&
+          other.relatedActivityId == this.relatedActivityId &&
+          other.metadata == this.metadata &&
+          other.schemaVersion == this.schemaVersion &&
+          other.createdAt == this.createdAt &&
+          other.occurredAt == this.occurredAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FamilyActivitiesCompanion extends UpdateCompanion<FamilyActivity> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> actorKind;
+  final Value<String?> actorUid;
+  final Value<String?> actorMemberId;
+  final Value<String?> actorDeviceId;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String?> state;
+  final Value<String?> relatedActivityId;
+  final Value<String> metadata;
+  final Value<int> schemaVersion;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> occurredAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const FamilyActivitiesCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.actorKind = const Value.absent(),
+    this.actorUid = const Value.absent(),
+    this.actorMemberId = const Value.absent(),
+    this.actorDeviceId = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.state = const Value.absent(),
+    this.relatedActivityId = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.schemaVersion = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyActivitiesCompanion.insert({
+    required String id,
+    required String type,
+    this.actorKind = const Value.absent(),
+    this.actorUid = const Value.absent(),
+    this.actorMemberId = const Value.absent(),
+    this.actorDeviceId = const Value.absent(),
+    required String entityType,
+    required String entityId,
+    this.state = const Value.absent(),
+    this.relatedActivityId = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.schemaVersion = const Value.absent(),
+    required DateTime createdAt,
+    this.occurredAt = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<FamilyActivity> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? actorKind,
+    Expression<String>? actorUid,
+    Expression<String>? actorMemberId,
+    Expression<String>? actorDeviceId,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? state,
+    Expression<String>? relatedActivityId,
+    Expression<String>? metadata,
+    Expression<int>? schemaVersion,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? occurredAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (actorKind != null) 'actor_kind': actorKind,
+      if (actorUid != null) 'actor_uid': actorUid,
+      if (actorMemberId != null) 'actor_member_id': actorMemberId,
+      if (actorDeviceId != null) 'actor_device_id': actorDeviceId,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (state != null) 'state': state,
+      if (relatedActivityId != null) 'related_activity_id': relatedActivityId,
+      if (metadata != null) 'metadata': metadata,
+      if (schemaVersion != null) 'schema_version': schemaVersion,
+      if (createdAt != null) 'created_at': createdAt,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyActivitiesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? actorKind,
+    Value<String?>? actorUid,
+    Value<String?>? actorMemberId,
+    Value<String?>? actorDeviceId,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String?>? state,
+    Value<String?>? relatedActivityId,
+    Value<String>? metadata,
+    Value<int>? schemaVersion,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? occurredAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyActivitiesCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      actorKind: actorKind ?? this.actorKind,
+      actorUid: actorUid ?? this.actorUid,
+      actorMemberId: actorMemberId ?? this.actorMemberId,
+      actorDeviceId: actorDeviceId ?? this.actorDeviceId,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      state: state ?? this.state,
+      relatedActivityId: relatedActivityId ?? this.relatedActivityId,
+      metadata: metadata ?? this.metadata,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+      createdAt: createdAt ?? this.createdAt,
+      occurredAt: occurredAt ?? this.occurredAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (actorKind.present) {
+      map['actor_kind'] = Variable<String>(actorKind.value);
+    }
+    if (actorUid.present) {
+      map['actor_uid'] = Variable<String>(actorUid.value);
+    }
+    if (actorMemberId.present) {
+      map['actor_member_id'] = Variable<String>(actorMemberId.value);
+    }
+    if (actorDeviceId.present) {
+      map['actor_device_id'] = Variable<String>(actorDeviceId.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (relatedActivityId.present) {
+      map['related_activity_id'] = Variable<String>(relatedActivityId.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
+    if (schemaVersion.present) {
+      map['schema_version'] = Variable<int>(schemaVersion.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyActivitiesCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('actorKind: $actorKind, ')
+          ..write('actorUid: $actorUid, ')
+          ..write('actorMemberId: $actorMemberId, ')
+          ..write('actorDeviceId: $actorDeviceId, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('state: $state, ')
+          ..write('relatedActivityId: $relatedActivityId, ')
+          ..write('metadata: $metadata, ')
+          ..write('schemaVersion: $schemaVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8301,6 +9194,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BudgetSettingsTable budgetSettings = $BudgetSettingsTable(this);
   late final $SavingsGoalsTable savingsGoals = $SavingsGoalsTable(this);
   late final $SyncOutboxTable syncOutbox = $SyncOutboxTable(this);
+  late final $FamilyActivitiesTable familyActivities = $FamilyActivitiesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8320,6 +9216,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     budgetSettings,
     savingsGoals,
     syncOutbox,
+    familyActivities,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -14329,6 +15226,414 @@ typedef $$SyncOutboxTableProcessedTableManager =
       SyncOutboxData,
       PrefetchHooks Function()
     >;
+typedef $$FamilyActivitiesTableCreateCompanionBuilder =
+    FamilyActivitiesCompanion Function({
+      required String id,
+      required String type,
+      Value<String> actorKind,
+      Value<String?> actorUid,
+      Value<String?> actorMemberId,
+      Value<String?> actorDeviceId,
+      required String entityType,
+      required String entityId,
+      Value<String?> state,
+      Value<String?> relatedActivityId,
+      Value<String> metadata,
+      Value<int> schemaVersion,
+      required DateTime createdAt,
+      Value<DateTime?> occurredAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$FamilyActivitiesTableUpdateCompanionBuilder =
+    FamilyActivitiesCompanion Function({
+      Value<String> id,
+      Value<String> type,
+      Value<String> actorKind,
+      Value<String?> actorUid,
+      Value<String?> actorMemberId,
+      Value<String?> actorDeviceId,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String?> state,
+      Value<String?> relatedActivityId,
+      Value<String> metadata,
+      Value<int> schemaVersion,
+      Value<DateTime> createdAt,
+      Value<DateTime?> occurredAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$FamilyActivitiesTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyActivitiesTable> {
+  $$FamilyActivitiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorKind => $composableBuilder(
+    column: $table.actorKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorUid => $composableBuilder(
+    column: $table.actorUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorMemberId => $composableBuilder(
+    column: $table.actorMemberId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actorDeviceId => $composableBuilder(
+    column: $table.actorDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relatedActivityId => $composableBuilder(
+    column: $table.relatedActivityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyActivitiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyActivitiesTable> {
+  $$FamilyActivitiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorKind => $composableBuilder(
+    column: $table.actorKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorUid => $composableBuilder(
+    column: $table.actorUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorMemberId => $composableBuilder(
+    column: $table.actorMemberId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actorDeviceId => $composableBuilder(
+    column: $table.actorDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relatedActivityId => $composableBuilder(
+    column: $table.relatedActivityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyActivitiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyActivitiesTable> {
+  $$FamilyActivitiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get actorKind =>
+      $composableBuilder(column: $table.actorKind, builder: (column) => column);
+
+  GeneratedColumn<String> get actorUid =>
+      $composableBuilder(column: $table.actorUid, builder: (column) => column);
+
+  GeneratedColumn<String> get actorMemberId => $composableBuilder(
+    column: $table.actorMemberId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get actorDeviceId => $composableBuilder(
+    column: $table.actorDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get relatedActivityId => $composableBuilder(
+    column: $table.relatedActivityId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  GeneratedColumn<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FamilyActivitiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyActivitiesTable,
+          FamilyActivity,
+          $$FamilyActivitiesTableFilterComposer,
+          $$FamilyActivitiesTableOrderingComposer,
+          $$FamilyActivitiesTableAnnotationComposer,
+          $$FamilyActivitiesTableCreateCompanionBuilder,
+          $$FamilyActivitiesTableUpdateCompanionBuilder,
+          (
+            FamilyActivity,
+            BaseReferences<
+              _$AppDatabase,
+              $FamilyActivitiesTable,
+              FamilyActivity
+            >,
+          ),
+          FamilyActivity,
+          PrefetchHooks Function()
+        > {
+  $$FamilyActivitiesTableTableManager(
+    _$AppDatabase db,
+    $FamilyActivitiesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyActivitiesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilyActivitiesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamilyActivitiesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> actorKind = const Value.absent(),
+                Value<String?> actorUid = const Value.absent(),
+                Value<String?> actorMemberId = const Value.absent(),
+                Value<String?> actorDeviceId = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String?> state = const Value.absent(),
+                Value<String?> relatedActivityId = const Value.absent(),
+                Value<String> metadata = const Value.absent(),
+                Value<int> schemaVersion = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> occurredAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyActivitiesCompanion(
+                id: id,
+                type: type,
+                actorKind: actorKind,
+                actorUid: actorUid,
+                actorMemberId: actorMemberId,
+                actorDeviceId: actorDeviceId,
+                entityType: entityType,
+                entityId: entityId,
+                state: state,
+                relatedActivityId: relatedActivityId,
+                metadata: metadata,
+                schemaVersion: schemaVersion,
+                createdAt: createdAt,
+                occurredAt: occurredAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String type,
+                Value<String> actorKind = const Value.absent(),
+                Value<String?> actorUid = const Value.absent(),
+                Value<String?> actorMemberId = const Value.absent(),
+                Value<String?> actorDeviceId = const Value.absent(),
+                required String entityType,
+                required String entityId,
+                Value<String?> state = const Value.absent(),
+                Value<String?> relatedActivityId = const Value.absent(),
+                Value<String> metadata = const Value.absent(),
+                Value<int> schemaVersion = const Value.absent(),
+                required DateTime createdAt,
+                Value<DateTime?> occurredAt = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyActivitiesCompanion.insert(
+                id: id,
+                type: type,
+                actorKind: actorKind,
+                actorUid: actorUid,
+                actorMemberId: actorMemberId,
+                actorDeviceId: actorDeviceId,
+                entityType: entityType,
+                entityId: entityId,
+                state: state,
+                relatedActivityId: relatedActivityId,
+                metadata: metadata,
+                schemaVersion: schemaVersion,
+                createdAt: createdAt,
+                occurredAt: occurredAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyActivitiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyActivitiesTable,
+      FamilyActivity,
+      $$FamilyActivitiesTableFilterComposer,
+      $$FamilyActivitiesTableOrderingComposer,
+      $$FamilyActivitiesTableAnnotationComposer,
+      $$FamilyActivitiesTableCreateCompanionBuilder,
+      $$FamilyActivitiesTableUpdateCompanionBuilder,
+      (
+        FamilyActivity,
+        BaseReferences<_$AppDatabase, $FamilyActivitiesTable, FamilyActivity>,
+      ),
+      FamilyActivity,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14361,4 +15666,6 @@ class $AppDatabaseManager {
       $$SavingsGoalsTableTableManager(_db, _db.savingsGoals);
   $$SyncOutboxTableTableManager get syncOutbox =>
       $$SyncOutboxTableTableManager(_db, _db.syncOutbox);
+  $$FamilyActivitiesTableTableManager get familyActivities =>
+      $$FamilyActivitiesTableTableManager(_db, _db.familyActivities);
 }

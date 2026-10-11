@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
 
 import '../../core/permissions/family_permissions.dart';
+import '../../features/family/responsibility_schedule.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
 import '../local/tables/responsibilities_table.dart';
 import '../local/tables/sync_outbox_table.dart';
+import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 /// Per-member recurring chores. Deliberately separate from tasks (see
@@ -17,10 +19,12 @@ import '../sync/sync_engine.dart';
 /// (see family_permissions.dart): managing chores is Owner/Adult only, and a
 /// Child may tick only their own.
 class ResponsibilityRepository {
-  ResponsibilityRepository(this._db, this._sync);
+  ResponsibilityRepository(this._db, this._sync, {ActivityLog? activity})
+      : _activity = activity;
 
   final AppDatabase _db;
   final SyncEngine _sync;
+  final ActivityLog? _activity;
 
   Stream<List<Responsibility>> watchForMember(String memberId) {
     return (_db.select(_db.responsibilities)
@@ -85,6 +89,13 @@ class ResponsibilityRepository {
         ),
       );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.responsibility, entityId: id);
+      if (completed && !isDoneOn(row, now)) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.responsibilityCompleted,
+            entityType: SyncEntityType.responsibility.name,
+            entityId: id,
+            metadata: {'title': row.title, 'memberId': row.memberId});
+      }
     });
   }
 

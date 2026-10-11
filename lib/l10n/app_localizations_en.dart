@@ -255,6 +255,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activitySomeone => 'Someone';
 
   @override
+  String activityTaskCreated(Object title) {
+    return 'added the task \"$title\"';
+  }
+
+  @override
+  String activityTaskAssigned(Object title, Object name) {
+    return 'assigned \"$title\" to $name';
+  }
+
+  @override
+  String activityEventCreated(Object title) {
+    return 'added the event \"$title\"';
+  }
+
+  @override
+  String activityEventChanged(Object title) {
+    return 'updated the event \"$title\"';
+  }
+
+  @override
+  String activityEventCancelled(Object title) {
+    return 'cancelled the event \"$title\"';
+  }
+
+  @override
+  String activityItemBought(Object item) {
+    return 'bought \"$item\"';
+  }
+
+  @override
+  String activityItemRemoved(Object item, Object list) {
+    return 'removed \"$item\" from $list';
+  }
+
+  @override
+  String get activityMemberJoined => 'joined the family';
+
+  @override
+  String activityResponsibilityDone(Object title) {
+    return 'finished \"$title\"';
+  }
+
+  @override
+  String get activityThisWeek => 'This week';
+
+  @override
+  String get activityStatTasks => 'Tasks done';
+
+  @override
+  String get activityStatEvents => 'Events';
+
+  @override
+  String get activityStatShopping => 'List updates';
+
+  @override
+  String get activityStatChores => 'Chores done';
+
+  @override
+  String get activityEarlierThisWeek => 'Earlier this week';
+
+  @override
+  String get activityLoadOlder => 'Show older activity';
+
+  @override
+  String get activityNoOlder => 'No older activity on this phone';
+
+  @override
+  String get activityFilterEveryone => 'Everyone';
+
+  @override
+  String get activityFilterAll => 'All';
+
+  @override
+  String get activityFilterTasks => 'Tasks';
+
+  @override
+  String get activityFilterEvents => 'Events';
+
+  @override
+  String get activityFilterShopping => 'Shopping';
+
+  @override
+  String get activityFilterFamily => 'Family';
+
+  @override
+  String get activityEmptyFiltered => 'No activity matches these filters';
+
+  @override
   String get today => 'Today';
 
   @override

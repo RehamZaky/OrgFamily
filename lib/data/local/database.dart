@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/budget_table.dart';
 import 'tables/events_table.dart';
+import 'tables/family_activities_table.dart';
 import 'tables/family_members_table.dart';
 import 'tables/family_profile_table.dart';
 import 'tables/notes_table.dart';
@@ -42,6 +43,7 @@ const defaultShoppingCategories = [
     BudgetSettings,
     SavingsGoals,
     SyncOutbox,
+    FamilyActivities,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -49,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   /// Whether [table] already has [column] — lets a migration step check
   /// before altering, so it's safe to resume after a partial failure (see
@@ -262,6 +264,12 @@ class AppDatabase extends _$AppDatabase {
               "'familyProfile,familyMember,task,event,shoppingList,shoppingItem' "
               'WHERE initial_cloud_migration_completed_at IS NOT NULL',
             );
+          }
+          if (from < 18) {
+            // V2.1 Family Activity log (family_activities_table.dart).
+            if (!await _tableExists('family_activities')) {
+              await m.createTable(familyActivities);
+            }
           }
         },
       );

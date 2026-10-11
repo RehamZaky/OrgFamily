@@ -12,7 +12,6 @@ import '../../../core/widgets/member_avatar.dart';
 import '../../../data/local/database.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../shopping/providers/shopping_providers.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../providers/family_providers.dart';
 import '../widgets/family_activity_feed.dart';
@@ -57,7 +56,6 @@ class FamilyScreen extends ConsumerWidget {
     final members = ref.watch(familyMembersProvider).valueOrNull ?? [];
     final me = ref.watch(actingMemberProvider);
     final tasks = ref.watch(allTasksProvider).valueOrNull ?? [];
-    final lists = ref.watch(shoppingListsProvider).valueOrNull ?? [];
     final pointsByMember = ref.watch(familyPointsThisWeekProvider);
     final tasksDoneThisWeek = ref.watch(tasksDoneThisWeekProvider);
     final familyPoints = ref.watch(familyPointsTotalThisWeekProvider);
@@ -228,7 +226,7 @@ class FamilyScreen extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: FamilyActivityFeed(tasks: tasks, lists: lists),
+                child: const FamilyActivityFeed(),
               ),
             ),
           ],

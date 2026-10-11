@@ -4,13 +4,26 @@ import '../../core/permissions/family_permissions.dart';
 import '../local/database.dart';
 import '../local/tables/family_members_table.dart';
 import '../local/tables/sync_outbox_table.dart';
+import '../activity/activity_log.dart';
 import '../sync/sync_engine.dart';
 
 class ShoppingRepository {
-  ShoppingRepository(this._db, this._sync);
+  ShoppingRepository(this._db, this._sync, {ActivityLog? activity}) : _activity = activity;
 
   final AppDatabase _db;
   final SyncEngine _sync;
+  final ActivityLog? _activity;
+
+  /// The item's and its list's names for an activity entry, captured at
+  /// the time so the entry still reads right after a rename or delete.
+  Future<Map<String, Object?>> _itemMetadata(String itemId) async {
+    final item = await (_db.select(_db.shoppingItems)..where((i) => i.id.equals(itemId)))
+        .getSingleOrNull();
+    if (item == null) return const {};
+    final list = await (_db.select(_db.shoppingLists)..where((l) => l.id.equals(item.listId)))
+        .getSingleOrNull();
+    return {'name': item.name, 'listId': item.listId, 'listName': list?.name};
+  }
 
   Stream<List<ShoppingList>> watchLists() {
     return (_db.select(_db.shoppingLists)
@@ -123,11 +136,18 @@ class ShoppingRepository {
             ),
           );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+      await _activity.maybeRecord(_db,
+          type: ActivityTypes.shoppingItemAdded,
+          entityType: SyncEntityType.shoppingItem.name,
+          entityId: id,
+          metadata: await _itemMetadata(id));
     });
   }
 
   Future<void> setPurchased(String id, bool isPurchased) {
     return _db.transaction(() async {
+      final before = await (_db.select(_db.shoppingItems)..where((i) => i.id.equals(id)))
+          .getSingleOrNull();
       await (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id))).write(
         ShoppingItemsCompanion(
           isPurchased: Value(isPurchased),
@@ -135,6 +155,13 @@ class ShoppingRepository {
         ),
       );
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+      if (isPurchased && before != null && !before.isPurchased) {
+        await _activity.maybeRecord(_db,
+            type: ActivityTypes.shoppingItemPurchased,
+            entityType: SyncEntityType.shoppingItem.name,
+            entityId: id,
+            metadata: await _itemMetadata(id));
+      }
     });
   }
 
@@ -145,6 +172,11 @@ class ShoppingRepository {
       await (_db.update(_db.shoppingItems)..where((i) => i.id.equals(id)))
           .write(ShoppingItemsCompanion(deletedAt: Value(now), updatedAt: Value(now)));
       await _sync.enqueueUpsert(db: _db, type: SyncEntityType.shoppingItem, entityId: id);
+      await _activity.maybeRecord(_db,
+          type: ActivityTypes.shoppingItemRemoved,
+          entityType: SyncEntityType.shoppingItem.name,
+          entityId: id,
+          metadata: await _itemMetadata(id));
     });
   }
 }

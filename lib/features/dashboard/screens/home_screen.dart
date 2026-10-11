@@ -28,6 +28,7 @@ import '../../family/providers/family_providers.dart';
 import '../../family/providers/responsibility_providers.dart';
 import '../../family/responsibility_schedule.dart';
 import '../../family/widgets/family_activity_feed.dart';
+import '../../family/screens/family_activity_screen.dart';
 import '../../notes/providers/note_providers.dart';
 import '../../notes/screens/note_form_screen.dart';
 import '../../shopping/providers/shopping_providers.dart';
@@ -346,12 +347,17 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  SectionHeader(title: l10n.sectionFamilyActivity),
+                  SectionHeader(
+                    title: l10n.sectionFamilyActivity,
+                    onViewAll: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const FamilyActivityScreen()),
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: FamilyActivityFeed(tasks: allTasks, lists: lists),
+                      child: const FamilyActivityFeed(),
                     ),
                   ),
                   const SizedBox(height: 20),
