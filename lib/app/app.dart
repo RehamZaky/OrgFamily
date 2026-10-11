@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/localization/locale_provider.dart';
 import '../core/navigation/navigator_key.dart';
+import '../core/preferences/app_preferences.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_mode_provider.dart';
+import '../core/utils/date_format_x.dart';
 import '../data/providers.dart';
 import '../features/calendar/screens/event_form_screen.dart';
 import '../features/tasks/screens/task_form_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'root_scaffold.dart';
+import '../features/family/screens/my_responsibilities_screen.dart';
 
 class OrgFamilyApp extends ConsumerStatefulWidget {
   const OrgFamilyApp({super.key});
@@ -43,6 +46,8 @@ class _OrgFamilyAppState extends ConsumerState<OrgFamilyApp> {
       if (task != null) {
         navigator.push(MaterialPageRoute(builder: (_) => TaskFormScreen(existing: task)));
       }
+    } else if (type == 'responsibilities') {
+      navigator.push(MaterialPageRoute(builder: (_) => const MyResponsibilitiesScreen()));
     } else if (type == 'event') {
       final event = await ref.read(eventRepositoryProvider).getById(id);
       if (event != null) {
@@ -55,6 +60,7 @@ class _OrgFamilyAppState extends ConsumerState<OrgFamilyApp> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    final timeFormat = ref.watch(timeFormatProvider);
 
     return MaterialApp(
       navigatorKey: navigatorKey,
@@ -66,6 +72,20 @@ class _OrgFamilyAppState extends ConsumerState<OrgFamilyApp> {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // The time-format setting drives MediaQuery's 24-hour flag, so time
+      // pickers and every formatted time follow it ("system" keeps the
+      // phone's own choice).
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        final use24 = switch (timeFormat) {
+          TimeFormatPreference.system => mq.alwaysUse24HourFormat,
+          TimeFormatPreference.h12 => false,
+          TimeFormatPreference.h24 => true,
+        };
+        TimeFormatting.use24Hour = use24;
+        TimeFormatting.locale = Localizations.localeOf(context).toString();
+        return MediaQuery(data: mq.copyWith(alwaysUse24HourFormat: use24), child: child!);
+      },
       home: const RootScaffold(),
     );
   }

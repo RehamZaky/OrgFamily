@@ -428,6 +428,9 @@ class SyncEngine {
     }
     final remoteUpdatedAt = (remote['updatedAt'] as Timestamp?)?.toDate();
     if (remoteUpdatedAt == null) return;
+    // A local edit still waiting to upload (e.g. made offline) wins — it
+    // goes up with the next drain, never overwritten by the cloud copy.
+    if (await _hasPendingLocalWrite(adapter.entityType, familyId)) return;
     final local = await adapter.getLocalById(familyId);
     if (local == null || remoteUpdatedAt.isAfter(adapter.updatedAtOf(local))) {
       await adapter.applyRemoteUpsert(familyId, remote, remoteUpdatedAt);
@@ -507,11 +510,23 @@ class SyncEngine {
   /// account than the one syncing now (e.g. the owner's unsent changes on
   /// a shared phone, after someone else signs in). Signing in never makes
   /// another account's changes upload on its own.
+  ///
+  /// Except another account's family-settings change: only the Owner may
+  /// write those (firestore.rules), so offering it to whoever's signed in
+  /// now could only fail it for good ("upload") or lose it ("keep on this
+  /// phone"). It stays queued, untouched, under the account that made it —
+  /// and uploads once that account syncs again.
   Expression<bool> _needsReview($SyncOutboxTable o, String familyId, String uid) =>
       o.familyId.equals(familyId) &
       (o.status.equalsValue(SyncOutboxStatus.held) |
           o.originUid.isNull() |
-          o.originUid.equals(uid).not());
+          o.originUid.equals(uid).not()) &
+      _isOtherAccountsSettingsChange(o, uid).not();
+
+  static Expression<bool> _isOtherAccountsSettingsChange($SyncOutboxTable o, String uid) =>
+      o.entityType.equalsValue(SyncEntityType.familySettings) &
+      o.originUid.isNotNull() &
+      o.originUid.equals(uid).not();
 
   /// Compares each entity awaiting review with its live Firestore version,
   /// so the member decides with the conflicts in view. Needed because an

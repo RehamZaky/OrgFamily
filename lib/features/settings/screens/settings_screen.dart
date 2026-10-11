@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/permissions/active_profile_provider.dart';
+import '../../../core/permissions/family_permissions.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/account_section.dart';
+import '../widgets/behaviour_settings.dart';
 import '../widgets/settings_group.dart';
 import 'money_backup_screen.dart';
 import 'money_guide_screen.dart';
@@ -66,7 +69,7 @@ class SettingsScreen extends ConsumerWidget {
                         ],
                         selected: {themeMode},
                         onSelectionChanged: (s) =>
-                            ref.read(themeModeProvider.notifier).state = s.first,
+                            ref.read(themeModeProvider.notifier).set(s.first),
                       ),
                     ),
                     SettingsControlRow(
@@ -93,13 +96,25 @@ class SettingsScreen extends ConsumerWidget {
                         selected: {locale ?? _systemLocale},
                         onSelectionChanged: (s) {
                           final selected = s.first;
-                          ref.read(localeProvider.notifier).state =
-                              selected == _systemLocale ? null : selected;
+                          ref
+                              .read(localeProvider.notifier)
+                              .set(selected == _systemLocale ? null : selected);
                         },
+                      ),
+                    ),
+                    const TimeFormatSettingRow(),
+                    StartTabSettingRow(
+                      canViewFinances: canPerform(
+                        ref.watch(activeRoleProvider),
+                        FamilyAction.viewFinances,
                       ),
                     ),
                   ],
                 ),
+                SettingsSectionHeader(l10n.settingsReminders),
+                const RemindersSettingsSection(),
+                SettingsSectionHeader(l10n.settingsFamilySchedule),
+                const FamilyScheduleSettingsSection(),
                 SettingsSectionHeader(l10n.accountSectionTitle),
                 const AccountSection(),
                 SettingsSectionHeader(l10n.navBudget),

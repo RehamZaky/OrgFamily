@@ -17,6 +17,7 @@ import '../../../data/local/database.dart';
 import '../../../data/local/tables/responsibilities_table.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../data/repositories/family_settings_repository.dart';
 import '../providers/family_providers.dart';
 import '../providers/responsibility_providers.dart';
 import '../responsibility_schedule.dart';
@@ -285,7 +286,7 @@ class _MemberProfileScreenState extends ConsumerState<MemberProfileScreen> {
                 child: Column(
                   children: [
                     for (var i = 0; i < responsibilities.length; i++) ...[
-                      _ResponsibilityRow(responsibility: responsibilities[i]),
+                      ResponsibilityRow(responsibility: responsibilities[i]),
                       if (i != responsibilities.length - 1)
                         const Divider(height: 1, indent: 56),
                     ],
@@ -397,8 +398,8 @@ class _StatTile extends StatelessWidget {
 /// One responsibility on a member's profile. Shows every responsibility
 /// (this is where they're managed), but only one due today can be ticked;
 /// on other days it says when it's next due instead.
-class _ResponsibilityRow extends ConsumerWidget {
-  const _ResponsibilityRow({required this.responsibility});
+class ResponsibilityRow extends ConsumerWidget {
+  const ResponsibilityRow({super.key, required this.responsibility});
 
   final Responsibility responsibility;
 
@@ -435,7 +436,9 @@ class _ResponsibilityRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
     final today = DateTime.now();
-    final dueToday = isDueOn(responsibility, today);
+    final schoolDays = ref.watch(familyScheduleProvider).valueOrNull?.schoolWeekdays ??
+        FamilySchedule.defaults.schoolWeekdays;
+    final dueToday = isDueOn(responsibility, today, schoolDays: schoolDays);
     final doneToday = dueToday && isDoneOn(responsibility, today);
     final role = ref.watch(activeRoleProvider);
     final isMine = responsibility.memberId == ref.watch(actingMemberIdProvider);
@@ -443,7 +446,7 @@ class _ResponsibilityRow extends ConsumerWidget {
       role,
       isMine ? FamilyAction.completeOwnResponsibility : FamilyAction.completeAnyResponsibility,
     );
-    final next = dueToday ? null : nextDueAfter(responsibility, today);
+    final next = dueToday ? null : nextDueAfter(responsibility, today, schoolDays: schoolDays);
     final schedule = responsibilityScheduleLabel(responsibility, l10n, locale);
     final success = context.colors.success;
     final enabled = dueToday && canTick;

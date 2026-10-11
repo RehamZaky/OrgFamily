@@ -104,6 +104,20 @@ service cloud.firestore {
       );
     }
 
+    // The family settings document's shape: weekdays are DateTime.weekday
+    // numbers (Monday 1 … Sunday 7). schoolWeekdays holds only those, each
+    // once — a duplicate makes toSet() smaller than the list.
+    function isFamilySettings(d) {
+      return d.keys().hasOnly(['schoolWeekdays', 'weekStartDay', 'updatedAt'])
+        && d.keys().hasAll(['schoolWeekdays', 'weekStartDay'])
+        && d.weekStartDay is int
+        && d.weekStartDay >= 1 && d.weekStartDay <= 7
+        && d.schoolWeekdays is list
+        && d.schoolWeekdays.size() <= 7
+        && d.schoolWeekdays.toSet().size() == d.schoolWeekdays.size()
+        && d.schoolWeekdays.toSet().hasOnly([1, 2, 3, 4, 5, 6, 7]);
+    }
+
     function isDirectOrJoinedMember(memberUids, familyId) {
       return isSignedIn() && (
         request.auth.uid in memberUids
@@ -302,6 +316,19 @@ service cloud.firestore {
           && isActivityEnvelope(request.resource.data)
           && request.resource.data.diff(resource.data).affectedKeys()
                .hasOnly(['updatedAt']);
+        allow delete: if false;
+      }
+
+      // Family-wide settings (V2.2, family_settings_table.dart): school days
+      // and week start. Every member reads; only the Owner account writes
+      // (never decided by a client-chosen acting profile). One document,
+      // named after the family. A family without it uses the defaults —
+      // nothing creates it until the Owner saves.
+      match /settings/{docId} {
+        allow read: if isFamilyMember(familyId);
+        allow create, update: if isFamilyOwner(familyId)
+          && docId == familyId
+          && isFamilySettings(request.resource.data);
         allow delete: if false;
       }
 

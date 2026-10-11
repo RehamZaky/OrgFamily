@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/permissions/active_profile_provider.dart';
 import '../core/permissions/family_permissions.dart';
+import '../core/preferences/app_preferences.dart';
 import '../core/theme/app_color_scheme.dart';
 import '../core/widgets/banner_ad_widget.dart';
 import '../data/backup/money_backup_providers.dart';
@@ -14,9 +15,11 @@ import '../features/budget/widgets/add_transaction_sheet.dart';
 import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/screens/home_screen.dart';
 import '../features/family/providers/family_providers.dart';
+import '../features/family/daily_responsibility_reminders.dart';
 import '../features/family/screens/family_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/quick_add/quick_add_sheet.dart';
+import '../features/settings/providers/reminder_providers.dart';
 import '../features/shopping/screens/shopping_screen.dart';
 import '../features/tasks/screens/tasks_screen.dart';
 import '../features/tasks/widgets/quick_add_task_sheet.dart';
@@ -36,6 +39,11 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
   @override
   void initState() {
     super.initState();
+    // The saved start tab is applied once, here — never on a rebuild, so
+    // navigating elsewhere sticks. (StartTab's order matches the tabs. If
+    // it's Money and this profile can't see finances, build() falls back
+    // to Home without touching the saved choice.)
+    _index = ref.read(startTabProvider).index;
     WidgetsBinding.instance.addObserver(this);
     // Starts/stops SyncEngine as sign-in/link state changes — fireImmediately
     // so a fresh app boot that's already linked resumes syncing right away,
@@ -56,6 +64,21 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
       ref.read(syncEngineProvider).setSignedInUid(next.valueOrNull?.uid);
       _updateActivityActor();
     }, fireImmediately: true);
+    // The daily responsibilities reminder follows the acting profile, its
+    // setting, its chores and the family's school days — any change (an
+    // account or profile switch included) re-plans it from scratch.
+    ref.listenManual(
+      dailyReminderInputsProvider,
+      (_, _) => ref.read(dailyResponsibilityRemindersProvider).replan(),
+      fireImmediately: true,
+    );
+    // Event reminders on this phone follow whoever is acting's setting.
+    ref.listenManual(
+      phoneReminderPreferencesProvider.select((p) => p.eventMinutes),
+      (previous, next) {
+        if (previous != next) ref.read(eventRepositoryProvider).resyncReminders();
+      },
+    );
     // Who family activity entries are credited to (see ActivityLog).
     ref.listenManual(actingMemberIdProvider, (_, _) => _updateActivityActor(),
         fireImmediately: true);
@@ -82,6 +105,9 @@ class _RootScaffoldState extends ConsumerState<RootScaffold>
     // backgrounded for a while, so give it an immediate nudge on resume
     // rather than waiting for its scheduled retry.
     if (state == AppLifecycleState.resumed) {
+      // A new day may have started — today's reminder text and the
+      // 7-day plan move on with it.
+      ref.read(dailyResponsibilityRemindersProvider).replan();
       final sync = ref.read(syncEngineProvider);
       unawaited(sync.drainNow());
       sync.reconnectNow();

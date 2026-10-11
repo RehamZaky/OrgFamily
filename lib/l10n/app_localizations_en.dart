@@ -529,6 +529,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPreferences => 'Preferences';
 
   @override
+  String get settingsTimeFormat => 'Time format';
+
+  @override
+  String get settingsTimeFormatSystem => 'Phone';
+
+  @override
+  String get settingsTimeFormat12 => '12-hour';
+
+  @override
+  String get settingsTimeFormat24 => '24-hour';
+
+  @override
+  String settingsTimeFormatExample(Object time) {
+    return 'Example: $time';
+  }
+
+  @override
+  String get settingsStartTab => 'Open the app on';
+
+  @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String settingsRemindersFor(Object name) {
+    return 'These are $name\'s reminders on this phone — switching profile doesn\'t change them.';
+  }
+
+  @override
+  String get settingsTaskReminder => 'New tasks';
+
+  @override
+  String get settingsTaskReminderHint =>
+      'The starting reminder for tasks you create from now on; existing tasks keep theirs. Date-only tasks are reminded at 9 AM that day. \"No reminder\" turns it off for all new tasks, date-only ones included.';
+
+  @override
+  String get settingsEventReminder => 'Events';
+
+  @override
+  String get settingsEventReminderHint =>
+      'Only changes reminders on this phone, not the event for anyone else.';
+
+  @override
+  String get settingsDailyReminder => 'Daily responsibilities';
+
+  @override
+  String get settingsDailyReminderOff => 'Off';
+
+  @override
+  String get settingsDailyReminderHint =>
+      'One reminder a day with what\'s left. Open the app at least once a week to keep it coming.';
+
+  @override
+  String get settingsFamilySchedule => 'Family schedule';
+
+  @override
+  String get settingsSchoolDays => 'School days';
+
+  @override
+  String get settingsSchoolDaysHint =>
+      'When \"School days\" responsibilities are due. The calendar\'s weekend stays the same.';
+
+  @override
+  String get settingsWeekStart => 'Week starts on';
+
+  @override
+  String get settingsFamilyScheduleOwnerOnly =>
+      'Set by the family Owner for everyone.';
+
+  @override
+  String dailyReminderLeft(int count, Object names) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count responsibilities left today 💜 $names',
+      one: '1 responsibility left today 💜 $names',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dailyReminderGeneric => 'Check today\'s responsibilities 💜';
+
+  @override
+  String memberResponsibilitiesTitle(Object name) {
+    return '$name\'s responsibilities';
+  }
+
+  @override
+  String get responsibilitiesAll => 'All';
+
+  @override
+  String get responsibilitiesNoneToday => 'Nothing due today 🎉';
+
+  @override
   String get accountSectionTitle => 'Account';
 
   @override
@@ -1869,7 +1963,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get responsibilityDaily => 'Daily';
 
   @override
-  String get responsibilitySchoolDays => 'School days (Sun–Thu)';
+  String get responsibilitySchoolDays => 'School days';
 
   @override
   String get responsibilityCustom => 'Custom';

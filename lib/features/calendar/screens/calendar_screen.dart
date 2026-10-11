@@ -16,6 +16,7 @@ import '../../../data/local/database.dart';
 import '../../../data/local/tables/events_table.dart';
 import '../../../data/providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../data/repositories/family_settings_repository.dart';
 import '../../family/providers/family_providers.dart';
 import '../providers/event_providers.dart';
 import 'event_form_screen.dart';
@@ -323,8 +324,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: TableCalendar<Event>(
-                    // This family's week: Sunday–Thursday school days, so
-                    // the weekend shaded in the grid is Friday–Saturday.
+                    // The family's week start (Settings → Family schedule).
+                    // Changing it only re-lays the grid: the selected and
+                    // focused days are this State's own, so they stay put.
+                    startingDayOfWeek: StartingDayOfWeek.values[
+                        (ref.watch(familyScheduleProvider).valueOrNull ??
+                                    FamilySchedule.defaults)
+                                .weekStartDay -
+                            1],
+                    // Weekend shading stays Friday–Saturday: school days
+                    // decide when chores are due, not what a weekend is.
                     weekendDays: const [DateTime.friday, DateTime.saturday],
                     firstDay: DateTime.now().subtract(const Duration(days: 365)),
                     lastDay: DateTime.now().add(const Duration(days: 365 * 3)),

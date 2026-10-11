@@ -10,7 +10,7 @@ import '../../../core/permissions/permission_ui.dart';
 import '../../../core/theme/app_color_scheme.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/avatar_photo_store.dart';
-import '../../../core/utils/date_format_x.dart' show DateFormatX;
+import '../../../core/utils/date_format_x.dart' show DateFormatX, formatTime;
 import '../../../core/utils/enum_display.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/banner_ad_widget.dart';
@@ -63,7 +63,7 @@ String _relativeDayAndTime(BuildContext context, AppLocalizations l10n, DateTime
       : _isTomorrow(dt)
           ? l10n.tomorrow
           : DateFormat('EEEE', locale).format(dt);
-  final time = DateFormat('h:mm a', locale).format(dt);
+  final time = formatTime(context, dt);
   return '$day • $time';
 }
 

@@ -20,6 +20,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../family/providers/family_providers.dart';
 import '../domain/task_status_calculator.dart';
 import '../widgets/reminder_picker_sheet.dart';
+import '../../settings/providers/reminder_providers.dart';
+import '../domain/default_reminder.dart';
 
 class TaskFormScreen extends ConsumerStatefulWidget {
   const TaskFormScreen({
@@ -32,6 +34,7 @@ class TaskFormScreen extends ConsumerStatefulWidget {
     this.initialReminderType,
     this.initialReminderOffsetMinutes,
     this.initialReminderAt,
+    this.initialReminderIsDefault = false,
   });
 
   final Task? existing;
@@ -46,6 +49,11 @@ class TaskFormScreen extends ConsumerStatefulWidget {
   final TaskReminderType? initialReminderType;
   final int? initialReminderOffsetMinutes;
   final DateTime? initialReminderAt;
+
+  /// The initial reminder came from the "default task reminder" setting
+  /// (e.g. passed on from the quick-add sheet untouched) — treat it as the
+  /// default here too, so it follows a due time picked in this form.
+  final bool initialReminderIsDefault;
 
   @override
   ConsumerState<TaskFormScreen> createState() => _TaskFormScreenState();
@@ -66,6 +74,10 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   int? _reminderOffsetMinutes;
   DateTime? _reminderAt;
 
+  /// The reminder is still the setting's default (new task, not changed in
+  /// the reminder picker) — re-derived on save from the final due time.
+  late bool _reminderIsDefault;
+
   @override
   void initState() {
     super.initState();
@@ -79,11 +91,25 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     _category = e?.category ?? TaskCategory.other;
     _recurrence = e?.recurrence ?? TaskRecurrence.none;
     _assigneeId = e?.assigneeId ?? widget.initialAssigneeId;
-    _reminderType =
-        e?.reminderType ?? widget.initialReminderType ?? TaskReminderType.dueTime;
-    _reminderOffsetMinutes = e?.reminderOffsetMinutes ?? widget.initialReminderOffsetMinutes;
-    _reminderAt = e?.reminderAt ?? widget.initialReminderAt;
+    _reminderIsDefault =
+        e == null && (widget.initialReminderType == null || widget.initialReminderIsDefault);
+    if (_reminderIsDefault) {
+      final d = _defaultReminder();
+      _reminderType = d.type;
+      _reminderOffsetMinutes = d.offsetMinutes;
+      _reminderAt = null;
+    } else {
+      _reminderType =
+          e?.reminderType ?? widget.initialReminderType ?? TaskReminderType.dueTime;
+      _reminderOffsetMinutes = e?.reminderOffsetMinutes ?? widget.initialReminderOffsetMinutes;
+      _reminderAt = e?.reminderAt ?? widget.initialReminderAt;
+    }
   }
+
+  ({TaskReminderType type, int? offsetMinutes}) _defaultReminder() => defaultTaskReminder(
+    ref.read(phoneReminderPreferencesProvider).taskDefault,
+    dueTimeMinutes: _dueTimeMinutes,
+  );
 
   @override
   void dispose() {
@@ -237,6 +263,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     _unfocus();
     if (result == null) return;
     setState(() {
+      _reminderIsDefault = false;
       _reminderType = result.type;
       _reminderOffsetMinutes = result.offsetMinutes;
       _reminderAt = result.reminderAt;
@@ -257,6 +284,12 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     final repo = ref.read(taskRepositoryProvider);
     if (widget.existing == null) {
       if (!checkPermission(context, ref, FamilyAction.createTask)) return;
+      if (_reminderIsDefault) {
+        // The due time may have been set after the form opened.
+        final d = _defaultReminder();
+        _reminderType = d.type;
+        _reminderOffsetMinutes = d.offsetMinutes;
+      }
       await repo.addTask(
         id: const Uuid().v4(),
         title: title,

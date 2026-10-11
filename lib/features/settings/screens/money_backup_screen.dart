@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/auth/auth_config.dart';
 import '../../../core/theme/app_color_scheme.dart';
+import '../../../core/utils/date_format_x.dart';
 import '../../../data/backup/money_backup_providers.dart';
 import '../../../data/backup/money_backup_repository.dart';
 import '../../../data/providers.dart';
@@ -90,7 +91,7 @@ class _MoneyBackupScreenState extends ConsumerState<MoneyBackupScreen> {
 
   String _when(DateTime at) {
     final locale = Localizations.localeOf(context).toString();
-    return DateFormat.yMMMd(locale).add_jm().format(at.toLocal());
+    return '${DateFormat.yMMMd(locale).format(at.toLocal())} ${formatTime(context, at)}';
   }
 
   Future<void> _restore(MoneyBackupInfo backup) async {

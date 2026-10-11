@@ -223,20 +223,56 @@ class NotificationService {
   Future<void> cancelTaskOverdueFollowup(String taskId) =>
       _cancel(_taskOverdueFollowupId(taskId));
 
+  /// [minutesBefore] comes from this phone's "event reminder" setting;
+  /// null means no reminder (any scheduled one is cancelled).
   Future<void> scheduleEventReminder({
     required String eventId,
     required String title,
     required DateTime startAt,
-  }) {
+    int? minutesBefore = 15,
+  }) async {
+    final id = _eventNotificationId(eventId);
+    if (minutesBefore == null) return _cancel(id);
     return _schedule(
-      id: _eventNotificationId(eventId),
+      id: id,
       title: title,
-      body: 'Starting in 15 minutes',
-      at: startAt.subtract(const Duration(minutes: 15)),
+      body: minutesBefore == 0 ? 'Starting now' : 'Starting in $minutesBefore minutes',
+      at: startAt.subtract(Duration(minutes: minutesBefore)),
       payload: 'event:$eventId',
     );
   }
 
   Future<void> cancelEventReminder(String eventId) =>
       _cancel(_eventNotificationId(eventId));
+
+  /// How many days ahead the daily responsibilities reminder is planned
+  /// (see `DailyResponsibilityReminders`), and the slots it cycles through.
+  static const dailyReminderSlots = 8;
+
+  // The "+3" spare id of the first few entity slots — never used by any
+  // task or event (those use +0/+1/+2), so these can't collide.
+  int _dailyReminderId(int slot) => slot * 4 + 3;
+
+  /// One day's responsibilities reminder. [slot] is fixed per date, so
+  /// planning again replaces rather than duplicates.
+  Future<void> scheduleDailyResponsibilityReminder({
+    required int slot,
+    required String title,
+    required String body,
+    required DateTime at,
+  }) {
+    return _schedule(
+      id: _dailyReminderId(slot),
+      title: title,
+      body: body,
+      at: at,
+      payload: 'responsibilities:today',
+    );
+  }
+
+  Future<void> cancelDailyResponsibilityReminders() async {
+    for (var slot = 0; slot < dailyReminderSlots; slot++) {
+      await _cancel(_dailyReminderId(slot));
+    }
+  }
 }
