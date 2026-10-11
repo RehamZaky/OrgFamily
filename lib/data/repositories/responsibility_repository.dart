@@ -19,12 +19,18 @@ import '../sync/sync_engine.dart';
 /// (see family_permissions.dart): managing chores is Owner/Adult only, and a
 /// Child may tick only their own.
 class ResponsibilityRepository {
-  ResponsibilityRepository(this._db, this._sync, {ActivityLog? activity})
-      : _activity = activity;
+  ResponsibilityRepository(
+    this._db,
+    this._sync, {
+    ActivityLog? activity,
+    DateTime Function()? clock,
+  }) : _activity = activity,
+       _clock = clock ?? DateTime.now;
 
   final AppDatabase _db;
   final SyncEngine _sync;
   final ActivityLog? _activity;
+  final DateTime Function() _clock;
 
   Stream<List<Responsibility>> watchForMember(String memberId) {
     return (_db.select(_db.responsibilities)
@@ -80,7 +86,7 @@ class ResponsibilityRepository {
     if (!canPerform(actingRole, action)) {
       throw FamilyPermissionException(action, actingRole);
     }
-    final now = DateTime.now();
+    final now = _clock();
     await _db.transaction(() async {
       await (_db.update(_db.responsibilities)..where((r) => r.id.equals(id))).write(
         ResponsibilitiesCompanion(
@@ -94,7 +100,9 @@ class ResponsibilityRepository {
             type: ActivityTypes.responsibilityCompleted,
             entityType: SyncEntityType.responsibility.name,
             entityId: id,
-            metadata: {'title': row.title, 'memberId': row.memberId});
+            metadata: {'title': row.title, 'memberId': row.memberId},
+            onceId: ActivityLog.responsibilityCompletionId(id, now),
+            onceDay: now);
       }
     });
   }

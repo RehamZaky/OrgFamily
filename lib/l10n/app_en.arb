@@ -115,86 +115,104 @@
     }
   },
 
-  "activityCompleted": "completed \"{title}\"",
+  "activityCompleted": "{actor} completed a task",
   "@activityCompleted": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
-  "activityAdded": "added \"{item}\" to {list}",
+  "activityAdded": "{actor} added to {list}",
   "@activityAdded": {
     "placeholders": {
-      "item": {},
+      "actor": {},
       "list": {}
     }
   },
   "activitySomeone": "Someone",
-  "activityTaskCreated": "added the task \"{title}\"",
+  "activityTaskCreated": "{actor} added a task",
   "@activityTaskCreated": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
-  "activityTaskAssigned": "assigned \"{title}\" to {name}",
+  "activityTaskAssigned": "{actor} assigned a task to {assignee}",
   "@activityTaskAssigned": {
     "placeholders": {
-      "title": {},
-      "name": {}
+      "actor": {},
+      "assignee": {}
     }
   },
-  "activityEventCreated": "added the event \"{title}\"",
+  "activityEventCreated": "{actor} added an event",
   "@activityEventCreated": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
-  "activityEventChanged": "updated the event \"{title}\"",
+  "activityEventChanged": "{actor} updated an event",
   "@activityEventChanged": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
-  "activityEventCancelled": "cancelled the event \"{title}\"",
+  "activityEventCancelled": "{actor} cancelled an event",
   "@activityEventCancelled": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
-  "activityItemBought": "bought \"{item}\"",
+  "activityItemBought": "{actor} bought an item",
   "@activityItemBought": {
     "placeholders": {
-      "item": {}
+      "actor": {}
     }
   },
-  "activityItemRemoved": "removed \"{item}\" from {list}",
+  "activityItemRemoved": "{actor} removed from {list}",
   "@activityItemRemoved": {
     "placeholders": {
-      "item": {},
+      "actor": {},
       "list": {}
     }
   },
-  "activityMemberJoined": "joined the family",
-  "activityResponsibilityDone": "finished \"{title}\"",
+  "activityMemberJoined": "{actor} joined the family",
+  "@activityMemberJoined": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "activityResponsibilityDone": "{actor} finished a responsibility",
   "@activityResponsibilityDone": {
     "placeholders": {
-      "title": {}
+      "actor": {}
     }
   },
   "activityThisWeek": "This week",
   "activityStatTasks": "Tasks done",
-  "activityStatEvents": "Events",
+  "activityStatEvents": "Event updates",
   "activityStatShopping": "List updates",
   "activityStatChores": "Chores done",
-  "activityEarlierThisWeek": "Earlier this week",
   "activityLoadOlder": "Show older activity",
   "activityNoOlder": "No older activity on this phone",
   "activityFilterEveryone": "Everyone",
-  "activityFilterAll": "All",
   "activityFilterTasks": "Tasks",
   "activityFilterEvents": "Events",
   "activityFilterShopping": "Shopping",
-  "activityFilterFamily": "Family",
   "activityEmptyFiltered": "No activity matches these filters",
+  "activityWholeFamily": "Whole family · {range}",
+  "@activityWholeFamily": {
+    "placeholders": {
+      "range": {}
+    }
+  },
+  "activityStatTasksShort": "Tasks",
+  "activityStatEventsShort": "Events",
+  "activityStatListsShort": "Lists",
+  "activityStatChoresShort": "Chores",
+  "activityTimeline": "Activity timeline",
+  "activityFilterAllTypes": "All types",
+  "activityFilterResponsibilities": "Responsibilities",
+  "activityFilterMembers": "Members",
+  "activityFilterByMember": "Show activity by",
+  "activityFilterByType": "Activity type",
 
   "today": "Today",
   "tomorrow": "Tomorrow",

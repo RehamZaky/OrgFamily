@@ -421,8 +421,24 @@ next occurrence isn't logged — it's not a family action.
 
 - **Order**: `occurredAt` is a server timestamp, set on the first upload
   and read back by the engine's normal post-push read; the rules require
-  `occurredAt == request.time` on create and allow nothing but a retry's
-  re-send afterwards — no rewrite, backdating or delete.
+  `occurredAt == request.time` on create and allow nothing but an
+  unchanged re-send afterwards — no rewrite, re-timing or delete. An entry
+  with no server time yet is checked for in the cloud before it's sent,
+  so a retry whose first attempt landed reads it back instead.
+- **Once-only completions**: a task occurrence has at most one
+  `task.completed` entry (id `task.completed:<taskId>`; each recurring
+  occurrence is its own task), a responsibility at most one
+  `responsibility.completed` per local day (id
+  `responsibility.completed:<id>:<yyyy-MM-dd>`). Untick and re-tick finds
+  the id already on the phone and records nothing. Two phones recording
+  it before syncing write the same document: the later upload finds it
+  stored (checked before sending) and adopts it — or, uploading at the
+  same instant, is refused by the rules and adopts it then — so no
+  duplicate and no failed row. Other entries keep random ids.
+- **Read-back race** (all entities): an upload's read-back isn't applied
+  if the entity changed locally again while it was in flight — it would
+  overwrite the newer change (e.g. resurrect something deleted right
+  after being added); the newer change's own upload follows.
 - **Authorship and linkage** (rules): `actorUid` is the writer;
   `actorMemberId` is null, the writer's own member, or an account-less
   member (a child on a shared phone) — never an adult linked to another
@@ -452,8 +468,11 @@ next occurrence isn't logged — it's not a family action.
   child`, `actorDeviceId`, `state`, `relatedActivityId`) need neither a
   schema nor a rules change. Entity types use `SyncEntityType` names.
 - **UI**: `familyActivityProvider(days)` merges the log with history
-  from before this phone's first entry (derived from completed tasks and
-  added items). The Home card and Family screen show the latest four;
+  derived from completed tasks and added items, skipping any the log
+  already has for that same task or item. Sentences carry the member's
+  name as a placeholder, so Arabic can use neutral passive phrasing
+  ("تم إكمال مهمة … بواسطة مريم") that fits every member without a
+  gender field. The Home card and Family screen show the latest four;
   `FamilyActivityScreen` has the weekly summary, member/type filters, day
   groups and "Show older activity".
 

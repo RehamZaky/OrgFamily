@@ -261,59 +261,61 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String activityCompleted(Object title) {
-    return 'أكمل \"$title\"';
+  String activityCompleted(Object actor) {
+    return 'تم إكمال مهمة بواسطة $actor';
   }
 
   @override
-  String activityAdded(Object item, Object list) {
-    return 'أضاف \"$item\" إلى $list';
+  String activityAdded(Object actor, Object list) {
+    return 'تمت الإضافة إلى $list بواسطة $actor';
   }
 
   @override
   String get activitySomeone => 'شخص ما';
 
   @override
-  String activityTaskCreated(Object title) {
-    return 'أضاف المهمة \"$title\"';
+  String activityTaskCreated(Object actor) {
+    return 'تمت إضافة مهمة بواسطة $actor';
   }
 
   @override
-  String activityTaskAssigned(Object title, Object name) {
-    return 'أسند \"$title\" إلى $name';
+  String activityTaskAssigned(Object actor, Object assignee) {
+    return 'تم إسناد مهمة إلى $assignee بواسطة $actor';
   }
 
   @override
-  String activityEventCreated(Object title) {
-    return 'أضاف الموعد \"$title\"';
+  String activityEventCreated(Object actor) {
+    return 'تمت إضافة موعد بواسطة $actor';
   }
 
   @override
-  String activityEventChanged(Object title) {
-    return 'عدّل الموعد \"$title\"';
+  String activityEventChanged(Object actor) {
+    return 'تم تعديل موعد بواسطة $actor';
   }
 
   @override
-  String activityEventCancelled(Object title) {
-    return 'ألغى الموعد \"$title\"';
+  String activityEventCancelled(Object actor) {
+    return 'تم إلغاء موعد بواسطة $actor';
   }
 
   @override
-  String activityItemBought(Object item) {
-    return 'اشترى \"$item\"';
+  String activityItemBought(Object actor) {
+    return 'تم شراء عنصر بواسطة $actor';
   }
 
   @override
-  String activityItemRemoved(Object item, Object list) {
-    return 'حذف \"$item\" من $list';
+  String activityItemRemoved(Object actor, Object list) {
+    return 'تم الحذف من $list بواسطة $actor';
   }
 
   @override
-  String get activityMemberJoined => 'انضم إلى العائلة';
+  String activityMemberJoined(Object actor) {
+    return 'انضمام $actor إلى العائلة';
+  }
 
   @override
-  String activityResponsibilityDone(Object title) {
-    return 'أنجز \"$title\"';
+  String activityResponsibilityDone(Object actor) {
+    return 'تم إنجاز مسؤولية بواسطة $actor';
   }
 
   @override
@@ -323,16 +325,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityStatTasks => 'مهام منجزة';
 
   @override
-  String get activityStatEvents => 'مواعيد';
+  String get activityStatEvents => 'تحديثات المواعيد';
 
   @override
   String get activityStatShopping => 'تحديثات القوائم';
 
   @override
   String get activityStatChores => 'مسؤوليات منجزة';
-
-  @override
-  String get activityEarlierThisWeek => 'في وقت سابق هذا الأسبوع';
 
   @override
   String get activityLoadOlder => 'عرض النشاط الأقدم';
@@ -344,9 +343,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityFilterEveryone => 'الجميع';
 
   @override
-  String get activityFilterAll => 'الكل';
-
-  @override
   String get activityFilterTasks => 'المهام';
 
   @override
@@ -356,10 +352,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityFilterShopping => 'التسوق';
 
   @override
-  String get activityFilterFamily => 'العائلة';
+  String get activityEmptyFiltered => 'لا يوجد نشاط يطابق هذه الاختيارات';
 
   @override
-  String get activityEmptyFiltered => 'لا يوجد نشاط يطابق هذه الاختيارات';
+  String activityWholeFamily(Object range) {
+    return 'كل العائلة · $range';
+  }
+
+  @override
+  String get activityStatTasksShort => 'المهام';
+
+  @override
+  String get activityStatEventsShort => 'المواعيد';
+
+  @override
+  String get activityStatListsShort => 'القوائم';
+
+  @override
+  String get activityStatChoresShort => 'المسؤوليات';
+
+  @override
+  String get activityTimeline => 'سجل النشاط';
+
+  @override
+  String get activityFilterAllTypes => 'كل الأنواع';
+
+  @override
+  String get activityFilterResponsibilities => 'المسؤوليات';
+
+  @override
+  String get activityFilterMembers => 'الأعضاء';
+
+  @override
+  String get activityFilterByMember => 'عرض نشاط';
+
+  @override
+  String get activityFilterByType => 'نوع النشاط';
 
   @override
   String get today => 'اليوم';

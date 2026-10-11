@@ -8,7 +8,7 @@ import '../../../data/local/database.dart';
 import '../../../data/providers.dart';
 
 /// What the Family Activity filters group entries by.
-enum ActivityCategory { tasks, events, shopping, family }
+enum ActivityCategory { tasks, events, shopping, responsibilities, members }
 
 /// One entry in the Family Activity timeline, from the activity log — or,
 /// for time before this phone had the log, derived from completed tasks
@@ -39,7 +39,8 @@ class ActivityItem {
     'task' => ActivityCategory.tasks,
     'event' => ActivityCategory.events,
     'shopping_item' => ActivityCategory.shopping,
-    _ => ActivityCategory.family,
+    'responsibility' => ActivityCategory.responsibilities,
+    _ => ActivityCategory.members,
   };
 
   factory ActivityItem.fromRow(FamilyActivity row) {
@@ -81,17 +82,6 @@ final _loggedActivityProvider = StreamProvider.autoDispose.family<List<FamilyAct
   )..where((r) => coalesce([r.occurredAt, r.createdAt]).isBiggerOrEqualValue(start))).watch();
 });
 
-/// When this phone started keeping the log (its oldest entry) — before
-/// that, the timeline falls back to what tasks and shopping items record
-/// themselves. Null while there's no entry at all.
-final _logStartProvider = StreamProvider.autoDispose<DateTime?>((ref) {
-  final db = ref.watch(databaseProvider);
-  final oldest = db.familyActivities.createdAt.min();
-  return (db.selectOnly(
-    db.familyActivities,
-  )..addColumns([oldest])).map((r) => r.read(oldest)).watchSingle();
-});
-
 final _completedTasksProvider = StreamProvider.autoDispose.family<List<Task>, int>((ref, days) {
   final db = ref.watch(databaseProvider);
   final start = activityWindowStart(days);
@@ -118,29 +108,56 @@ final _addedItemsProvider = StreamProvider.autoDispose.family<List<(ShoppingItem
       .watch();
 });
 
+/// One row per completion: the first completion of a task, and of a
+/// responsibility per local day, hides any repeats of it. Entries recorded
+/// now can't repeat (deterministic ids, see `ActivityLog.record`), but ones
+/// from before that — or from a phone on an older build — can, and stored
+/// entries are never changed or deleted.
+List<FamilyActivity> collapseRepeatedCompletions(List<FamilyActivity> rows) {
+  DateTime when(FamilyActivity r) => (r.occurredAt ?? r.createdAt).toLocal();
+  final ordered = [...rows]..sort((a, b) => when(a).compareTo(when(b)));
+  final seen = <String>{};
+  final kept = <FamilyActivity>[];
+  for (final r in ordered) {
+    final key = switch (r.type) {
+      ActivityTypes.taskCompleted => '${r.type}|${r.entityId}',
+      ActivityTypes.responsibilityCompleted =>
+        '${r.type}|${r.entityId}|${when(r).year}-${when(r).month}-${when(r).day}',
+      _ => null,
+    };
+    if (key == null || seen.add(key)) kept.add(r);
+  }
+  return kept;
+}
+
 /// Every entry from the last [days] days, newest first. Types this version
 /// doesn't know (a newer app's, e.g. V3's) are skipped, not shown wrongly.
+///
+/// History from before the log existed is derived from completed tasks and
+/// added shopping items — each skipped when the log already has that same
+/// action for that same task or item, so nothing shows twice. Deliberately
+/// per entity rather than "before the log started": entries synced from a
+/// phone that upgraded earlier say nothing about what this phone did
+/// before it upgraded.
 final familyActivityProvider = Provider.autoDispose.family<AsyncValue<List<ActivityItem>>, int>((
   ref,
   days,
 ) {
   final logged = ref.watch(_loggedActivityProvider(days));
-  final logStart = ref.watch(_logStartProvider);
   final tasks = ref.watch(_completedTasksProvider(days));
   final items = ref.watch(_addedItemsProvider(days));
-  for (final v in [logged, logStart, tasks, items]) {
-    if (v is AsyncError) return AsyncError(v.error, v.stackTrace);
+  for (final AsyncValue<Object?> v in [logged, tasks, items]) {
+    if (v case AsyncError(:final error, :final stackTrace)) return AsyncError(error, stackTrace);
   }
-  if (!logged.hasValue || !logStart.hasValue || !tasks.hasValue || !items.hasValue) {
+  if (!logged.hasValue || !tasks.hasValue || !items.hasValue) {
     return const AsyncLoading();
   }
-  final cutoff = logStart.value;
-  bool beforeLog(DateTime t) => cutoff == null || t.isBefore(cutoff);
+  final inLog = {for (final row in logged.value!) (row.type, row.entityId)};
   final result = <ActivityItem>[
-    for (final row in logged.value!)
+    for (final row in collapseRepeatedCompletions(logged.value!))
       if (ActivityTypes.known.contains(row.type)) ActivityItem.fromRow(row),
     for (final t in tasks.value!)
-      if (beforeLog(t.completedAt!))
+      if (!inLog.contains((ActivityTypes.taskCompleted, t.id)))
         ActivityItem(
           id: 'legacy-task-${t.id}',
           type: ActivityTypes.taskCompleted,
@@ -151,7 +168,7 @@ final familyActivityProvider = Provider.autoDispose.family<AsyncValue<List<Activ
           metadata: {'title': t.title},
         ),
     for (final (item, listName) in items.value!)
-      if (beforeLog(item.createdAt))
+      if (!inLog.contains((ActivityTypes.shoppingItemAdded, item.id)))
         ActivityItem(
           id: 'legacy-item-${item.id}',
           type: ActivityTypes.shoppingItemAdded,

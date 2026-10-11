@@ -10,10 +10,13 @@ import 'package:org_family/data/local/database.dart';
 import 'package:org_family/data/local/tables/responsibilities_table.dart';
 import 'package:org_family/data/local/tables/sync_outbox_table.dart';
 import 'package:org_family/data/local/tables/tasks_table.dart';
+import 'package:org_family/data/repositories/event_repository.dart';
 import 'package:org_family/data/repositories/responsibility_repository.dart';
 import 'package:org_family/data/repositories/shopping_repository.dart';
 import 'package:org_family/data/repositories/task_repository.dart';
 import 'package:org_family/data/sync/adapters/activity_sync_adapter.dart';
+import 'package:org_family/data/sync/adapters/event_sync_adapter.dart';
+import 'package:org_family/data/sync/adapters/shopping_item_sync_adapter.dart';
 import 'package:org_family/data/sync/adapters/responsibility_sync_adapter.dart';
 import 'package:org_family/data/sync/adapters/task_sync_adapter.dart';
 import 'package:org_family/data/sync/sync_engine.dart';
@@ -41,6 +44,22 @@ void main() {
       final sync = SyncEngine.inert(db);
       log = ActivityLog(sync)..setActor(uid: 'uid-kareem', memberId: 'm-kareem');
       tasks = TaskRepository(db, FakeNotificationService(), sync, activity: log);
+    });
+
+    test("an adult linked to another account isn't vouched for: not known", () async {
+      await db.into(db.familyMembers).insert(
+            FamilyMembersCompanion.insert(
+              id: 'm-reem',
+              name: 'Reem',
+              colorValue: 0,
+              linkedUid: const Value('uid-reem'),
+            ),
+          );
+      log.setActor(uid: 'uid-kareem', memberId: 'm-reem'); // Reem's profile picked
+      await tasks.addTask(id: 't1', title: 'Feed the cat');
+      final entry = (await entries()).single;
+      expect(entry.actorUid, 'uid-kareem');
+      expect(entry.actorMemberId, isNull);
     });
 
     test('a task created and completed is recorded with who did it', () async {
@@ -250,6 +269,50 @@ void main() {
         expect(await db.select(db.syncOutbox).get(), isEmpty);
       });
 
+      test("uploading fixes up an entry the rules would refuse", () async {
+        // Signed out, on behalf of an adult linked to another account.
+        await db.into(db.familyMembers).insert(
+              FamilyMembersCompanion.insert(
+                id: 'm-reem',
+                name: 'Reem',
+                colorValue: 0,
+                linkedUid: const Value('uid-reem'),
+              ),
+            );
+        engine.stop();
+        engine.setSignedInUid(null);
+        log.setActor(uid: null, memberId: 'm-reem');
+        await tasks.addTask(id: 't2', title: 'Water plants');
+        engine.start(familyId, 'uid-kareem');
+        await _settle();
+
+        await engine.resolveReview({(SyncEntityType.task, 't2'): ReviewChoice.upload});
+        await _settle();
+        final entry = (await entries()).firstWhere((e) => e.entityId == 't2');
+        final cloud = (await cloudEntry(entry.id))!;
+        expect(cloud['actorUid'], isNull); // made signed out: stays "no account"
+        expect(cloud['actorMemberId'], isNull); // Reem's account didn't make it
+      });
+
+      test("using the cloud's version drops only the held entries, not mine", () async {
+        // Synced as Kareem now: complete the same task — my own entry.
+        log.setActor(uid: 'uid-kareem', memberId: null);
+        await tasks.setCompleted('t1', true);
+        await _settle();
+        await firestore.doc('families/$familyId/tasks/t1').update({
+          'updatedAt': Timestamp.fromDate(DateTime.now().add(const Duration(minutes: 1))),
+        });
+
+        await engine.resolveReview({(SyncEntityType.task, 't1'): ReviewChoice.useCloud});
+        await _settle();
+        await engine.drainNow();
+        await _settle();
+        final types = (await entries()).map((e) => e.type);
+        expect(types, [ActivityTypes.taskCompleted]); // the held task.created is gone
+        final mine = (await entries()).single;
+        expect(await cloudEntry(mine.id), isNotNull);
+      });
+
       test('keeping the task on the phone keeps its entry local too', () async {
         await engine.resolveReview({(SyncEntityType.task, 't1'): ReviewChoice.phoneOnly});
         await _settle();
@@ -307,6 +370,35 @@ void main() {
         expect(await db.select(db.syncOutbox).get(), isEmpty);
       });
 
+      test("a retry whose first upload landed reads it back; its time never moves", () async {
+        engine.start(familyId, 'uid-kareem');
+        await _settle();
+        await tasks.addTask(id: 't1', title: 'Feed the cat');
+        await _settle();
+        final entry = (await entries()).single;
+        final stored = (await cloudEntry(entry.id))!['occurredAt'] as Timestamp;
+
+        // As if the read-back after the upload had failed: no server time
+        // locally, and the row still queued.
+        await (db.update(db.familyActivities)..where((a) => a.id.equals(entry.id)))
+            .write(const FamilyActivitiesCompanion(occurredAt: Value(null)));
+        await db.into(db.syncOutbox).insert(
+              SyncOutboxCompanion.insert(
+                familyId: familyId,
+                entityType: SyncEntityType.activity,
+                entityId: entry.id,
+                operation: SyncOperation.upsert,
+                originUid: const Value('uid-kareem'),
+              ),
+            );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await reconnect();
+
+        expect((await cloudEntry(entry.id))!['occurredAt'], stored);
+        expect((await entries()).single.occurredAt, isNotNull);
+        expect(await db.select(db.syncOutbox).get(), isEmpty);
+      });
+
       test('the task uploaded but the entry did not: the same entry follows later', () async {
         engine.start(familyId, 'uid-kareem');
         await _settle();
@@ -322,6 +414,46 @@ void main() {
         final docs = (await firestore.collection('families/$familyId/activities').get()).docs;
         expect(docs.map((d) => d.id), [(await entries()).single.id]);
       });
+    });
+
+    test('entries about deleted events and items upload after their tombstones, and the delete sticks', () async {
+      engine = SyncEngine(db, firestore, [
+        EventSyncAdapter(db),
+        ShoppingItemSyncAdapter(db),
+        ActivitySyncAdapter(db),
+      ]);
+      log = ActivityLog(engine)..setActor(uid: 'uid-kareem', memberId: null);
+      final events = EventRepository(db, FakeNotificationService(), engine, activity: log);
+      final shopping = ShoppingRepository(db, engine, activity: log);
+      await db.into(db.shoppingLists).insert(
+            ShoppingListsCompanion.insert(id: 'l1', name: 'Grocery', updatedAt: Value(DateTime(2026))),
+          );
+      engine.start(familyId, 'uid-kareem');
+      await _settle();
+
+      // Deleted right after being added — while the add's upload is still
+      // in flight (regression: its read-back used to undo the delete).
+      await events.addEvent(id: 'e1', title: 'Swimming', startAt: DateTime.now());
+      await events.deleteEvent('e1');
+      await shopping.addItem(id: 'i1', listId: 'l1', name: 'Rice');
+      await shopping.deleteItem('i1');
+      await _settle();
+
+      expect((await firestore.doc('families/$familyId/events/e1').get()).data()!['deletedAt'],
+          isNotNull);
+      expect((await firestore.doc('families/$familyId/shoppingItems/i1').get()).data()!['deletedAt'],
+          isNotNull);
+      final cloudTypes = (await firestore.collection('families/$familyId/activities').get())
+          .docs
+          .map((d) => d.data()['type'])
+          .toSet();
+      expect(cloudTypes, {
+        ActivityTypes.eventCreated,
+        ActivityTypes.eventCancelled,
+        ActivityTypes.shoppingItemAdded,
+        ActivityTypes.shoppingItemRemoved,
+      });
+      expect(await db.select(db.syncOutbox).get(), isEmpty);
     });
 
     test('a responsibility ticked done twice gives exactly one cloud entry', () async {
