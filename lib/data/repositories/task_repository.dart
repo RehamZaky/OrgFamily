@@ -65,8 +65,7 @@ class TaskRepository {
   }) async {
     await _notifications.cancelTaskReminder(id);
     await _notifications.cancelTaskOverdueFollowup(id);
-    if (isCompleted || dueDate == null) return;
-    final notifyAt = taskReminderNotifyAt(TaskReminderInput(
+    final notifyAt = taskNotificationAt(TaskReminderInput(
       deadline: TaskDeadlineInput(
         dueDate: dueDate,
         dueTimeMinutes: dueTimeMinutes,

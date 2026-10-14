@@ -3630,6 +3630,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Join family'**
   String get joinFamilyButton;
+
+  /// No description provided for @drawerGroupMySpace.
+  ///
+  /// In en, this message translates to:
+  /// **'My space'**
+  String get drawerGroupMySpace;
+
+  /// No description provided for @drawerGroupFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get drawerGroupFamily;
+
+  /// No description provided for @drawerGroupApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get drawerGroupApp;
+
+  /// No description provided for @drawerInviteMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite member'**
+  String get drawerInviteMember;
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get remindersMine;
+
+  /// No description provided for @remindersEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get remindersEveryone;
+
+  /// No description provided for @remindersKindTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get remindersKindTask;
+
+  /// No description provided for @remindersKindEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get remindersKindEvent;
+
+  /// No description provided for @remindersWholeFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole family'**
+  String get remindersWholeFamily;
+
+  /// No description provided for @remindersFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders this phone will show over the next 7 days. To save battery, Android may show one a few minutes late.'**
+  String get remindersFooter;
+
+  /// No description provided for @remindersEmptyMine.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders for you in the next 7 days'**
+  String get remindersEmptyMine;
+
+  /// No description provided for @remindersEmptyEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders in the next 7 days'**
+  String get remindersEmptyEveryone;
+
+  /// No description provided for @remindersEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks remind at their due time or the reminder you chose. Event and daily responsibility reminders are set in Settings › Reminders.'**
+  String get remindersEmptyHint;
+
+  /// No description provided for @remindersOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder settings'**
+  String get remindersOpenSettings;
+
+  /// No description provided for @remindersPermissionOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off for OrgFamily on this phone, so none of these reminders will appear.'**
+  String get remindersPermissionOff;
+
+  /// No description provided for @remindersPermissionStillOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are still off. Turn them on in your phone\'s Settings › Apps › OrgFamily › Notifications.'**
+  String get remindersPermissionStillOff;
+
+  /// No description provided for @remindersPermissionAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get remindersPermissionAllow;
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family insights'**
+  String get insightsTitle;
+
+  /// No description provided for @insightsWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get insightsWeek;
+
+  /// No description provided for @insightsMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get insightsMonth;
+
+  /// No description provided for @insightsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get insightsThisMonth;
+
+  /// No description provided for @insightsTasksCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks completed'**
+  String get insightsTasksCompleted;
+
+  /// No description provided for @insightsResponsibilitiesDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities done'**
+  String get insightsResponsibilitiesDone;
+
+  /// No description provided for @insightsShoppingAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping items added'**
+  String get insightsShoppingAdded;
+
+  /// No description provided for @insightsShoppingPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping items bought'**
+  String get insightsShoppingPurchased;
+
+  /// No description provided for @insightsEventUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Event updates'**
+  String get insightsEventUpdates;
+
+  /// No description provided for @insightsVsLastWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'vs. same time last week'**
+  String get insightsVsLastWeek;
+
+  /// No description provided for @insightsVsLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'vs. same time last month'**
+  String get insightsVsLastMonth;
+
+  /// No description provided for @insightsSameAs.
+  ///
+  /// In en, this message translates to:
+  /// **'No change {comparison}'**
+  String insightsSameAs(Object comparison);
+
+  /// No description provided for @insightsNotEnoughHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough history to compare'**
+  String get insightsNotEnoughHistory;
+
+  /// No description provided for @insightsWhoCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Who completed what'**
+  String get insightsWhoCompleted;
+
+  /// No description provided for @insightsLegendTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get insightsLegendTasks;
+
+  /// No description provided for @insightsLegendResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get insightsLegendResponsibilities;
+
+  /// No description provided for @insightsMemberSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — tasks: {tasks}, responsibilities: {responsibilities}'**
+  String insightsMemberSemantics(Object name, int tasks, int responsibilities);
+
+  /// No description provided for @insightsHistoryFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s activity starts on {date}, so earlier days are missing.'**
+  String insightsHistoryFrom(Object date);
+
+  /// No description provided for @insightsHowCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted from the activity on this phone: each task once, each responsibility once per day. Older activity may be incomplete — responsibilities, purchases and event changes are only recorded since Family Activity was added, and a phone that joined later only has the last 30 days.'**
+  String get insightsHowCounted;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & support'**
+  String get helpTitle;
+
+  /// No description provided for @helpFaqHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Common questions'**
+  String get helpFaqHeader;
+
+  /// No description provided for @helpGuidesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Guides'**
+  String get helpGuidesHeader;
+
+  /// No description provided for @helpSwitchProfileQ.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I switch to another family member?'**
+  String get helpSwitchProfileQ;
+
+  /// No description provided for @helpSwitchProfileA.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the menu and tap the role under your name (for example \"Owner\"), then pick a family member. The app then shows their tasks and responsibilities and acts as them. Tap it again to switch back. Your reminders on this phone stay yours.'**
+  String get helpSwitchProfileA;
+
+  /// No description provided for @helpInviteQ.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I add someone to the family?'**
+  String get helpInviteQ;
+
+  /// No description provided for @helpInviteA.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the menu › Invite member (or Settings › Account › Invite a family member) and share the code. They install OrgFamily, sign in, and choose Settings › Account › Join with an invite code. Each code works once and expires.'**
+  String get helpInviteA;
+
+  /// No description provided for @helpRolesQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can change what?'**
+  String get helpRolesQ;
+
+  /// No description provided for @helpRolesA.
+  ///
+  /// In en, this message translates to:
+  /// **'The Owner can do everything, including managing members and the family schedule. Adults can do everything else: tasks, events, lists, responsibilities and Money. Children can add tasks and shopping items, complete their own tasks and responsibilities, and move their own task\'s due date.'**
+  String get helpRolesA;
+
+  /// No description provided for @helpResponsibilitiesQ.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s the difference between tasks and responsibilities?'**
+  String get helpResponsibilitiesQ;
+
+  /// No description provided for @helpResponsibilitiesA.
+  ///
+  /// In en, this message translates to:
+  /// **'A task is a one-off job with a deadline and a reminder, like \"Finish science homework by 7 PM\". A responsibility is a recurring everyday expectation that\'s simply done today or not, like \"Make your bed\" — every day, on school days, or on days you choose.'**
+  String get helpResponsibilitiesA;
+
+  /// No description provided for @helpRemindersQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Why didn\'t a reminder appear?'**
+  String get helpRemindersQ;
+
+  /// No description provided for @helpRemindersA.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that notifications are allowed for OrgFamily (My reminders shows a warning when they\'re off) and that battery saving isn\'t restricting the app. Android may show a reminder a few minutes late. The daily responsibilities reminder is planned a week ahead, so open the app at least once a week.'**
+  String get helpRemindersA;
+
+  /// No description provided for @helpOfflineQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Does OrgFamily work offline?'**
+  String get helpOfflineQ;
+
+  /// No description provided for @helpOfflineA.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes. Everything you change is saved on your phone straight away and sent to your family as soon as you\'re back online. Settings › Account › Cloud sync shows whether anything is still waiting to be sent.'**
+  String get helpOfflineA;
+
+  /// No description provided for @helpMoneyQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see our Money?'**
+  String get helpMoneyQ;
+
+  /// No description provided for @helpMoneyA.
+  ///
+  /// In en, this message translates to:
+  /// **'Money (transactions, budget and savings goals) stays on this phone only — it isn\'t shared with the family. Children can\'t open it. The Owner can make an encrypted backup from Settings › Money backup.'**
+  String get helpMoneyA;
+
+  /// No description provided for @helpLanguageQ.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I change the language or theme?'**
+  String get helpLanguageQ;
+
+  /// No description provided for @helpLanguageA.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on.'**
+  String get helpLanguageA;
 }
 
 class _AppLocalizationsDelegate

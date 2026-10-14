@@ -61,6 +61,17 @@ List<DailyReminder> planDailyResponsibilityReminders({
   return plans;
 }
 
+/// The language notification texts are written in: the app's chosen one,
+/// else the phone's, else English — the same as the app itself shows.
+AppLocalizations notificationLocalizations(Locale? chosen) {
+  final locale = chosen ?? PlatformDispatcher.instance.locale;
+  return lookupAppLocalizations(
+    AppLocalizations.supportedLocales.any((l) => l.languageCode == locale.languageCode)
+        ? Locale(locale.languageCode)
+        : const Locale('en'),
+  );
+}
+
 /// Keeps this phone's daily responsibilities reminders matching its owner
 /// ([reminderOwnerProvider] — the signed-in adult's own profile, never the
 /// acting one), their setting, their chores and the family's school days.
@@ -86,12 +97,7 @@ class DailyResponsibilityReminders {
     if (atMinutes == null) return;
     final chores = await _ref.read(responsibilityRepositoryProvider).watchForMember(memberId).first;
     final schedule = await _ref.read(familySettingsRepositoryProvider).watchSchedule().first;
-    final locale = _ref.read(localeProvider) ?? PlatformDispatcher.instance.locale;
-    final l10n = lookupAppLocalizations(
-      AppLocalizations.supportedLocales.any((l) => l.languageCode == locale.languageCode)
-          ? Locale(locale.languageCode)
-          : const Locale('en'),
-    );
+    final l10n = notificationLocalizations(_ref.read(localeProvider));
     for (final plan in planDailyResponsibilityReminders(
       now: now,
       atMinutes: atMinutes,

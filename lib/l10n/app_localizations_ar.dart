@@ -2092,4 +2092,193 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get joinFamilyButton => 'انضمام إلى العائلة';
+
+  @override
+  String get drawerGroupMySpace => 'مساحتي';
+
+  @override
+  String get drawerGroupFamily => 'العائلة';
+
+  @override
+  String get drawerGroupApp => 'التطبيق';
+
+  @override
+  String get drawerInviteMember => 'دعوة فرد للعائلة';
+
+  @override
+  String get remindersTitle => 'تذكيراتي';
+
+  @override
+  String get remindersMine => 'تذكيراتي';
+
+  @override
+  String get remindersEveryone => 'الجميع';
+
+  @override
+  String get remindersKindTask => 'مهمة';
+
+  @override
+  String get remindersKindEvent => 'حدث';
+
+  @override
+  String get remindersWholeFamily => 'كل العائلة';
+
+  @override
+  String get remindersFooter =>
+      'التذكيرات التي سيعرضها هذا الهاتف خلال الأيام السبعة القادمة. قد يتأخر أندرويد في عرض التذكير بضع دقائق لتوفير البطارية.';
+
+  @override
+  String get remindersEmptyMine =>
+      'لا توجد تذكيرات لك خلال الأيام السبعة القادمة';
+
+  @override
+  String get remindersEmptyEveryone =>
+      'لا توجد تذكيرات خلال الأيام السبعة القادمة';
+
+  @override
+  String get remindersEmptyHint =>
+      'تذكّر المهام في موعد استحقاقها أو في الوقت الذي اخترته. أما تذكيرات الأحداث والمسؤوليات اليومية فتُضبط من الإعدادات › التذكيرات.';
+
+  @override
+  String get remindersOpenSettings => 'إعدادات التذكيرات';
+
+  @override
+  String get remindersPermissionOff =>
+      'الإشعارات متوقفة لتطبيق OrgFamily على هذا الهاتف، لذلك لن يظهر أي من هذه التذكيرات.';
+
+  @override
+  String get remindersPermissionStillOff =>
+      'الإشعارات ما زالت متوقفة. فعّلها من إعدادات الهاتف › التطبيقات › OrgFamily › الإشعارات.';
+
+  @override
+  String get remindersPermissionAllow => 'السماح بالإشعارات';
+
+  @override
+  String get insightsTitle => 'إحصائيات العائلة';
+
+  @override
+  String get insightsWeek => 'أسبوع';
+
+  @override
+  String get insightsMonth => 'شهر';
+
+  @override
+  String get insightsThisMonth => 'هذا الشهر';
+
+  @override
+  String get insightsTasksCompleted => 'مهام مكتملة';
+
+  @override
+  String get insightsResponsibilitiesDone => 'مسؤوليات منجزة';
+
+  @override
+  String get insightsShoppingAdded => 'عناصر تسوق مضافة';
+
+  @override
+  String get insightsShoppingPurchased => 'عناصر تسوق مشتراة';
+
+  @override
+  String get insightsEventUpdates => 'تحديثات الأحداث';
+
+  @override
+  String get insightsVsLastWeek => 'مقارنة بالفترة نفسها من الأسبوع الماضي';
+
+  @override
+  String get insightsVsLastMonth => 'مقارنة بالفترة نفسها من الشهر الماضي';
+
+  @override
+  String insightsSameAs(Object comparison) {
+    return 'بلا تغيير $comparison';
+  }
+
+  @override
+  String get insightsNotEnoughHistory => 'لا يوجد سجل كافٍ للمقارنة';
+
+  @override
+  String get insightsWhoCompleted => 'من أنجز ماذا';
+
+  @override
+  String get insightsLegendTasks => 'المهام';
+
+  @override
+  String get insightsLegendResponsibilities => 'المسؤوليات';
+
+  @override
+  String insightsMemberSemantics(Object name, int tasks, int responsibilities) {
+    return '$name — المهام: $tasks، المسؤوليات: $responsibilities';
+  }
+
+  @override
+  String insightsHistoryFrom(Object date) {
+    return 'يبدأ نشاط هذا الهاتف في $date، لذلك لا تتوفر الأيام السابقة.';
+  }
+
+  @override
+  String get insightsHowCounted =>
+      'تُحسب الأرقام من النشاط المسجل على هذا الهاتف: كل مهمة مرة واحدة، وكل مسؤولية مرة واحدة في اليوم. قد يكون النشاط الأقدم ناقصًا، فالمسؤوليات والمشتريات وتغييرات الأحداث تُسجَّل فقط منذ إضافة نشاط العائلة، والهاتف الذي انضم لاحقًا يحتفظ بآخر 30 يومًا فقط.';
+
+  @override
+  String get helpTitle => 'المساعدة والدعم';
+
+  @override
+  String get helpFaqHeader => 'أسئلة شائعة';
+
+  @override
+  String get helpGuidesHeader => 'أدلة';
+
+  @override
+  String get helpSwitchProfileQ => 'كيف أنتقل إلى ملف فرد آخر من العائلة؟';
+
+  @override
+  String get helpSwitchProfileA =>
+      'افتح القائمة واضغط على الدور تحت اسمك (مثل \"المالك\")، ثم اختر أحد أفراد العائلة. سيعرض التطبيق مهامه ومسؤولياته ويعمل باسمه. اضغط مرة أخرى للعودة. تبقى تذكيراتك على هذا الهاتف كما هي.';
+
+  @override
+  String get helpInviteQ => 'كيف أضيف شخصًا إلى العائلة؟';
+
+  @override
+  String get helpInviteA =>
+      'افتح القائمة › دعوة فرد للعائلة (أو الإعدادات › الحساب › دعوة فرد من العائلة) وشارك الرمز. يثبّت الشخص تطبيق OrgFamily ويسجل الدخول ثم يختار الإعدادات › الحساب › الانضمام برمز دعوة. كل رمز يُستخدم مرة واحدة وتنتهي صلاحيته.';
+
+  @override
+  String get helpRolesQ => 'من يستطيع تعديل ماذا؟';
+
+  @override
+  String get helpRolesA =>
+      'يستطيع المالك فعل كل شيء، بما في ذلك إدارة الأفراد وجدول العائلة. ويستطيع البالغون فعل كل ما عدا ذلك: المهام والأحداث والقوائم والمسؤوليات والأموال. ويستطيع الأطفال إضافة مهام وعناصر تسوق، وإكمال مهامهم ومسؤولياتهم، وتغيير موعد استحقاق مهامهم.';
+
+  @override
+  String get helpResponsibilitiesQ => 'ما الفرق بين المهام والمسؤوليات؟';
+
+  @override
+  String get helpResponsibilitiesA =>
+      'المهمة عمل لمرة واحدة له موعد نهائي وتذكير، مثل \"إنهاء واجب العلوم قبل السابعة مساءً\". أما المسؤولية فهي عادة يومية متكررة تُنجز اليوم أو لا، مثل \"ترتيب السرير\"، وتكون كل يوم أو في أيام الدراسة أو في أيام تختارها.';
+
+  @override
+  String get helpRemindersQ => 'لماذا لم يظهر التذكير؟';
+
+  @override
+  String get helpRemindersA =>
+      'تأكد من السماح بالإشعارات لتطبيق OrgFamily (تعرض شاشة تذكيراتي تنبيهًا عندما تكون متوقفة)، ومن أن توفير البطارية لا يقيّد التطبيق. قد يتأخر أندرويد في عرض التذكير بضع دقائق. يُخطَّط تذكير المسؤوليات اليومي لأسبوع مقدمًا، لذا افتح التطبيق مرة واحدة على الأقل كل أسبوع.';
+
+  @override
+  String get helpOfflineQ => 'هل يعمل OrgFamily دون إنترنت؟';
+
+  @override
+  String get helpOfflineA =>
+      'نعم. يُحفظ كل ما تغيّره على هاتفك فورًا ويُرسل إلى عائلتك عند عودة الاتصال. ويُظهر صف «ربط وتحديث ملفاتك على كل الأجهزة» في الإعدادات › الحساب ما إذا كان هناك شيء بانتظار الإرسال.';
+
+  @override
+  String get helpMoneyQ => 'من يستطيع رؤية أموالنا؟';
+
+  @override
+  String get helpMoneyA =>
+      'تبقى الأموال (المعاملات والميزانية وأهداف الادخار) على هذا الهاتف فقط ولا تُشارك مع العائلة، ولا يستطيع الأطفال فتحها. ويستطيع المالك إنشاء نسخة احتياطية مشفرة من الإعدادات › النسخ الاحتياطي للأموال.';
+
+  @override
+  String get helpLanguageQ => 'كيف أغيّر اللغة أو المظهر؟';
+
+  @override
+  String get helpLanguageA =>
+      'من الإعدادات › التفضيلات يمكنك اختيار العربية أو الإنجليزية، والوضع الفاتح أو الداكن، ونظام 12 أو 24 ساعة، والتبويب الذي يفتح عليه التطبيق.';
 }

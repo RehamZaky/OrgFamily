@@ -116,6 +116,16 @@ DateTime? taskReminderNotifyAt(TaskReminderInput input) {
   }
 }
 
+/// When this phone notifies for a task, or null for never — the one rule
+/// both `TaskRepository` (scheduling) and My reminders (listing) use:
+/// nothing for a completed or undated task, otherwise
+/// [taskReminderNotifyAt]. A time already past is the caller's to skip
+/// (`NotificationService` never schedules one).
+DateTime? taskNotificationAt(TaskReminderInput input) {
+  if (input.deadline.isCompleted || input.deadline.dueDate == null) return null;
+  return taskReminderNotifyAt(input);
+}
+
 /// When the single, non-repeating "still needs attention" follow-up should
 /// fire if the task is still incomplete: a few hours after a timed task's
 /// deadline, or the next morning for a date-only task (its deadline is

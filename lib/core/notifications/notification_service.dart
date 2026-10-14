@@ -4,6 +4,12 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+/// When this phone notifies for an event starting at [startAt], given its
+/// "event reminder" setting ([minutesBefore], null = none) — the one rule
+/// both [NotificationService.scheduleEventReminder] and My reminders use.
+DateTime? eventNotificationAt(DateTime startAt, int? minutesBefore) =>
+    minutesBefore == null ? null : startAt.subtract(Duration(minutes: minutesBefore));
+
 /// Schedules and cancels local reminders for tasks and events. No backend
 /// involved — everything is scheduled on-device via
 /// `flutter_local_notifications`, matching V1's local-first constraint.
@@ -116,6 +122,37 @@ class NotificationService {
               MacOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
+  }
+
+  /// Whether this phone lets the app show notifications: false when the
+  /// user turned them off (Android) or denied/never granted them (iOS);
+  /// null where it can't be known (other platforms, or the check failed).
+  Future<bool?> notificationsEnabled() async {
+    try {
+      await init();
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        return await _plugin
+            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+            ?.areNotificationsEnabled();
+      }
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final options = await _plugin
+            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            ?.checkPermissions();
+        return options?.isEnabled;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Asks for notification permission (the system dialog, where the OS
+  /// still allows asking) and returns [notificationsEnabled] afterwards.
+  Future<bool?> requestNotificationPermission() async {
+    try {
+      await init();
+      await _ensurePermission();
+    } catch (_) {}
+    return notificationsEnabled();
   }
 
   // Four disjoint ids per entity (task due, event start, task overdue
@@ -232,12 +269,13 @@ class NotificationService {
     int? minutesBefore = 15,
   }) async {
     final id = _eventNotificationId(eventId);
-    if (minutesBefore == null) return _cancel(id);
+    final at = eventNotificationAt(startAt, minutesBefore);
+    if (at == null || minutesBefore == null) return _cancel(id);
     return _schedule(
       id: id,
       title: title,
       body: minutesBefore == 0 ? 'Starting now' : 'Starting in $minutesBefore minutes',
-      at: startAt.subtract(Duration(minutes: minutesBefore)),
+      at: at,
       payload: 'event:$eventId',
     );
   }

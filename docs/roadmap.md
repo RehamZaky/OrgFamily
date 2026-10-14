@@ -212,7 +212,24 @@ The point where Firebase actually earns its place.
       responsibilities reminder), family schedule (school days, week start;
       Owner-only, synced). See docs/architecture.md "Settings and
       preferences". Rules for `settings` not deployed yet.
-- [ ] More drawer items (to be listed); Home layout customisation.
+- [x] More drawer items — done in V2.3 below.
+- [ ] Home layout customisation.
+
+## V2.3 — Drawer items
+
+- [x] Drawer regrouped (My space / Family / App), compact header and rows,
+      scrolls on small phones.
+- [x] My reminders: what this phone will notify for over the next 7 days,
+      Mine / Everyone, warning when notifications are off. See
+      docs/architecture.md "Drawer screens (V2.3)".
+- [x] Family insights: week / month so far, compared with the same point
+      of the previous period only when this phone has that history.
+- [x] Invite member shortcut (synced family members only).
+- [x] Help & support: FAQs (EN/AR) and the Money guide; no contact
+      channel yet.
+- [ ] Later: My progress (personal completions; streaks/rewards with V3),
+      Family goals (non-financial, separate from Money's savings goals),
+      a support contact.
 
 ## V2.1 — Family communication
 

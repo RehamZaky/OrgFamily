@@ -514,6 +514,35 @@ next occurrence isn't logged — it's not a family action.
   calendar's first column, "this week" stats and the activity summary; the
   calendar's weekend shading is unchanged.
 
+## Drawer screens (V2.3)
+
+**My reminders** (`lib/features/reminders/`) lists what this phone will
+notify for, computed — not read back from the plugin — by
+`planPhoneReminders` from the same rules that schedule them:
+`taskNotificationAt` (used by `TaskRepository`), `eventNotificationAt`
+(used by `NotificationService.scheduleEventReminder`) and
+`planDailyResponsibilityReminders`, over the same records (every phone
+schedules every family task and event). A test compares the list with what
+the scheduler actually scheduled. **Mine** is `reminderOwnerProvider`'s —
+the signed-in adult's linked profile, never the acting one — plus
+unassigned tasks and events with no members (whole-family); **Everyone** is
+all of them. Each notification is keyed by entity (or daily slot), so it
+appears once. `NotificationService.notificationsEnabled()` drives the
+"notifications are off" warning (Android `areNotificationsEnabled`, iOS
+`checkPermissions`; null elsewhere = no warning).
+
+**Family insights** (`lib/features/family/insights/`) counts, over the
+Family Activity items (log plus history derived from tasks/shopping):
+distinct tasks completed, distinct responsibility-and-day completions,
+distinct shopping items added and bought, and event entries
+(created/changed/cancelled). Repeats — legacy random ids, a log entry and
+its derived twin, two phones — count once, credited to the first. Member
+bars count only tasks and responsibilities. A period is compared with the
+same stretch of the previous one ("so far"), and only if this phone's
+earliest log entry is no later than the previous period's start;
+otherwise "Not enough history" — the log began with V2.1 and a phone that
+joined later only received 30 days. No money.
+
 ## Testing
 
 `test/widget_test.dart` overrides `databaseProvider` with

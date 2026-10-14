@@ -19,11 +19,15 @@ class ActivityItem {
     required this.type,
     required this.memberId,
     required this.time,
+    this.entityId,
     this.metadata = const {},
   });
 
   final String id;
   final String type;
+
+  /// The task, event, item, responsibility or member it's about.
+  final String? entityId;
 
   /// Who it's credited to: the acting member, or for `member.joined` the
   /// member who joined.
@@ -55,6 +59,7 @@ class ActivityItem {
       type: row.type,
       memberId: row.type == ActivityTypes.memberJoined ? row.entityId : row.actorMemberId,
       time: row.occurredAt ?? row.createdAt,
+      entityId: row.entityId,
       metadata: metadata,
     );
   }
@@ -165,6 +170,7 @@ final familyActivityProvider = Provider.autoDispose.family<AsyncValue<List<Activ
           // before completers were recorded.
           memberId: t.completedByMemberId ?? t.assigneeId,
           time: t.completedAt!,
+          entityId: t.id,
           metadata: {'title': t.title},
         ),
     for (final (item, listName) in items.value!)
@@ -174,6 +180,7 @@ final familyActivityProvider = Provider.autoDispose.family<AsyncValue<List<Activ
           type: ActivityTypes.shoppingItemAdded,
           memberId: item.addedById,
           time: item.createdAt,
+          entityId: item.id,
           metadata: {'name': item.name, 'listName': listName},
         ),
   ]..sort((a, b) => b.time.compareTo(a.time));

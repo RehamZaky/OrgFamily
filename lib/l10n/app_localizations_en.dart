@@ -2038,4 +2038,192 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinFamilyButton => 'Join family';
+
+  @override
+  String get drawerGroupMySpace => 'My space';
+
+  @override
+  String get drawerGroupFamily => 'Family';
+
+  @override
+  String get drawerGroupApp => 'App';
+
+  @override
+  String get drawerInviteMember => 'Invite member';
+
+  @override
+  String get remindersTitle => 'My reminders';
+
+  @override
+  String get remindersMine => 'Mine';
+
+  @override
+  String get remindersEveryone => 'Everyone';
+
+  @override
+  String get remindersKindTask => 'Task';
+
+  @override
+  String get remindersKindEvent => 'Event';
+
+  @override
+  String get remindersWholeFamily => 'Whole family';
+
+  @override
+  String get remindersFooter =>
+      'Reminders this phone will show over the next 7 days. To save battery, Android may show one a few minutes late.';
+
+  @override
+  String get remindersEmptyMine => 'No reminders for you in the next 7 days';
+
+  @override
+  String get remindersEmptyEveryone => 'No reminders in the next 7 days';
+
+  @override
+  String get remindersEmptyHint =>
+      'Tasks remind at their due time or the reminder you chose. Event and daily responsibility reminders are set in Settings › Reminders.';
+
+  @override
+  String get remindersOpenSettings => 'Reminder settings';
+
+  @override
+  String get remindersPermissionOff =>
+      'Notifications are turned off for OrgFamily on this phone, so none of these reminders will appear.';
+
+  @override
+  String get remindersPermissionStillOff =>
+      'Notifications are still off. Turn them on in your phone\'s Settings › Apps › OrgFamily › Notifications.';
+
+  @override
+  String get remindersPermissionAllow => 'Allow notifications';
+
+  @override
+  String get insightsTitle => 'Family insights';
+
+  @override
+  String get insightsWeek => 'Week';
+
+  @override
+  String get insightsMonth => 'Month';
+
+  @override
+  String get insightsThisMonth => 'This month';
+
+  @override
+  String get insightsTasksCompleted => 'Tasks completed';
+
+  @override
+  String get insightsResponsibilitiesDone => 'Responsibilities done';
+
+  @override
+  String get insightsShoppingAdded => 'Shopping items added';
+
+  @override
+  String get insightsShoppingPurchased => 'Shopping items bought';
+
+  @override
+  String get insightsEventUpdates => 'Event updates';
+
+  @override
+  String get insightsVsLastWeek => 'vs. same time last week';
+
+  @override
+  String get insightsVsLastMonth => 'vs. same time last month';
+
+  @override
+  String insightsSameAs(Object comparison) {
+    return 'No change $comparison';
+  }
+
+  @override
+  String get insightsNotEnoughHistory => 'Not enough history to compare';
+
+  @override
+  String get insightsWhoCompleted => 'Who completed what';
+
+  @override
+  String get insightsLegendTasks => 'Tasks';
+
+  @override
+  String get insightsLegendResponsibilities => 'Responsibilities';
+
+  @override
+  String insightsMemberSemantics(Object name, int tasks, int responsibilities) {
+    return '$name — tasks: $tasks, responsibilities: $responsibilities';
+  }
+
+  @override
+  String insightsHistoryFrom(Object date) {
+    return 'This phone\'s activity starts on $date, so earlier days are missing.';
+  }
+
+  @override
+  String get insightsHowCounted =>
+      'Counted from the activity on this phone: each task once, each responsibility once per day. Older activity may be incomplete — responsibilities, purchases and event changes are only recorded since Family Activity was added, and a phone that joined later only has the last 30 days.';
+
+  @override
+  String get helpTitle => 'Help & support';
+
+  @override
+  String get helpFaqHeader => 'Common questions';
+
+  @override
+  String get helpGuidesHeader => 'Guides';
+
+  @override
+  String get helpSwitchProfileQ => 'How do I switch to another family member?';
+
+  @override
+  String get helpSwitchProfileA =>
+      'Open the menu and tap the role under your name (for example \"Owner\"), then pick a family member. The app then shows their tasks and responsibilities and acts as them. Tap it again to switch back. Your reminders on this phone stay yours.';
+
+  @override
+  String get helpInviteQ => 'How do I add someone to the family?';
+
+  @override
+  String get helpInviteA =>
+      'Open the menu › Invite member (or Settings › Account › Invite a family member) and share the code. They install OrgFamily, sign in, and choose Settings › Account › Join with an invite code. Each code works once and expires.';
+
+  @override
+  String get helpRolesQ => 'Who can change what?';
+
+  @override
+  String get helpRolesA =>
+      'The Owner can do everything, including managing members and the family schedule. Adults can do everything else: tasks, events, lists, responsibilities and Money. Children can add tasks and shopping items, complete their own tasks and responsibilities, and move their own task\'s due date.';
+
+  @override
+  String get helpResponsibilitiesQ =>
+      'What\'s the difference between tasks and responsibilities?';
+
+  @override
+  String get helpResponsibilitiesA =>
+      'A task is a one-off job with a deadline and a reminder, like \"Finish science homework by 7 PM\". A responsibility is a recurring everyday expectation that\'s simply done today or not, like \"Make your bed\" — every day, on school days, or on days you choose.';
+
+  @override
+  String get helpRemindersQ => 'Why didn\'t a reminder appear?';
+
+  @override
+  String get helpRemindersA =>
+      'Check that notifications are allowed for OrgFamily (My reminders shows a warning when they\'re off) and that battery saving isn\'t restricting the app. Android may show a reminder a few minutes late. The daily responsibilities reminder is planned a week ahead, so open the app at least once a week.';
+
+  @override
+  String get helpOfflineQ => 'Does OrgFamily work offline?';
+
+  @override
+  String get helpOfflineA =>
+      'Yes. Everything you change is saved on your phone straight away and sent to your family as soon as you\'re back online. Settings › Account › Cloud sync shows whether anything is still waiting to be sent.';
+
+  @override
+  String get helpMoneyQ => 'Who can see our Money?';
+
+  @override
+  String get helpMoneyA =>
+      'Money (transactions, budget and savings goals) stays on this phone only — it isn\'t shared with the family. Children can\'t open it. The Owner can make an encrypted backup from Settings › Money backup.';
+
+  @override
+  String get helpLanguageQ => 'How do I change the language or theme?';
+
+  @override
+  String get helpLanguageA =>
+      'Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on.';
 }

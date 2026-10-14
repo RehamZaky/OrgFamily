@@ -85,4 +85,76 @@ void main() {
     final tile = tester.widget<ListTile>(find.widgetWithText(ListTile, 'Profile'));
     expect(tile.enabled, isFalse);
   });
+
+  group('V2.3 layout', () {
+    Future<ProviderContainer> open(WidgetTester tester, {required CloudAccess access}) async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final container = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        syncEngineProvider.overrideWithValue(SyncEngine.inert(db)),
+        notificationServiceProvider.overrideWithValue(FakeNotificationService()),
+        cloudAccessProvider.overrideWithValue(access),
+      ]);
+      addTearDown(container.dispose);
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(drawer: AppDrawer(), body: SizedBox()),
+          ),
+        ),
+      );
+      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('three groups, in order, with the new items', (tester) async {
+      await open(tester, access: CloudAccess.member);
+      final labels = [
+        'My space',
+        'Profile',
+        'My responsibilities',
+        'My reminders',
+        'Family',
+        'Family activity',
+        'Family insights',
+        'Invite member',
+        'App',
+        'Settings',
+        'Help & support',
+        'About',
+      ];
+      final ys = [for (final l in labels) tester.getTopLeft(find.text(l)).dy];
+      expect(ys, [...ys]..sort(), reason: 'shown in this order');
+    });
+
+    testWidgets('Invite member only for a synced family member', (tester) async {
+      for (final access in [CloudAccess.none, CloudAccess.notMember, CloudAccess.awaitingOwner]) {
+        await open(tester, access: access);
+        expect(find.text('Invite member'), findsNothing, reason: '$access');
+      }
+    });
+
+    testWidgets('the new items open their screens', (tester) async {
+      for (final (item, title) in [
+        ('My reminders', 'My reminders'),
+        ('Family insights', 'Family insights'),
+        ('Help & support', 'Help & support'),
+      ]) {
+        await open(tester, access: CloudAccess.none);
+        await tester.tap(find.text(item));
+        await tester.pumpAndSettle();
+        expect(find.widgetWithText(AppBar, title), findsOneWidget, reason: item);
+        // My reminders refreshes every minute; unmount it before the next.
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+  });
 }
