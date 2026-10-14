@@ -538,10 +538,16 @@ distinct shopping items added and bought, and event entries
 (created/changed/cancelled). Repeats — legacy random ids, a log entry and
 its derived twin, two phones — count once, credited to the first. Member
 bars count only tasks and responsibilities. A period is compared with the
-same stretch of the previous one ("so far"), and only if this phone's
-earliest log entry is no later than the previous period's start;
-otherwise "Not enough history" — the log began with V2.1 and a phone that
-joined later only received 30 days. No money.
+same stretch of the previous one ("so far"), as a percentage, only if
+this phone's earliest log entry is no later than the previous period's
+start (the log began with V2.1, and a phone that joined later only
+received 30 days) and the previous period had any — otherwise the
+comparison is simply left out, never shown as 0% or a placeholder. How
+the numbers are counted, and where this phone's history starts, sits in
+an info tooltip. A family with no activity at all gets a welcome card
+instead of zeros. No money.
+
+The drawer is 86% of the screen width, at most 360dp (tablets).
 
 ## Testing
 

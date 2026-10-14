@@ -2192,9 +2192,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insightsNotEnoughHistory => 'لا يوجد سجل كافٍ للمقارنة';
-
-  @override
   String get insightsWhoCompleted => 'من أنجز ماذا';
 
   @override
@@ -2281,4 +2278,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get helpLanguageA =>
       'من الإعدادات › التفضيلات يمكنك اختيار العربية أو الإنجليزية، والوضع الفاتح أو الداكن، ونظام 12 أو 24 ساعة، والتبويب الذي يفتح عليه التطبيق.';
+
+  @override
+  String get insightsWelcomeTitle => 'هنا تبدأ إنجازات عائلتك! 💜';
+
+  @override
+  String get insightsWelcomeBody =>
+      'ستظهر المزيد من الإحصائيات كلما استخدمت عائلتك OrgFamily.';
 }

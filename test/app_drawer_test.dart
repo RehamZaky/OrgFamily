@@ -135,6 +135,15 @@ void main() {
       expect(ys, [...ys]..sort(), reason: 'shown in this order');
     });
 
+    testWidgets('86% of a phone, at most 360 on a tablet', (tester) async {
+      for (final (screen, expected) in [(384.0, 384 * 0.86), (412.0, 412 * 0.86), (800.0, 360.0)]) {
+        await open(tester, access: CloudAccess.none);
+        tester.view.physicalSize = Size(screen, 1600);
+        await tester.pumpAndSettle();
+        expect(tester.getSize(find.byType(Drawer)).width, closeTo(expected, 0.01), reason: '$screen');
+      }
+    });
+
     testWidgets('Invite member only for a synced family member', (tester) async {
       for (final access in [CloudAccess.none, CloudAccess.notMember, CloudAccess.awaitingOwner]) {
         await open(tester, access: access);

@@ -3811,12 +3811,6 @@ abstract class AppLocalizations {
   /// **'No change {comparison}'**
   String insightsSameAs(Object comparison);
 
-  /// No description provided for @insightsNotEnoughHistory.
-  ///
-  /// In en, this message translates to:
-  /// **'Not enough history to compare'**
-  String get insightsNotEnoughHistory;
-
   /// No description provided for @insightsWhoCompleted.
   ///
   /// In en, this message translates to:
@@ -3966,6 +3960,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on.'**
   String get helpLanguageA;
+
+  /// No description provided for @insightsWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family\'s progress starts here! 💜'**
+  String get insightsWelcomeTitle;
+
+  /// No description provided for @insightsWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'More insights will appear as your family uses OrgFamily.'**
+  String get insightsWelcomeBody;
 }
 
 class _AppLocalizationsDelegate

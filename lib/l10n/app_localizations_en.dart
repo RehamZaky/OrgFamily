@@ -2136,9 +2136,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get insightsNotEnoughHistory => 'Not enough history to compare';
-
-  @override
   String get insightsWhoCompleted => 'Who completed what';
 
   @override
@@ -2226,4 +2223,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpLanguageA =>
       'Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on.';
+
+  @override
+  String get insightsWelcomeTitle => 'Your family\'s progress starts here! 💜';
+
+  @override
+  String get insightsWelcomeBody =>
+      'More insights will appear as your family uses OrgFamily.';
 }

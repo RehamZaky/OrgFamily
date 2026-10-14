@@ -184,3 +184,14 @@ InsightsCounts countInsights(
 /// comparison reaching further back would be misleading.
 bool hasHistorySince(DateTime? historyStart, DateTime from) =>
     historyStart != null && !historyStart.toLocal().isAfter(from);
+
+/// The change from [previous] to [current] in whole percent, or null when
+/// there's nothing reliable to compare with: no complete previous period
+/// ([previous] null), or nothing in it (a change from zero has no
+/// percentage). A real change never shows as 0%.
+int? changePercent(int current, int? previous) {
+  if (previous == null || previous == 0) return null;
+  final percent = ((current - previous) * 100 / previous).round();
+  if (percent == 0 && current != previous) return current > previous ? 1 : -1;
+  return percent;
+}

@@ -1013,7 +1013,6 @@
   "insightsVsLastMonth": "vs. same time last month",
   "insightsSameAs": "No change {comparison}",
   "@insightsSameAs": {"placeholders": {"comparison": {}}},
-  "insightsNotEnoughHistory": "Not enough history to compare",
   "insightsWhoCompleted": "Who completed what",
   "insightsLegendTasks": "Tasks",
   "insightsLegendResponsibilities": "Responsibilities",
@@ -1040,5 +1039,7 @@
   "helpMoneyQ": "Who can see our Money?",
   "helpMoneyA": "Money (transactions, budget and savings goals) stays on this phone only — it isn't shared with the family. Children can't open it. The Owner can make an encrypted backup from Settings › Money backup.",
   "helpLanguageQ": "How do I change the language or theme?",
-  "helpLanguageA": "Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on."
+  "helpLanguageA": "Go to Settings › Preferences to choose Arabic or English, light or dark mode, 12- or 24-hour time, and which tab the app opens on.",
+  "insightsWelcomeTitle": "Your family's progress starts here! 💜",
+  "insightsWelcomeBody": "More insights will appear as your family uses OrgFamily."
 }

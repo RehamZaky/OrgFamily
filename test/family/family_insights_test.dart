@@ -148,6 +148,23 @@ void main() {
     });
   });
 
+  group('change percent', () {
+    test('only against a complete, non-empty previous period', () {
+      expect(changePercent(5, null), isNull);
+      expect(changePercent(5, 0), isNull);
+      expect(changePercent(0, 0), isNull);
+      expect(changePercent(2, 1), 100);
+      expect(changePercent(1, 2), -50);
+      expect(changePercent(3, 3), 0);
+      expect(changePercent(0, 4), -100);
+    });
+
+    test('a real change never rounds to 0%', () {
+      expect(changePercent(301, 300), 1);
+      expect(changePercent(299, 300), -1);
+    });
+  });
+
   group('history', () {
     final start = DateTime(2026, 10, 4);
     test('only when the log reaches back to the start', () {
@@ -211,35 +228,71 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a new log: numbers, but "Not enough history" instead of a comparison',
+    Finder tooltip(String containing) => find.byWidgetPredicate(
+      (w) => w is Tooltip && (w.message ?? '').contains(containing),
+    );
+
+    testWidgets('no activity at all: a welcome, no numbers', (tester) async {
+      await pump(tester);
+      expect(find.text("Your family's progress starts here! 💜"), findsOneWidget);
+      expect(find.text('More insights will appear as your family uses OrgFamily.'), findsOneWidget);
+      expect(find.text('Tasks completed'), findsNothing);
+      expect(find.text('Week'), findsNothing);
+    });
+
+    testWidgets('a new log: numbers and bars, no comparison, coverage only in the tooltip',
         (tester) async {
       final now = DateTime.now();
       await logged('r1', ActivityTypes.responsibilityCompleted, now, entity: 'bed');
+      await logged('t1', ActivityTypes.taskCompleted, now, entity: 'task-1', member: 'm-kareem');
       await pump(tester);
       expect(find.text('Responsibilities done'), findsOneWidget);
-      expect(find.text('Not enough history to compare'), findsNWidgets(5));
-      expect(find.textContaining("This phone's activity starts on"), findsOneWidget);
-      expect(find.textContaining('Older activity may be incomplete'), findsOneWidget);
+      expect(find.text('Not enough history to compare'), findsNothing);
+      expect(find.textContaining('vs. same time'), findsNothing);
+      expect(find.textContaining('%'), findsNothing);
+      expect(find.textContaining("This phone's activity starts on"), findsNothing,
+          reason: 'not shown on the page');
+      expect(tooltip("This phone's activity starts on"), findsOneWidget);
+      expect(tooltip('Older activity may be incomplete'), findsOneWidget);
+      Finder memberBar(String label) =>
+          find.byWidgetPredicate((w) => w is Semantics && w.properties.label == label);
+      expect(memberBar('Mariam — tasks: 0, responsibilities: 1'), findsOneWidget);
+      expect(memberBar('Kareem — tasks: 1, responsibilities: 0'), findsOneWidget);
+
+      // Month too: numbers, no comparison.
+      await tester.tap(find.text('Month'));
+      await tester.pumpAndSettle();
+      expect(find.text('This month'), findsOneWidget);
+      expect(find.textContaining('vs. same time'), findsNothing);
     });
 
-    testWidgets('with history: compared against the same point of last week', (tester) async {
+    testWidgets('with complete history: percentages, hidden where last period had none',
+        (tester) async {
       final now = DateTime.now();
       final week = insightsWindow(InsightsPeriod.week, now: now, schedule: FamilySchedule.defaults);
       // History starts well before last week.
       await logged('old', ActivityTypes.taskCreated, week.previousStart.subtract(const Duration(days: 1)));
+      // Tasks: 1 last week → 2 this week.
       await logged('last', ActivityTypes.taskCompleted, week.previousStart, entity: 'task-a');
       await logged('this1', ActivityTypes.taskCompleted, week.start, entity: 'task-b');
       await logged('this2', ActivityTypes.taskCompleted, week.start, entity: 'task-c',
           member: 'm-kareem');
+      // Items added: 2 → 1.
+      await logged('add1', ActivityTypes.shoppingItemAdded, week.previousStart, entity: 'milk');
+      await logged('add2', ActivityTypes.shoppingItemAdded, week.previousStart, entity: 'eggs');
+      await logged('add3', ActivityTypes.shoppingItemAdded, week.start, entity: 'bread');
+      // Events: 1 → 1.
+      await logged('ev1', ActivityTypes.eventCreated, week.previousStart, entity: 'dentist');
+      await logged('ev2', ActivityTypes.eventChanged, week.start, entity: 'dentist');
+      // Responsibilities: 0 → 1 — a change from nothing has no percentage.
+      await logged('r1', ActivityTypes.responsibilityCompleted, week.start, entity: 'bed');
       await pump(tester);
-      expect(find.text('Not enough history to compare'), findsNothing);
-      expect(find.text('+1 vs. same time last week'), findsOneWidget);
-      expect(find.text('No change vs. same time last week'), findsNWidgets(4));
-      expect(find.textContaining("This phone's activity starts on"), findsNothing);
-      Finder memberBar(String label) =>
-          find.byWidgetPredicate((w) => w is Semantics && w.properties.label == label);
-      expect(memberBar('Mariam — tasks: 1, responsibilities: 0'), findsOneWidget);
-      expect(memberBar('Kareem — tasks: 1, responsibilities: 0'), findsOneWidget);
+      expect(find.text('+100% vs. same time last week'), findsOneWidget);
+      expect(find.text('−50% vs. same time last week'), findsOneWidget);
+      expect(find.text('No change vs. same time last week'), findsOneWidget);
+      expect(find.textContaining('vs. same time'), findsNWidgets(3));
+      expect(tooltip("This phone's activity starts on"), findsNothing);
+      expect(tooltip('Older activity may be incomplete'), findsOneWidget);
     });
   });
 }

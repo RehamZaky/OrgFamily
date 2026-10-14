@@ -26,6 +26,10 @@ import 'member_avatar.dart';
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
+  /// Share of the screen width the drawer takes, and its widest (tablets).
+  static const drawerWidthFraction = 0.86;
+  static const drawerMaxWidth = 360.0;
+
   /// The drawer's "Switch profile" sheet — a soft, unprotected picker (see
   /// actingMemberProvider's doc comment): anyone can tap back to Owner,
   /// this just changes who the app treats as "you" for greetings and
@@ -84,6 +88,11 @@ class AppDrawer extends ConsumerWidget {
     final me = ref.watch(actingMemberProvider);
 
     return Drawer(
+      // 86% of the screen, so the page behind stays visible — capped for
+      // tablets at Material's standard drawer width.
+      width: (MediaQuery.sizeOf(context).width * drawerWidthFraction)
+          .clamp(0, drawerMaxWidth)
+          .toDouble(),
       child: SafeArea(
         bottom: false,
         child: Column(
