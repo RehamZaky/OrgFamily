@@ -547,7 +547,7 @@ the numbers are counted, and where this phone's history starts, sits in
 an info tooltip. A family with no activity at all gets a welcome card
 instead of zeros. No money.
 
-The drawer is 86% of the screen width, at most 360dp (tablets).
+The drawer is 80% of the screen width, at most 304dp (tablets) — 288dp on a 360dp phone.
 
 ## Testing
 

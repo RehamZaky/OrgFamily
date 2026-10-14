@@ -27,8 +27,8 @@ class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   /// Share of the screen width the drawer takes, and its widest (tablets).
-  static const drawerWidthFraction = 0.86;
-  static const drawerMaxWidth = 360.0;
+  static const drawerWidthFraction = 0.80;
+  static const drawerMaxWidth = 304.0;
 
   /// The drawer's "Switch profile" sheet — a soft, unprotected picker (see
   /// actingMemberProvider's doc comment): anyone can tap back to Owner,
@@ -88,8 +88,8 @@ class AppDrawer extends ConsumerWidget {
     final me = ref.watch(actingMemberProvider);
 
     return Drawer(
-      // 86% of the screen, so the page behind stays visible — capped for
-      // tablets at Material's standard drawer width.
+      // 80% of the screen, so the page behind stays visible — capped for
+      // tablets at Flutter's standard drawer width.
       width: (MediaQuery.sizeOf(context).width * drawerWidthFraction)
           .clamp(0, drawerMaxWidth)
           .toDouble(),
