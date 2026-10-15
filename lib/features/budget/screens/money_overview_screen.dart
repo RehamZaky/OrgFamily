@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -240,33 +242,26 @@ class MoneyOverviewScreen extends ConsumerWidget {
                 ),
               )
             else if (sortedCategories.length == 1)
-              Column(
-                children: [
-                  Text(
-                    formatCents(totalSpent, currencyCode: currencyCode),
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
-                  ),
-                  Text(l10n.expenses,
-                      style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-                  const SizedBox(height: 12),
-                  for (final e in sortedCategories)
-                    _CategoryRow(
-                      category: e.key,
-                      amountCents: e.value,
-                      totalCents: totalSpent,
-                      currencyCode: currencyCode,
-                      l10n: l10n,
-                    ),
-                ],
+              _SingleCategoryCard(
+                category: sortedCategories.single.key,
+                amountCents: sortedCategories.single.value,
+                currencyCode: currencyCode,
+                l10n: l10n,
               )
             else
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SpendingDonutChart(
+                    // A tiny category would be thinner than the gap between
+                    // slices and vanish, so each one gets at least 2% of the
+                    // ring; the list beside it keeps the exact figures.
                     sections: [
                       for (final e in sortedCategories)
-                        DonutSection(e.key.color, e.value.toDouble()),
+                        DonutSection(
+                          e.key.color,
+                          math.max(e.value.toDouble(), totalSpent * 0.02),
+                        ),
                     ],
                     centerLabel: formatCents(totalSpent, currencyCode: currencyCode),
                     centerSubLabel: l10n.expenses,
@@ -283,7 +278,6 @@ class MoneyOverviewScreen extends ConsumerWidget {
                             totalCents: totalSpent,
                             currencyCode: currencyCode,
                             l10n: l10n,
-                            compact: true,
                           ),
                       ],
                     ),
@@ -354,9 +348,9 @@ class MoneyOverviewScreen extends ConsumerWidget {
   }
 }
 
-/// One category's line in the Spending by Category list — icon, name,
-/// amount, and its share of the total, so the reader never has to compute
-/// the amount from the percentage themselves.
+/// One category's line beside the Spending by Category donut — icon and
+/// name, then the amount and its share of the total underneath, so the
+/// reader never has to compute the amount from the percentage themselves.
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.category,
@@ -364,7 +358,6 @@ class _CategoryRow extends StatelessWidget {
     required this.totalCents,
     required this.currencyCode,
     required this.l10n,
-    this.compact = false,
   });
 
   final TransactionCategory category;
@@ -372,34 +365,139 @@ class _CategoryRow extends StatelessWidget {
   final int totalCents;
   final String currencyCode;
   final AppLocalizations l10n;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final percent = totalCents == 0 ? 0 : (amountCents / totalCents * 100).round();
+    // Real spending that rounds to 0% reads as "<1%", kept left-to-right so
+    // RTL doesn't mirror it into "%1>".
+    final share = amountCents > 0 && percent == 0 ? '\u2066<1%\u2069' : '$percent%';
+    const iconSize = 22.0;
+    // There is little width beside the donut, so the amount and share sit
+    // on a second line under the name instead of cutting the name short.
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: compact ? 4 : 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: iconSize,
+                height: iconSize,
+                decoration: BoxDecoration(
+                    color: category.color.withValues(alpha: 0.15), shape: BoxShape.circle),
+                child: Icon(category.icon, size: 12, color: category.color),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(category.label(l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: iconSize + 8),
+            child: Row(
+              children: [
+                // Shrink a very large amount rather than cut digits off it.
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      formatCents(amountCents, currencyCode: currencyCode),
+                      maxLines: 1,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 38,
+                  child: Text(share,
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Spending by Category when the month has only one category: a compact
+/// card naming it, with its amount shown once and 100% as a small hint —
+/// a one-slice donut would say nothing.
+class _SingleCategoryCard extends StatelessWidget {
+  const _SingleCategoryCard({
+    required this.category,
+    required this.amountCents,
+    required this.currencyCode,
+    required this.l10n,
+  });
+
+  final TransactionCategory category;
+  final int amountCents;
+  final String currencyCode;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.colors.borderSubtle),
+      ),
       child: Row(
         children: [
           Container(
-            width: compact ? 22 : 32,
-            height: compact ? 22 : 32,
-            decoration: BoxDecoration(color: category.color.withValues(alpha: 0.15), shape: BoxShape.circle),
-            child: Icon(category.icon, size: compact ? 12 : 16, color: category.color),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: category.color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(category.icon, size: 20, color: category.color),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(category.label(l10n), maxLines: 1, overflow: TextOverflow.ellipsis),
-          ),
-          Text(
-            formatCents(amountCents, currencyCode: currencyCode),
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.label(l10n),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    formatCents(amountCents, currencyCode: currencyCode),
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 38,
-            child: Text('$percent%',
-                textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: context.colors.track,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '100%',
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary),
+            ),
           ),
         ],
       ),

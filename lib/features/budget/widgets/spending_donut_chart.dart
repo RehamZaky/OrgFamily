@@ -66,20 +66,33 @@ class SpendingDonutChart extends StatelessWidget {
               borderData: FlBorderData(show: false),
             ),
           ),
+          // A large total shrinks to stay on one line inside the hole rather
+          // than wrapping over the ring; short ones keep their full size.
           if (centerLabel != null)
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  centerLabel!,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-                ),
-                if (centerSubLabel != null)
-                  Text(
-                    centerSubLabel!,
-                    style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
+            SizedBox(
+              width: size * 0.54,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      centerLabel!,
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                    ),
                   ),
-              ],
+                  if (centerSubLabel != null)
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        centerSubLabel!,
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
+                      ),
+                    ),
+                ],
+              ),
             ),
         ],
       ),

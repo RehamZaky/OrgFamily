@@ -97,16 +97,25 @@ class BudgetScreen extends ConsumerWidget {
           if (totalLimit != null)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              // Each side gets a share of the width (spent / limit is the
+              // longer text) so very large amounts shrink instead of running
+              // off the screen.
               children: [
-                _AmountColumn(
-                  label: '${formatCents(spent, currencyCode: currencyCode)} / '
-                      '${formatCents(totalLimit, currencyCode: currencyCode)}',
-                  sub: l10n.budgetUsedLabel,
+                Flexible(
+                  flex: 3,
+                  child: _AmountColumn(
+                    label: '${formatCents(spent, currencyCode: currencyCode)} / '
+                        '${formatCents(totalLimit, currencyCode: currencyCode)}',
+                    sub: l10n.budgetUsedLabel,
+                  ),
                 ),
-                _AmountColumn(
-                  label: formatCents(remaining ?? 0, currencyCode: currencyCode),
-                  sub: l10n.budgetRemaining,
-                  color: (remaining ?? 0) < 0 ? context.colors.danger : context.colors.success,
+                Flexible(
+                  flex: 2,
+                  child: _AmountColumn(
+                    label: formatCents(remaining ?? 0, currencyCode: currencyCode),
+                    sub: l10n.budgetRemaining,
+                    color: (remaining ?? 0) < 0 ? context.colors.danger : context.colors.success,
+                  ),
                 ),
               ],
             ),
@@ -186,10 +195,17 @@ class _AmountColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(label,
+              maxLines: 1,
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+        ),
         const SizedBox(height: 2),
-        Text(sub, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+        Text(sub,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
       ],
     );
   }

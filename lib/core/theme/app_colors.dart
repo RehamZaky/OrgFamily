@@ -67,7 +67,9 @@ class AppColors {
 
   /// Fixed palette for transaction-category chips and the spending donut's
   /// slices/legend — same role as [eventPalette]/[avatarPalette], one color
-  /// per open-ended category, assigned by index.
+  /// per open-ended category, assigned by index. Keep at least one color per
+  /// TransactionCategory: two categories sharing a color would look like one
+  /// slice of the donut.
   static const budgetCategoryPalette = [
     Color(0xFF8E7CFF), // purple
     Color(0xFF5B8DEF), // blue
@@ -75,5 +77,7 @@ class AppColors {
     Color(0xFFE8749B), // pink
     Color(0xFF34C471), // green
     Color(0xFF00B4D8), // cyan
+    Color(0xFFA3C93A), // lime
+    Color(0xFF94A3B8), // grey — "Other"
   ];
 }
