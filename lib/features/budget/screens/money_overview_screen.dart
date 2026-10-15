@@ -615,10 +615,13 @@ class _BudgetMiniCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.budgetTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(l10n.budgetTitle,
+                  maxLines: 1,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            ),
             const SizedBox(height: 8),
             if (totalLimit == null) ...[
               Text(
@@ -698,10 +701,13 @@ class _SavingsMiniCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.savings,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(l10n.savings,
+                  maxLines: 1,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            ),
             const SizedBox(height: 8),
             if (goals.isEmpty) ...[
               Text(
