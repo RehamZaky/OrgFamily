@@ -625,7 +625,7 @@ class _BudgetMiniCard extends ConsumerWidget {
             const SizedBox(height: 8),
             if (totalLimit == null) ...[
               Text(
-                l10n.noBudgetSetForMonth(DateFormat.MMMM().format(month)),
+                l10n.noBudgetSetForMonth(DateFormat.MMMM(Localizations.localeOf(context).toString()).format(month)),
                 style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
               ),
               const SizedBox(height: 8),

@@ -79,7 +79,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
-          Center(child: Text(DateFormat.yMMMM().format(month))),
+          Center(child: Text(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(month))),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -136,7 +136,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            DateFormat.MMM().format(months[i]),
+                            DateFormat.MMM(Localizations.localeOf(context).toString()).format(months[i]),
                             style:
                                 TextStyle(fontSize: 11, color: context.colors.textSecondary),
                           ),

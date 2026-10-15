@@ -68,7 +68,7 @@ class BudgetScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
-          Center(child: Text(DateFormat.yMMMM().format(month))),
+          Center(child: Text(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(month))),
           const SizedBox(height: 16),
           Center(
             child: SpendingDonutChart(

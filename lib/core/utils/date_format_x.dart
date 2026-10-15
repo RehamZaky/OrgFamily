@@ -47,14 +47,14 @@ extension DateFormatX on DateTime {
   String get relativeDay {
     if (isToday) return 'Today';
     if (isTomorrow) return 'Tomorrow';
-    return DateFormat('EEEE').format(this);
+    return DateFormat('EEEE', TimeFormatting.locale).format(this);
   }
 
   String get timeLabel => TimeFormatting.format(this);
 
-  String get shortDate => DateFormat('MMM d').format(this);
+  String get shortDate => DateFormat('MMM d', TimeFormatting.locale).format(this);
 
-  String get fullDate => DateFormat('EEEE, MMMM d').format(this);
+  String get fullDate => DateFormat('EEEE, MMMM d', TimeFormatting.locale).format(this);
 
   String get relativeDayAndTime => '$relativeDay • $timeLabel';
 
